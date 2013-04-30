@@ -1,0 +1,3 @@
+MCFLAGS = --use-grade-subdirs -O5 --intermodule-optimization
+
+MCFLAGS-mercury_json = --no-warn-nothing-exported --no-warn-interface-imports

@@ -1,0 +1,4 @@
+# Both of these can be overridden on the command line.
+#
+MMC = mmc
+INSTALL_PREFIX = /usr/lib/mercury_json

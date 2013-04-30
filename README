@@ -1,0 +1,45 @@
+mercury_json -- A Mercury library for reading and writing JSON
+==============================================================
+
+`mercury_json' is a Mercury library for reading and writing 
+JSON from character streams.
+
+
+FEATURES
+--------
+
+- conforms to RFC 4627
+- optionally allows comments in JSON
+
+
+LICENSE
+-------
+`mercury_json' is licensed under a simple 2-clause BSD style license.
+See the file COPYING for details. 
+
+
+INSTALLATION
+------------
+
+Check the values in the file Make.options to see if they agree with your
+system.
+
+Do:
+
+    $ make install
+
+
+You can also override value in Make.options on the command line, for
+example
+
+    $ make INSTALL_PREFIX=/foo/bar install
+
+says to install the library in /foo/bar
+
+
+TESTING
+-------
+
+To run the regression test suite, do:
+
+    $ make runtests
