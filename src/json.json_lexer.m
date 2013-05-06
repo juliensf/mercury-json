@@ -471,6 +471,11 @@ consume_comment(Reader, Result, !State) :-
         ReadResult = ok(Char),
         ( if Char = ('/') then
             consume_until_next_nl_or_eof(Stream, Result, !State)
+        else if Char = ('*') then
+            % The last char kind must be other here since we don't
+            % want to accept /*/ as multiline comment.
+            LastCharKind = char_other,
+            consume_multiline_comment(Stream, LastCharKind, Result, !State)
         else
             string.format("unexpected character: '%c'", [c(Char)], Msg),
             make_json_error(Stream, Msg, Error, !State),
@@ -507,6 +512,42 @@ consume_until_next_nl_or_eof(Stream, Result, !State) :-
         ReadResult = error(Error),
         Result = error(stream_error(Error))
     ).
+
+:- type last_multiline_comment_char
+    --->    char_star
+    ;       char_other.
+
+:- pred consume_multiline_comment(Stream::in, last_multiline_comment_char::in,
+    json.res(Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+consume_multiline_comment(Stream, LastCharKind, Result, !State) :-
+    stream.get(Stream, ReadResult, !State),
+    ( 
+        ReadResult = ok(Char),
+        ( if 
+            LastCharKind = char_star,
+            Char = ('/')
+        then
+            Result = ok
+        else 
+            ThisCharKind = ( if Char = ('*') then char_star else char_other ),
+            consume_multiline_comment(Stream, ThisCharKind, Result, !State)
+        )
+    ;
+        ReadResult = eof,
+        % XXX we should record the context of the beginning of the comment.
+        make_error_context(Stream, Context, !State),
+        Error = json_error(Context, unterminated_multiline_comment),
+        Result = error(Error)
+    ;
+        ReadResult = error(Error),
+        Result = error(stream_error(Error))
+    ).
+
 %-----------------------------------------------------------------------------%
 
 token_to_string(token_left_curly_bracket) = "{".

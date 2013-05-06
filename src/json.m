@@ -62,6 +62,8 @@
     ;       unexpected_value(string, maybe(string))
 
     ;       duplicate_object_member(string)
+
+    ;       unterminated_multiline_comment
     
     ;       other(string).
 
@@ -412,6 +414,10 @@ make_error_message(Error) = Msg :-
             ErrorDesc = duplicate_object_member(Name),
             string.format("%s:%d: error: object member \"%s\" is not unique\n",
                 [s(StreamName), i(LineNo), s(Name)], Msg)
+        ;
+            ErrorDesc = unterminated_multiline_comment,
+            string.format("%s:%d: error: unterminated multiline comment\n",
+                [s(StreamName), i(LineNo)], Msg)
         )
     ).
 
