@@ -1,0 +1,8 @@
+Mercury
+*.err
+*.mh
+libmercury_json.a
+libmercury_json.dll
+libmercury_json.dylib
+libmercury_json.so
+mercury_json.init

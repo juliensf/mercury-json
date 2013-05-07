@@ -1,0 +1,6 @@
+Mercury
+Mercury.modules
+*.mh
+*.err
+*.out
+test_json
