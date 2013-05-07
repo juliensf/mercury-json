@@ -198,7 +198,7 @@ get_escaped_char(Stream, !Chars, Result, !State) :-
             !:Chars = [EscapedChar | !.Chars],
             Result = ok
         else if Char = 'u' then
-            unexpected($module, $pred, "unicode escapes NYI")
+            get_escaped_unicode_char(Stream, !Chars, Result, !State)
         else
             make_error_context(Stream, Context, !State),
             ErrorDesc = invalid_character_escape(Char),
@@ -224,6 +224,86 @@ escaped_json_char('f', '\f').
 escaped_json_char('n', '\n').
 escaped_json_char('r', '\r').
 escaped_json_char('t', '\t').
+
+:- pred get_escaped_unicode_char(Stream::in, list(char)::in, list(char)::out,
+    json.res(Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+get_escaped_unicode_char(Stream, !Chars, Result, !State) :-
+    get_hex_digits(Stream, 4, [], HexDigits, HexDigitsResult, !State),
+    (
+        HexDigitsResult = ok,
+        HexString = string.from_char_list(HexDigits),
+        ( if
+            string.base_string_to_int(16, HexString, UnicodeCharCode),
+            allowed_unicode_char_code(UnicodeCharCode),
+            UnicodeCharCode \= 0,    % Do not allow the null character.
+            char.from_int(UnicodeCharCode, UnicodeChar)
+        then
+            !:Chars = [UnicodeChar | !.Chars],
+            Result = ok
+        else
+            make_error_context(Stream, Context, !State),
+            ErrorDesc = invalid_unicode_character(HexString),
+            Error = json_error(Context, ErrorDesc),
+            Result = error(Error)
+        )
+    ;
+        HexDigitsResult = error(Error),
+        Result = error(Error)
+    ).
+
+
+:- pred get_hex_digits(Stream::in, int::in, list(char)::in, list(char)::out,
+    json.res(Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+get_hex_digits(Stream, !.N, !HexDigits, Result, !State) :-
+    ( if !.N > 0 then
+        stream.get(Stream, ReadResult, !State),
+        (
+            ReadResult = ok(Char),
+            ( if char.is_hex_digit(Char) then
+                !:HexDigits = [Char | !.HexDigits],
+                !:N = !.N - 1,
+                get_hex_digits(Stream, !.N, !HexDigits, Result, !State)
+            else
+                string.format("invalid hex character in Unicode escape: `%c'",
+                    [c(Char)], Msg),
+                make_json_error(Stream, Msg, Error, !State),
+                Result = error(Error)
+            )
+        ;
+            ReadResult = eof,
+            make_unexpected_eof_error(Stream, no, Error, !State),
+            Result = error(Error)
+        ;
+            ReadResult = error(StreamError),
+            Result = error(stream_error(StreamError))
+        )
+    else
+        list.reverse(!HexDigits),
+        Result = ok
+    ).
+
+:- pred allowed_unicode_char_code(int::in) is semidet.
+
+    % Succeeds if the give code point is a legal Unicode code point
+    % (regardless of whether it is reserved for private use or not).
+    %
+allowed_unicode_char_code(Code) :-
+    Code >= 0,
+    Code =< 0x10FFFF,
+    % The following range is reserved for surrogates.
+    not (
+        Code >= 0xD800, Code =< 0xDFFF
+    ).
 
 %-----------------------------------------------------------------------------%
 %

@@ -64,6 +64,8 @@
     ;       duplicate_object_member(string)
 
     ;       unterminated_multiline_comment
+
+    ;       invalid_unicode_character(string)
     
     ;       other(string).
 
@@ -418,6 +420,10 @@ make_error_message(Error) = Msg :-
             ErrorDesc = unterminated_multiline_comment,
             string.format("%s:%d: error: unterminated multiline comment\n",
                 [s(StreamName), i(LineNo)], Msg)
+        ;
+            ErrorDesc = invalid_unicode_character(What),
+            string.format("%s:%d: error: invalid Unicode character: \\u%s\n",
+                [s(StreamName), i(LineNo), s(What)], Msg)
         )
     ).
 
