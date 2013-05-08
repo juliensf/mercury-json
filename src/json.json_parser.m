@@ -88,19 +88,19 @@ do_get_value(Reader, Token, Result, !State) :-
     ).
 
 do_get_object(Stream, Result, !State) :-
-    do_get_fields(Stream, map.init, MaybeFields, !State),
+    do_get_members(Stream, map.init, MaybeMembers, !State),
     (
-        MaybeFields = ok(Fields),    
-        Result = ok(json.object(Fields))
+        MaybeMembers = ok(Members),    
+        Result = ok(json.object(Members))
     ;
-        MaybeFields = eof,
+        MaybeMembers = eof,
         Result = eof
     ;
-        MaybeFields = error(Error),
+        MaybeMembers = error(Error),
         Result = error(Error)
     ).
 
-:- pred do_get_fields(json.reader(Stream)::in,
+:- pred do_get_members(json.reader(Stream)::in,
     map(string, json.value)::in, json.result(map(string, json.value), Error)::out,
     State::di, State::uo) is det
     <= (
@@ -108,11 +108,11 @@ do_get_object(Stream, Result, !State) :-
         stream.putback(Stream, char, State, Error)
     ).
 
-do_get_fields(Reader, !.Fields, Result, !State) :-
+do_get_members(Reader, !.Members, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_curly_bracket,
-        Result = ok(!.Fields)
+        Result = ok(!.Members)
     ;
         Token = token_string(FieldName),
         get_token(Reader, ColonToken, !State),
@@ -131,14 +131,14 @@ do_get_fields(Reader, !.Fields, Result, !State) :-
                 do_get_value(Reader, NextToken, ValueResult, !State),
                 (
                     ValueResult = ok(Value),
-                    ( if map.insert(FieldName, Value, !Fields) then
+                    ( if map.insert(FieldName, Value, !Members) then
                         get_token(Reader, NextNextToken, !State),
                         (
                             NextNextToken = token_right_curly_bracket,
-                            Result = ok(!.Fields)
+                            Result = ok(!.Members)
                         ;
                             NextNextToken = token_comma,
-                            do_get_fields(Reader, !.Fields, Result, !State)
+                            do_get_members(Reader, !.Members, Result, !State)
                         ;
                             ( NextNextToken = token_left_curly_bracket
                             ; NextNextToken = token_left_square_bracket

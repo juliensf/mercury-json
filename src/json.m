@@ -112,7 +112,7 @@
 % JSON reader.
 %
 
-    % A JSON reader gets JSON values from an underlying characet stream.
+    % A JSON reader gets JSON values from an underlying character stream.
     %
 :- type json.reader(Stream).
 
@@ -128,8 +128,10 @@
     --->    allow_comments
     ;       do_not_allow_comments.
 
-    % Create a new JSON reader using the given character stream.
-    % The reader will conform to the RFC 4627 definition of JSON.
+    % init_reader(Stream) = Reader:
+    % Reader is a new JOSN reader using Stream as a character stream.
+    % Use the default reader parameters, with which the reader will
+    % conform to the RFC 4627 definition of JSON.
     %
 :- func json.init_reader(Stream) = json.reader(Stream)
     <= (
@@ -137,7 +139,8 @@
         stream.putback(Stream, char, State, Error)
     ).
 
-    % As above, but allow extensions to be enabled or disabled.
+    % init_reader(Stream, Parameters) = Reader:
+    % As above, but allow reader parameters to be set by the caller.
     %
 :- func json.init_reader(Stream, reader_params) = json.reader(Stream)
     <= (
@@ -145,8 +148,10 @@
         stream.putback(Stream, char, State, Error)
     ).
 
-%-----------------------------------------------------------------------------%
-
+    % get_value(Reader, Result, !State):
+    % Get a JSON value from Reader.
+    % The value can be any valid JSON value, not just an array or object.
+    %
 :- pred json.get_value(json.reader(Stream)::in,
     json.result(json.value, Error)::out, State::di, State::uo) is det
     <= (
@@ -154,6 +159,9 @@
         stream.putback(Stream, char, State, Error)
     ).
 
+    % get_text(Reader, Result, !State):
+    % Get a JSON text from Reader.
+    %
 :- pred json.get_text(json.reader(Stream)::in,
     json.result(json.text, Error)::out, State::di, State::uo) is det
     <= (
@@ -161,15 +169,21 @@
         stream.putback(Stream, char, State, Error)
     ).
 
+    % get_object(Reader, Result, !State):
+    % Get a JSON object from Reader.
+    %
 :- pred json.get_object(json.reader(Stream)::in,
-    json.object::out, State::di, State::uo) is det
+    json.result(json.object, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
+    % get_array(Reader, Result, !State):
+    % Get a JSON array from Reader.
+    %
 :- pred json.get_array(json.reader(Stream)::in,
-    json.array::out, State::di, State::uo) is det
+    json.result(json.array, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -199,18 +213,26 @@
 % JSON writer.
 %
 
+    % A JSON reader puts JSON values to an underlying string writer stream.
+    %
 :- type json.writer(Stream).
 
 :- type json.comment
     --->    comment_eol(string)
     ;       comment_multiline(string).
 
+    % init_writer(Stream) = Writer:
+    % Writer is a new JSON writer that writes JSON values to Stream.
+    %
 :- func json.init_writer(Stream) = json.writer(Stream)
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
+    % put_json(Writer, Value, !State):
+    % Write the JSON value Value using the given Writer.
+    %
 :- pred json.put_json(json.writer(Stream)::in, json.value::in,
     State::di, State::uo) is det 
     <= (
@@ -306,8 +328,67 @@ get_text(Reader, Result, !State) :-
         Result = error(Error)
     ).
 
-get_object(_, map.init, !IO). % NYI.
-get_array(_, [], !IO).        % NYI.
+get_object(Reader, Result, !State) :-
+    get_token(Reader, Token, !State),
+    % Save the context of the beginning of the value.
+    make_error_context(Reader ^ json_reader_stream, Context, !State),
+    do_get_value(Reader, Token, ValueResult, !State),
+    (
+        ValueResult = ok(Value),
+        (
+            Value = object(Members),
+            Result = ok(Members)
+        ;
+            ( Value = null
+            ; Value = bool(_)
+            ; Value = string(_)
+            ; Value = number(_)
+            ; Value = array(_)
+            ),
+            Msg = "value must be an object",
+            ValueDesc = value_desc(Value),
+            ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+            Error = json_error(Context, ErrorDesc),
+            Result = error(Error)
+        )   
+    ;
+        ValueResult = eof,
+        Result = eof
+    ;
+        ValueResult = error(Error),
+        Result = error(Error)
+    ).
+
+get_array(Reader, Result, !State) :-
+    get_token(Reader, Token, !State),
+    % Save the context of the beginning of the value.
+    make_error_context(Reader ^ json_reader_stream, Context, !State),
+    do_get_value(Reader, Token, ValueResult, !State),
+    (
+        ValueResult = ok(Value),
+        (
+            Value = array(Elements),
+            Result = ok(Elements)
+        ;
+            ( Value = null
+            ; Value = bool(_)
+            ; Value = string(_)
+            ; Value = number(_)
+            ; Value = object(_)
+            ),
+            Msg = "value must be an array",
+            ValueDesc = value_desc(Value),
+            ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+            Error = json_error(Context, ErrorDesc),
+            Result = error(Error)
+        )   
+    ;
+        ValueResult = eof,
+        Result = eof
+    ;
+        ValueResult = error(Error),
+        Result = error(Error)
+    ).
 
 %-----------------------------------------------------------------------------%
 %
