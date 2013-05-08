@@ -66,6 +66,8 @@
     ;       unterminated_multiline_comment
 
     ;       invalid_unicode_character(string)
+
+    ;       unpaired_utf16_surrogate
     
     ;       other(string).
 
@@ -424,6 +426,10 @@ make_error_message(Error) = Msg :-
             ErrorDesc = invalid_unicode_character(What),
             string.format("%s:%d: error: invalid Unicode character: \\u%s\n",
                 [s(StreamName), i(LineNo), s(What)], Msg)
+        ;
+            ErrorDesc = unpaired_utf16_surrogate,
+            string.format("%s:%d: error: unpaired UTF-16 surrogate\n",
+                [s(StreamName), i(LineNo)], Msg)
         )
     ).
 

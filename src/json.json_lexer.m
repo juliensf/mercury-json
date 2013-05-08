@@ -239,12 +239,28 @@ get_escaped_unicode_char(Stream, !Chars, Result, !State) :-
         HexString = string.from_char_list(HexDigits),
         ( if
             string.base_string_to_int(16, HexString, UnicodeCharCode),
-            allowed_unicode_char_code(UnicodeCharCode),
-            UnicodeCharCode \= 0,    % Do not allow the null character.
-            char.from_int(UnicodeCharCode, UnicodeChar)
+            UnicodeCharCode \= 0    % Do not allow the null character.
         then
-            !:Chars = [UnicodeChar | !.Chars],
-            Result = ok
+            CharCodeClass = classify_code_point(UnicodeCharCode),
+            (
+                CharCodeClass = code_point_valid,
+                UnicodeChar = char.det_from_int(UnicodeCharCode),
+                !:Chars = [UnicodeChar | !.Chars],
+                Result = ok
+            ;
+                CharCodeClass = code_point_leading_surrogate,
+                get_trailing_surrogate_and_combine(Stream, UnicodeCharCode,
+                    !Chars, Result, !State)
+            ;
+                CharCodeClass = code_point_trailing_surrogate,
+                unexpected($file, $pred, "unpaired trailing surrogate")
+            ;
+                CharCodeClass = code_point_invalid,
+                make_error_context(Stream, Context, !State),
+                ErrorDesc = invalid_unicode_character(HexString),
+                Error = json_error(Context, ErrorDesc),
+                Result = error(Error)
+            )
         else
             make_error_context(Stream, Context, !State),
             ErrorDesc = invalid_unicode_character(HexString),
@@ -255,7 +271,6 @@ get_escaped_unicode_char(Stream, !Chars, Result, !State) :-
         HexDigitsResult = error(Error),
         Result = error(Error)
     ).
-
 
 :- pred get_hex_digits(Stream::in, int::in, list(char)::in, list(char)::out,
     json.res(Error)::out, State::di, State::uo) is det
@@ -292,18 +307,114 @@ get_hex_digits(Stream, !.N, !HexDigits, Result, !State) :-
         Result = ok
     ).
 
-:- pred allowed_unicode_char_code(int::in) is semidet.
+:- type code_point_class
+    --->    code_point_valid
+    ;       code_point_invalid
+    ;       code_point_leading_surrogate
+    ;       code_point_trailing_surrogate.
 
-    % Succeeds if the give code point is a legal Unicode code point
-    % (regardless of whether it is reserved for private use or not).
-    %
-allowed_unicode_char_code(Code) :-
-    Code >= 0,
-    Code =< 0x10FFFF,
-    % The following range is reserved for surrogates.
-    not (
-        Code >= 0xD800, Code =< 0xDFFF
+:- func classify_code_point(int) = code_point_class.
+
+classify_code_point(Code) = 
+    ( if is_leading_surrogate(Code) then
+        code_point_leading_surrogate
+    else if is_trailing_surrogate(Code) then
+        code_point_trailing_surrogate
+    else if  Code > 0, Code =< 0x10FFFF then
+        code_point_valid
+    else
+        code_point_invalid
+    ). 
+
+:- pred is_leading_surrogate(int::in) is semidet.
+
+is_leading_surrogate(Code) :-
+    Code >= 0xD800,
+    Code =< 0xDBFF.
+
+:- pred is_trailing_surrogate(int::in) is semidet.
+
+is_trailing_surrogate(Code) :-
+    Code >= 0xDC00,
+    Code =< 0xDFFF.
+
+:- pred get_trailing_surrogate_and_combine(Stream::in, 
+    int::in, list(char)::in, list(char)::out,
+    json.res(Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
     ).
+
+get_trailing_surrogate_and_combine(Stream, LeadingSurrogate,
+        !Chars, Result, !State) :-
+    stream.get(Stream, ReadResult, !State),
+    (
+        ReadResult = ok(Char),
+        ( if Char = ('\\') then
+            stream.get(Stream, ReadResultPrime, !State),
+            (
+                ReadResultPrime = ok(CharPrime),
+                ( if CharPrime = 'u' then
+                    get_hex_digits(Stream, 4, [], HexDigits, HexDigitsResult,
+                        !State),
+                    (
+                        HexDigitsResult = ok,
+                        HexString = string.from_char_list(HexDigits),
+                        ( if
+                            string.base_string_to_int(16, HexString,
+                                TrailingSurrogate),
+                            is_trailing_surrogate(TrailingSurrogate)
+                        then
+                            CharCode = combine_utf16_surrogates(LeadingSurrogate,
+                                TrailingSurrogate),
+                            UnicodeChar = char.det_from_int(CharCode),
+                            !:Chars = [UnicodeChar | !.Chars],
+                            Result = ok
+                        else
+                            unexpected($file, $pred, "not a trailing surrogate")
+                        )
+                    ;
+                        HexDigitsResult = error(Error),
+                        Result = error(Error)
+                    )
+                else
+                    make_error_context(Stream, Context, !State),
+                    ErrorDesc = invalid_character_escape(Char),
+                    Error = json_error(Context, ErrorDesc),  
+                    Result = error(Error)
+                )
+            ;
+                ReadResultPrime = eof,
+                make_error_context(Stream, Context, !State),
+                ErrorDesc = invalid_character_escape(Char),
+                Error = json_error(Context, ErrorDesc),  
+                Result = error(Error)
+            ;
+                ReadResultPrime = error(StreamError),   
+                Result = error(stream_error(StreamError))
+            ) 
+        else
+            make_error_context(Stream, Context, !State),
+            ErrorDesc = unpaired_utf16_surrogate,
+            Error = json_error(Context, ErrorDesc),
+            Result = error(Error)
+        )
+    ;
+        ReadResult = eof,
+        make_error_context(Stream, Context, !State),
+        ErrorDesc = unpaired_utf16_surrogate,
+        Error = json_error(Context, ErrorDesc),
+        Result = error(Error)
+    ;   
+        ReadResult = error(StreamError),
+        Result = error(stream_error(StreamError))
+    ).
+
+:- func combine_utf16_surrogates(int, int) = int.
+
+combine_utf16_surrogates(Lead, Tail) =
+    (((Lead - 0xd800) << 10) \/ (Tail - 0xdc00)) + 0x10000.
 
 %-----------------------------------------------------------------------------%
 %
