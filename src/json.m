@@ -115,9 +115,14 @@
     % A JSON reader gets JSON values from an underlying characet stream.
     %
 :- type json.reader(Stream).
-    
-    % Should the extension that enables support for // style
-    % commens in JSON be enabled?
+
+:- type json.reader_params
+    --->    reader_params(
+                allow_comments :: allow_comments
+            ).
+   
+    % Should the the extension that allows comments in the JSON
+    % being read be enabled? 
     %
 :- type json.allow_comments
     --->    allow_comments
@@ -134,7 +139,7 @@
 
     % As above, but allow extensions to be enabled or disabled.
     %
-:- func json.init_reader(Stream, allow_comments) = json.reader(Stream)
+:- func json.init_reader(Stream, reader_params) = json.reader(Stream)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -196,6 +201,10 @@
 
 :- type json.writer(Stream).
 
+:- type json.comment
+    --->    comment_eol(string)
+    ;       comment_multiline(string).
+
 :- func json.init_writer(Stream) = json.writer(Stream)
     <= (
         stream.writer(Stream, char, State),
@@ -204,6 +213,15 @@
 
 :- pred json.put_json(json.writer(Stream)::in, json.value::in,
     State::di, State::uo) is det 
+    <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+    % put_comment(Writer, Comment, !State):
+    %
+:- pred json.put_comment(json.writer(Stream)::in, json.comment::in,
+    State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
@@ -236,15 +254,16 @@
 
 :- type json.reader(Stream)
     --->    json_reader(
-                json_stream   :: Stream,
-                json_comments :: allow_comments
+                json_reader_stream :: Stream,
+                json_comments      :: allow_comments
             ).
 
 json.init_reader(Stream) =
     json_reader(Stream, do_not_allow_comments).
 
-json.init_reader(Stream, AllowComments) =
-    json_reader(Stream, AllowComments).
+json.init_reader(Stream, Params) = Reader :-
+    Params = reader_params(AllowComments),
+    Reader = json_reader(Stream, AllowComments).
 
 %-----------------------------------------------------------------------------%
 
@@ -255,7 +274,7 @@ get_value(Reader, Result, !State) :-
 get_text(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
     % Save the context of the beginning of the value.
-    make_error_context(Reader ^ json_stream, Context, !State),
+    make_error_context(Reader ^ json_reader_stream, Context, !State),
     do_get_value(Reader, Token, ValueResult, !State),
     (
         ValueResult = ok(Value),
@@ -309,6 +328,16 @@ put_json(Writer, Value, !State) :-
     % If we ever support others, e.g. pretty-printing of the JSON, then
     % that should be handled here.
     writer.raw_put_json(Writer ^ json_writer_stream, Value, !State).
+
+put_comment(Writer, Comment, !State) :-
+    Stream = Writer ^ json_writer_stream,
+    (
+        Comment = comment_eol(String),
+        writer.put_eol_comment(Stream, String, !State)
+    ;
+        Comment = comment_multiline(String),
+        writer.put_multiline_comment(Stream, String, !State)
+    ).
 
 %-----------------------------------------------------------------------------%
 
@@ -456,7 +485,7 @@ value_desc(array(_)) = "array".
     <= stream.stream(Stream, io) where
 [
     ( name(Reader, Name, !State) :-
-        stream.name(Reader ^ json_stream, Name, !State)
+        stream.name(Reader ^ json_reader_stream, Name, !State)
     )
 ].
 

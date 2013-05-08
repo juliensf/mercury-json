@@ -22,6 +22,23 @@
     ).
 
 %-----------------------------------------------------------------------------%
+%
+% Comments.
+%
+
+:- pred put_eol_comment(Stream::in, string::in, State::di, State::uo)
+    is det <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+:- pred put_multiline_comment(Stream::in, string::in, State::di, State::uo)
+    is det <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+%-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
 
 :- implementation.
@@ -211,6 +228,29 @@ code_point_to_utf16_surrogates(CodePoint, LS, TS) :-
 
 put_hex_digits(Stream, Int, !State) :-
     string_writer.format(Stream, "\\u%04x", [i(Int)], !State).    
+
+%-----------------------------------------------------------------------------%
+%
+% Comments.
+%
+
+put_eol_comment(Stream, String, !State) :-
+    Lines = string.split_at_char('\n', String),
+    list.foldl(put_eol_comment_line(Stream), Lines, !State).
+
+:- pred put_eol_comment_line(Stream::in, string::in, State::di, State::uo)
+    is det <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+put_eol_comment_line(Stream, Line, !State) :-
+    string_writer.format(Stream, "//%s\n", [s(Line)], !State).
+
+put_multiline_comment(Stream, String, !State) :-
+    put(Stream, "/*", !State),
+    put(Stream, String, !State),
+    put(Stream, "*/", !State).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.writer.

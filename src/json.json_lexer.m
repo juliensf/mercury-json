@@ -40,7 +40,7 @@
 :- implementation.
 
 get_token(Reader, Token, !State) :-
-    stream.get(Reader ^ json_stream, ReadResult, !State),
+    stream.get(Reader ^ json_reader_stream, ReadResult, !State),
     (
         ReadResult = ok(Char),
         ( if
@@ -86,7 +86,7 @@ get_token(Reader, Token, !State) :-
         else if
             Char = '"'
         then
-            get_string_literal(Reader ^ json_stream, Token, !State)
+            get_string_literal(Reader ^ json_reader_stream, Token, !State)
         else if
             ( Char = ('-')
             ; char.is_digit(Char)
@@ -106,7 +106,7 @@ get_token(Reader, Token, !State) :-
             get_keyword(Reader, Buffer, Token, !State) 
         else
             string.format("unexpected character '%c'", [c(Char)], Msg),
-            make_json_error(Reader ^ json_stream, Msg, Error, !State),
+            make_json_error(Reader ^ json_reader_stream, Msg, Error, !State),
             Token = token_error(Error)
         ) 
     ;
@@ -449,7 +449,7 @@ get_number(Stream, Buffer, Token, !State) :-
     ).
 
 get_int(Reader, Buffer, Result, !State) :-
-    Stream = Reader ^ json_stream,
+    Stream = Reader ^ json_reader_stream,
     stream.get(Stream, GetResult, !State),
     (
         GetResult = ok(Char),
@@ -494,7 +494,7 @@ get_int(Reader, Buffer, Result, !State) :-
     ).
 
 get_frac(Reader, Buffer, Result, !State) :-
-    Stream = Reader ^ json_stream,
+    Stream = Reader ^ json_reader_stream,
     stream.get(Stream, GetResult, !State),
     (
         GetResult = ok(Char),
@@ -531,7 +531,7 @@ get_frac(Reader, Buffer, Result, !State) :-
     ).
 
 get_exp(Reader, Where, Buffer, Result, !State) :-
-    Stream = Reader ^ json_stream,
+    Stream = Reader ^ json_reader_stream,
     stream.get(Stream, GetResult, !State),
     (
         GetResult = ok(Char),
@@ -603,7 +603,7 @@ get_keyword(Reader, Buffer, Token, !State) :-
         ( if is_keyword(Keyword, Token0) then
             Token = Token0
         else
-            Stream = Reader ^ json_stream,
+            Stream = Reader ^ json_reader_stream,
             make_syntax_error(Stream, Keyword, no, Error, !State),
             Token = token_error(Error)
         ) 
@@ -621,7 +621,7 @@ get_keyword(Reader, Buffer, Token, !State) :-
     ).
 
 get_keyword_chars(Reader, Buffer, Result, !State) :-
-    Stream = Reader ^ json_stream,
+    Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
         ReadResult = ok(Char),
@@ -656,7 +656,7 @@ is_keyword("null", token_null).
     ).
 
 consume_comment(Reader, Result, !State) :-
-    Stream = Reader ^ json_stream,
+    Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
         ReadResult = ok(Char),

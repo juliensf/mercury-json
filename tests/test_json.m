@@ -149,7 +149,8 @@ run_test(InputFileName, !IO) :-
     io::di, io::uo) is det.
 
 parse_and_output(Input, Output, !IO) :-
-    Reader = json.init_reader(Input, allow_comments),
+    ReaderParams = reader_params(allow_comments),
+    Reader = json.init_reader(Input, ReaderParams),
     Writer = json.init_writer(Output),
     json.get_value(Reader, Result, !IO),
     (
