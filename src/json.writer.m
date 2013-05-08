@@ -28,6 +28,7 @@
 
 :- import_module assoc_list.
 :- import_module pair.
+:- import_module stream.string_writer.
 
 %-----------------------------------------------------------------------------%
 %
@@ -146,8 +147,6 @@ put_string_literal(Stream, String, !State) :-
     string.foldl(escape_and_put_char(Stream), String, !State),
     put(Stream, '"', !State).
 
-    % XXX TODO: handle Unicode escapes properly here.
-    %
 :- pred escape_and_put_char(Stream::in, char::in, State::di, State::uo)
     is det <= (
         stream.writer(Stream, char, State),
@@ -155,9 +154,12 @@ put_string_literal(Stream, String, !State) :-
     ).
     
 escape_and_put_char(Stream, Char, !State) :-
-    ( if escape_char(Char, EscapedCharStr)
-    then put(Stream, EscapedCharStr, !State)
-    else put(Stream, Char, !State)
+    ( if escape_char(Char, EscapedCharStr) then
+        put(Stream, EscapedCharStr, !State)
+    else if char_is_ascii(Char) then
+        put(Stream, Char, !State)
+    else
+        put_unicode_escape(Stream, Char, !State)
     ).
 
 :- pred escape_char(char::in, string::out) is semidet.
@@ -170,6 +172,45 @@ escape_char('\f', "\\f").
 escape_char('\n', "\\n").
 escape_char('\r', "\\r").
 escape_char('\t', "\\t").
+
+:- pred char_is_ascii(char::in) is semidet.
+
+char_is_ascii(Char) :-
+    Code = char.to_int(Char),
+    Code >= 0x00,
+    Code =< 0x7f.
+
+:- pred put_unicode_escape(Stream::in, char::in, State::di, State::uo)
+    is det <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+put_unicode_escape(Stream, Char, !State) :-
+    CodePoint = char.to_int(Char),
+    ( if CodePoint > 0xFFFF then
+        code_point_to_utf16_surrogates(CodePoint, LS, TS),
+        put_hex_digits(Stream, LS, !State),
+        put_hex_digits(Stream, TS, !State)
+    else
+        put_hex_digits(Stream, CodePoint, !State)
+    ).   
+
+:- pred code_point_to_utf16_surrogates(int::in, int::out, int::out) is det.
+
+code_point_to_utf16_surrogates(CodePoint, LS, TS) :-
+    AdjustedCodePoint = CodePoint - 0x10000,
+    LS = 0xD800 + (AdjustedCodePoint >> 10),
+    TS = 0xDC00 + (AdjustedCodePoint /\ 0x3FF). 
+
+:- pred put_hex_digits(Stream::in, int::in, State::di, State::uo)
+    is det <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+put_hex_digits(Stream, Int, !State) :-
+    string_writer.format(Stream, "\\u%04x", [i(Int)], !State).    
 
 %-----------------------------------------------------------------------------%
 :- end_module json.writer.
