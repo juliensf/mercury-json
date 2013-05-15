@@ -88,9 +88,13 @@ get_token(Reader, Token, !State) :-
         then
             get_string_literal(Reader ^ json_reader_stream, Token, !State)
         else if
-            ( Char = ('-')
-            ; char.is_digit(Char)
-            )
+            Char = ('-')
+        then
+            char_buffer.init(Buffer, !State),
+            char_buffer.add(Buffer, Char, !State),
+            get_negative_number(Reader, Buffer, Token, !State)
+        else if
+            char.is_digit(Char)
         then
             char_buffer.init(Buffer, !State),
             char_buffer.add(Buffer, Char, !State),
@@ -421,6 +425,35 @@ combine_utf16_surrogates(Lead, Tail) =
 % Numeric literals.
 %
 
+:- pred get_negative_number(json.reader(Stream)::in, char_buffer::in,
+    token(Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+            
+get_negative_number(Reader, Buffer, Token, !State) :-
+    Stream = Reader ^ json_reader_stream,
+    stream.get(Stream, GetResult, !State),
+    (
+        GetResult = ok(Char),
+        ( if char.is_digit(Char) then
+            char_buffer.add(Buffer, Char, !State),
+            get_number(Reader, Buffer, Token, !State)
+        else
+            Msg = "expected a digit after '-'",
+            make_json_error(Stream, Msg, Error, !State),
+            Token = token_error(Error)
+        )
+    ;
+        GetResult = eof,
+        make_unexpected_eof_error(Stream, no, Error, !State),
+        Token = token_error(Error)
+    ;
+        GetResult = error(StreamError),
+        Token = token_error(stream_error(StreamError))
+    ).
+
 :- pred get_number(json.reader(Stream)::in, char_buffer::in,
     token(Error)::out, State::di, State::uo) is det
     <= (
@@ -428,8 +461,8 @@ combine_utf16_surrogates(Lead, Tail) =
         stream.putback(Stream, char, State, Error)
     ).
 
-get_number(Stream, Buffer, Token, !State) :-
-    get_int(Stream, Buffer, DigitsResult, !State),
+get_number(Reader, Buffer, Token, !State) :-
+    get_number_chars(Reader, Buffer, DigitsResult, !State),
     (
         DigitsResult = ok,
         NumberStr = char_buffer.to_string(Buffer, !.State),
@@ -440,7 +473,7 @@ get_number(Stream, Buffer, Token, !State) :-
         Token = token_error(Error)
     ).
 
-:- pred get_int(json.reader(Stream)::in,
+:- pred get_number_chars(json.reader(Stream)::in,
     char_buffer::in, json.res(Error)::out,
     State::di, State::uo) is det
     <= (
@@ -448,7 +481,7 @@ get_number(Stream, Buffer, Token, !State) :-
         stream.putback(Stream, char, State, Error)
     ).
 
-get_int(Reader, Buffer, Result, !State) :-
+get_number_chars(Reader, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, GetResult, !State),
     (
@@ -457,7 +490,7 @@ get_int(Reader, Buffer, Result, !State) :-
             char.is_digit(Char)
         then
             char_buffer.add(Buffer, Char, !State),
-            get_int(Reader, Buffer, Result, !State)
+            get_number_chars(Reader, Buffer, Result, !State)
         else if
             Char = ('.'),
             char_buffer.last(Buffer, LastChar, !.State),
