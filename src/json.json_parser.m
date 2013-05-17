@@ -323,7 +323,7 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
     ).
 
 do_get_array(Stream, Result, !State) :-
-    do_get_array_items(Stream, [], MaybeRevItems, !State),
+    do_get_array_items(Stream, at_start, [], MaybeRevItems, !State),
     (
         MaybeRevItems = ok(RevItems),
         list.reverse(RevItems, Items),
@@ -336,7 +336,11 @@ do_get_array(Stream, Result, !State) :-
         Result = error(Error)
     ).
 
-:- pred do_get_array_items(json.reader(Stream)::in,
+:- type array_where
+    --->    at_start        % We have just seen '{'.
+    ;       after_comma.    % We have just seen ",".
+
+:- pred do_get_array_items(json.reader(Stream)::in, array_where::in,
     list(json.value)::in, json.result(list(json.value), Error)::out,
     State::di, State::uo) is det
     <= (
@@ -344,11 +348,21 @@ do_get_array(Stream, Result, !State) :-
         stream.putback(Stream, char, State, Error)
     ).
 
-do_get_array_items(Reader, !.Items, Result, !State) :-
+do_get_array_items(Reader, Where, !.Items, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_square_bracket,
-        Result = ok(!.Items)
+        (
+            Where = at_start,
+            Result = ok(!.Items)
+        ;
+            Where = after_comma,
+            TokenDesc = token_to_string(Token),
+            Msg = "expected a value",
+            make_syntax_error(Reader ^ json_reader_stream,
+                TokenDesc, yes(Msg), Error, !State),
+            Result = error(Error)
+        )
     ;
         ( Token = token_left_curly_bracket
         ; Token = token_left_square_bracket
@@ -368,7 +382,7 @@ do_get_array_items(Reader, !.Items, Result, !State) :-
                 Result = ok(!.Items)
             ;
                 NextToken = token_comma,
-                do_get_array_items(Reader, !.Items, Result, !State)
+                do_get_array_items(Reader, after_comma, !.Items, Result, !State)
             ;
                 ( NextToken = token_left_curly_bracket
                 ; NextToken = token_left_square_bracket
