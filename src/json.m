@@ -121,15 +121,23 @@
 
 :- type json.reader_params
     --->    reader_params(
-                allow_comments :: allow_comments
+                allow_comments        :: allow_comments,
+                allow_trailing_commas :: allow_trailing_commas
             ).
    
-    % Should the the extension that allows comments in the JSON
+    % Should the extension that allows comments in the JSON
     % being read be enabled? 
     %
 :- type json.allow_comments
     --->    allow_comments
     ;       do_not_allow_comments.
+
+    % Should the extension that allows trailing commas in JSON objects
+    % and arrays be enabled?
+    %
+:- type json.allow_trailing_commas
+    --->    allow_trailing_commas
+    ;       do_not_allow_trailing_commas.
 
     % init_reader(Stream) = Reader:
     % Reader is a new JOSN reader using Stream as a character stream.
@@ -197,7 +205,6 @@
 % Folding over object members.
 %
 
-
     % object_fold(Reader, Pred, InitialAcc, Result, !State):
     %
 :- pred json.object_fold(json.reader(Stream), pred(string, json.value, A, A),
@@ -211,6 +218,8 @@
 :- mode json.object_fold(in, in(pred(in, in, in, out) is cc_multi),
     in, out, di, uo) is cc_multi.
 
+    % object_fold_state(Reader, Pred, InitialAcc, Result, !State):
+    %
 :- pred json.object_fold_state(json.reader(Stream),
     pred(string, json.value, A, A, State, State),
     A, json.maybe_partial_res(A, Error), State, State)
@@ -223,6 +232,40 @@
     in, out, di, uo) is det.
 :- mode json.object_fold_state(in,
     in(pred(in, in, in, out, di, uo) is cc_multi),
+    in, out, di, uo) is cc_multi.
+
+%-----------------------------------------------------------------------------%
+%
+% Folding over array elements.
+%
+    
+    % array_fold(Reader, Pred, InitialAcc, Result, !State):
+    %
+:- pred json.array_fold(json.reader(Stream), pred(json.value, A, A),
+    A, json.maybe_partial_res(A, Error), State, State)
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+:- mode json.array_fold(in, in(pred(in, in, out) is det),
+    in, out, di, uo) is det.
+:- mode json.array_fold(in, in(pred(in, in, out) is cc_multi),
+    in, out, di, uo) is cc_multi.
+
+    % array_fold(Reader, Pred, InitialAcc, Result, !State):
+    %
+:- pred json.array_fold_state(json.reader(Stream),
+    pred(json.value, A, A, State, State),
+    A, json.maybe_partial_res(A, Error), State, State)
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+:- mode json.array_fold_state(in,
+    in(pred(in, in, out, di, uo) is det),
+    in, out, di, uo) is det.
+:- mode json.array_fold_state(in,
+    in(pred(in, in, out, di, uo) is cc_multi),
     in, out, di, uo) is cc_multi.
 
 %-----------------------------------------------------------------------------%
@@ -312,16 +355,17 @@
 
 :- type json.reader(Stream)
     --->    json_reader(
-                json_reader_stream :: Stream,
-                json_comments      :: allow_comments
+                json_reader_stream   :: Stream,
+                json_comments        :: allow_comments,
+                json_trailing_commas :: allow_trailing_commas
             ).
 
 json.init_reader(Stream) =
-    json_reader(Stream, do_not_allow_comments).
+    json_reader(Stream, do_not_allow_comments, do_not_allow_trailing_commas).
 
 json.init_reader(Stream, Params) = Reader :-
-    Params = reader_params(AllowComments),
-    Reader = json_reader(Stream, AllowComments).
+    Params = reader_params(AllowComments, AllowTrailingCommas),
+    Reader = json_reader(Stream, AllowComments, AllowTrailingCommas).
 
 %-----------------------------------------------------------------------------%
 
@@ -436,6 +480,17 @@ object_fold(Reader, Pred, !.Acc, Result, !State) :-
 
 object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     do_object_fold_state(Reader, Pred, !.Acc, Result, !State).
+
+%-----------------------------------------------------------------------------%
+%
+% Folding over array elements.
+%
+
+array_fold(Reader, Pred, !.Acc, Result, !State) :-
+    do_array_fold(Reader, Pred, !.Acc, Result, !State).
+
+array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
+    do_array_fold_state(Reader, Pred, !.Acc, Result, !State).
 
 %-----------------------------------------------------------------------------%
 %

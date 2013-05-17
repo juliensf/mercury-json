@@ -46,6 +46,34 @@
     in, out, di, uo) is cc_multi.
 
 %-----------------------------------------------------------------------------%
+%
+% Folding over array elements.
+%
+
+:- pred do_array_fold(json.reader(Stream), pred(json.value, A, A),
+    A, json.maybe_partial_res(A, Error), State, State)
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+:- mode do_array_fold(in, in(pred(in, in, out) is det),
+    in, out, di, uo) is det.
+:- mode do_array_fold(in, in(pred(in, in, out) is cc_multi),
+    in, out, di, uo) is cc_multi.
+
+:- pred do_array_fold_state(json.reader(Stream),
+    pred(json.value, A, A, State, State),
+    A, json.maybe_partial_res(A, Error), State, State)
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+:- mode do_array_fold_state(in, in(pred(in, in, out, di, uo) is det),
+    in, out, di, uo) is det.
+:- mode do_array_fold_state(in, in(pred(in, in, out, di, uo) is cc_multi),
+    in, out, di, uo) is cc_multi.
+
+%-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
 
 :- implementation.
@@ -143,11 +171,13 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_curly_bracket,
-        (
-            Where = at_start,
+        ( if
+            ( Where = at_start
+            ; Reader ^ json_trailing_commas = allow_trailing_commas
+            )
+        then
             Result = ok(!.Members)
-        ;
-            Where = after_comma,
+        else
             TokenDesc = token_to_string(Token),
             Msg = "expected a string literal",
             make_syntax_error(Reader ^ json_reader_stream,
@@ -352,11 +382,13 @@ do_get_array_items(Reader, Where, !.Items, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_square_bracket,
-        (
-            Where = at_start,
+        ( if
+            ( Where = at_start
+            ; Reader ^ json_trailing_commas = allow_trailing_commas
+            )
+        then
             Result = ok(!.Items)
-        ;
-            Where = after_comma,
+        else 
             TokenDesc = token_to_string(Token),
             Msg = "expected a value",
             make_syntax_error(Reader ^ json_reader_stream,
@@ -490,11 +522,13 @@ do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_curly_bracket,
-        (
-            Where = at_start,
+        ( if
+            ( Where = at_start
+            ; Reader ^ json_trailing_commas = allow_trailing_commas
+            )
+        then
             Result = ok(!.Acc)
-        ;
-            Where = after_comma,
+        else 
             Msg = "expected a string literal",
             TokenDesc = token_to_string(Token),
             make_syntax_error(Reader ^ json_reader_stream,
@@ -650,11 +684,13 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_curly_bracket,
-        (
-            Where = at_start,
+        ( if
+            ( Where = at_start
+            ; Reader ^ json_trailing_commas = allow_trailing_commas
+            )
+        then
             Result = ok(!.Acc)
-        ;
-            Where = after_comma,
+        else 
             Msg = "expected a string literal",
             TokenDesc = token_to_string(Token),
             make_syntax_error(Reader ^ json_reader_stream,
@@ -760,6 +796,289 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
     ;
         Token = token_error(Error),
         Result = error(!.Acc, Error)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% Folding over array elements.
+%
+
+do_array_fold(Reader, Pred, !.Acc, Result, !State) :-      
+    get_token(Reader, Token, !State),
+    (
+        Token = token_left_square_bracket,
+        do_array_fold_elements(Reader, at_start, Pred, !.Acc,
+            Result, !State)
+    ;
+        ( Token = token_right_curly_bracket
+        ; Token = token_left_curly_bracket
+        ; Token = token_right_square_bracket
+        ; Token = token_comma
+        ; Token = token_colon
+        ; Token = token_string(_)
+        ; Token = token_number(_)
+        ; Token = token_false
+        ; Token = token_true
+        ; Token = token_null
+        ),
+        Msg = "expected '['",
+        TokenDesc = token_to_string(Token),
+        make_syntax_error(Reader ^ json_reader_stream,
+            TokenDesc, yes(Msg), Error, !State),
+        Result = error(!.Acc, Error)
+    ;
+        Token = token_eof,
+        make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+        Result = error(!.Acc, Error)
+    ;
+        Token = token_error(Error),
+        Result = error(!.Acc, Error)
+    ).
+
+:- pred do_array_fold_elements(json.reader(Stream), array_where,
+    pred(json.value, A, A),
+    A, json.maybe_partial_res(A, Error), State, State)
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+:- mode do_array_fold_elements(in, in, in(pred(in, in, out) is det),
+    in, out, di, uo) is det.
+:- mode do_array_fold_elements(in, in, in(pred(in, in, out) is cc_multi),
+    in, out, di, uo) is cc_multi.
+
+do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
+    get_token(Reader, Token, !State),
+    (
+        Token = token_right_square_bracket,
+        ( if
+            ( Where = at_start
+            ; Reader ^ json_trailing_commas = allow_trailing_commas
+            )
+        then
+            Result = ok(!.Acc)
+        else 
+            TokenDesc = token_to_string(Token),
+            Msg = "expected a value",
+            make_syntax_error(Reader ^ json_reader_stream,
+                TokenDesc, yes(Msg), Error, !State),
+            Result = error(!.Acc, Error)
+        )
+    ;
+        ( Token = token_left_curly_bracket
+        ; Token = token_left_square_bracket
+        ; Token = token_string(_)
+        ; Token = token_number(_)
+        ; Token = token_false
+        ; Token = token_true
+        ; Token = token_null
+        ),
+        do_get_value(Reader, Token, ItemResult, !State),
+        (
+            ItemResult = ok(Item),
+            Pred(Item, !Acc),
+            get_token(Reader, NextToken, !State),
+            (
+                NextToken = token_right_square_bracket,
+                Result = ok(!.Acc)
+            ;
+                NextToken = token_comma,
+                do_array_fold_elements(Reader, after_comma, Pred,
+                    !.Acc, Result, !State)
+            ;
+                ( NextToken = token_left_curly_bracket
+                ; NextToken = token_left_square_bracket
+                ; NextToken = token_string(_)
+                ; NextToken = token_number(_)
+                ; NextToken = token_false
+                ; NextToken = token_true
+                ; NextToken = token_null
+                ; NextToken = token_right_curly_bracket
+                ; NextToken = token_colon
+                ),
+                TokenDesc = token_to_string(NextToken),
+                Msg = "expected ']' or ','",
+                make_syntax_error(Reader ^ json_reader_stream, TokenDesc,
+                    yes(Msg), Error, !State),
+                Result = error(!.Acc, Error)
+            ;
+                NextToken = token_eof,
+                Msg = "array missing terminating ']'",
+                make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
+                    Error, !State),
+                Result = error(!.Acc, Error)
+            ;
+                NextToken = token_error(TokenError),
+                Result = error(!.Acc, TokenError)
+            )
+        ;
+            ItemResult = eof,
+            Msg = "expected a value",
+            make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
+                Error, !State),
+            Result = error(!.Acc, Error)
+        ;
+            ItemResult = error(Error),
+            Result = error(!.Acc, Error)
+        )
+    ;
+        ( Token = token_right_curly_bracket
+        ; Token = token_comma
+        ; Token = token_colon
+        ),
+        TokenStr = token_to_string(Token),
+        Msg = "expected a value",
+        make_syntax_error(Reader ^ json_reader_stream, TokenStr, yes(Msg),
+            Error, !State),
+        Result = error(!.Acc, Error)
+    ;
+        Token = token_eof,
+        Msg = "array missing terminating ']'",
+        make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
+            Error, !State),
+        Result = error(!.Acc, Error)
+    ;
+        Token = token_error(TokenError),
+        Result = error(!.Acc, TokenError)
+    ).
+
+do_array_fold_state(Reader, Pred, !.Acc, Result, !State) :-      
+    get_token(Reader, Token, !State),
+    (
+        Token = token_left_square_bracket,
+        do_array_fold_state_elements(Reader, at_start, Pred, !.Acc,
+            Result, !State)
+    ;
+        ( Token = token_right_curly_bracket
+        ; Token = token_left_curly_bracket
+        ; Token = token_right_square_bracket
+        ; Token = token_comma
+        ; Token = token_colon
+        ; Token = token_string(_)
+        ; Token = token_number(_)
+        ; Token = token_false
+        ; Token = token_true
+        ; Token = token_null
+        ),
+        Msg = "expected '['",
+        TokenDesc = token_to_string(Token),
+        make_syntax_error(Reader ^ json_reader_stream,
+            TokenDesc, yes(Msg), Error, !State),
+        Result = error(!.Acc, Error)
+    ;
+        Token = token_eof,
+        make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+        Result = error(!.Acc, Error)
+    ;
+        Token = token_error(Error),
+        Result = error(!.Acc, Error)
+    ).
+
+:- pred do_array_fold_state_elements(json.reader(Stream), array_where,
+    pred(json.value, A, A, State, State),
+    A, json.maybe_partial_res(A, Error), State, State)
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+:- mode do_array_fold_state_elements(in, in, in(pred(in, in, out, di, uo) is det),
+    in, out, di, uo) is det.
+:- mode do_array_fold_state_elements(in, in, in(pred(in, in, out, di, uo) is cc_multi),
+    in, out, di, uo) is cc_multi.
+
+do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
+    get_token(Reader, Token, !State),
+    (
+        Token = token_right_square_bracket,
+        ( if
+            ( Where = at_start
+            ; Reader ^ json_trailing_commas = allow_trailing_commas
+            )
+        then
+            Result = ok(!.Acc)
+        else 
+            TokenDesc = token_to_string(Token),
+            Msg = "expected a value",
+            make_syntax_error(Reader ^ json_reader_stream,
+                TokenDesc, yes(Msg), Error, !State),
+            Result = error(!.Acc, Error)
+        )
+    ;
+        ( Token = token_left_curly_bracket
+        ; Token = token_left_square_bracket
+        ; Token = token_string(_)
+        ; Token = token_number(_)
+        ; Token = token_false
+        ; Token = token_true
+        ; Token = token_null
+        ),
+        do_get_value(Reader, Token, ItemResult, !State),
+        (
+            ItemResult = ok(Item),
+            Pred(Item, !Acc, !State),
+            get_token(Reader, NextToken, !State),
+            (
+                NextToken = token_right_square_bracket,
+                Result = ok(!.Acc)
+            ;
+                NextToken = token_comma,
+                do_array_fold_state_elements(Reader, after_comma, Pred,
+                    !.Acc, Result, !State)
+            ;
+                ( NextToken = token_left_curly_bracket
+                ; NextToken = token_left_square_bracket
+                ; NextToken = token_string(_)
+                ; NextToken = token_number(_)
+                ; NextToken = token_false
+                ; NextToken = token_true
+                ; NextToken = token_null
+                ; NextToken = token_right_curly_bracket
+                ; NextToken = token_colon
+                ),
+                TokenDesc = token_to_string(NextToken),
+                Msg = "expected ']' or ','",
+                make_syntax_error(Reader ^ json_reader_stream, TokenDesc,
+                    yes(Msg), Error, !State),
+                Result = error(!.Acc, Error)
+            ;
+                NextToken = token_eof,
+                Msg = "array missing terminating ']'",
+                make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
+                    Error, !State),
+                Result = error(!.Acc, Error)
+            ;
+                NextToken = token_error(TokenError),
+                Result = error(!.Acc, TokenError)
+            )
+        ;
+            ItemResult = eof,
+            Msg = "expected a value",
+            make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
+                Error, !State),
+            Result = error(!.Acc, Error)
+        ;
+            ItemResult = error(Error),
+            Result = error(!.Acc, Error)
+        )
+    ;
+        ( Token = token_right_curly_bracket
+        ; Token = token_comma
+        ; Token = token_colon
+        ),
+        TokenStr = token_to_string(Token),
+        Msg = "expected a value",
+        make_syntax_error(Reader ^ json_reader_stream, TokenStr, yes(Msg),
+            Error, !State),
+        Result = error(!.Acc, Error)
+    ;
+        Token = token_eof,
+        Msg = "array missing terminating ']'",
+        make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
+            Error, !State),
+        Result = error(!.Acc, Error)
+    ;
+        Token = token_error(TokenError),
+        Result = error(!.Acc, TokenError)
     ).
 
 %-----------------------------------------------------------------------------%

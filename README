@@ -10,6 +10,7 @@ FEATURES
 
 - conforms to RFC 4627
 - optionally allows comments in JSON
+- optionally allows trailing commas in JSON objects and arrays
 
 
 LICENSE
