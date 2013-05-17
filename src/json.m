@@ -84,6 +84,9 @@
 
 :- type json.result(T, Error) == stream.result(T, json.error(Error)).
 
+:- type json.maybe_partial_res(T, Error) == 
+    stream.maybe_partial_res(T, json.error(Error)).
+
 %-----------------------------------------------------------------------------%
 %
 % Mercury representation of JSON values.
@@ -198,7 +201,7 @@
     % object_fold(Reader, Pred, InitialAcc, Result, !State):
     %
 :- pred json.object_fold(json.reader(Stream), pred(string, json.value, A, A),
-    A, json.res(A, Error), State, State)
+    A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -210,7 +213,7 @@
 
 :- pred json.object_fold_state(json.reader(Stream),
     pred(string, json.value, A, A, State, State),
-    A, json.res(A, Error), State, State)
+    A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)

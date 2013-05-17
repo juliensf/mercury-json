@@ -24,7 +24,7 @@
 %
 
 :- pred do_object_fold(json.reader(Stream), pred(string, json.value, A, A),
-    A, json.res(A, Error), State, State)
+    A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -35,7 +35,7 @@
     in, out, di, uo) is cc_multi.
 
 :- pred do_object_fold_state(json.reader(Stream), pred(string, json.value, A, A, State, State),
-    A, json.res(A, Error), State, State)
+    A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -432,7 +432,8 @@ do_object_fold(Reader, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_left_curly_bracket,
-        do_object_fold_members(Reader, Pred, !.Acc, Result, !State)
+        do_object_fold_members(Reader, at_start, Pred, !.Acc,
+            Result, !State)
     ;
         ( Token = token_right_curly_bracket
         ; Token = token_left_square_bracket
@@ -449,32 +450,43 @@ do_object_fold(Reader, Pred, !.Acc, Result, !State) :-
         TokenDesc = token_to_string(Token),
         make_syntax_error(Reader ^ json_reader_stream,
             TokenDesc, yes(Msg), Error, !State),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ;
         Token = token_eof,
         make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ).
 
-:- pred do_object_fold_members(json.reader(Stream), pred(string, json.value, A, A),
-    A, json.res(A, Error), State, State)
+:- pred do_object_fold_members(json.reader(Stream), object_where,
+    pred(string, json.value, A, A),
+    A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode do_object_fold_members(in, in(pred(in, in, in, out) is det),
+:- mode do_object_fold_members(in, in, in(pred(in, in, in, out) is det),
     in, out, di, uo) is det.
-:- mode do_object_fold_members(in, in(pred(in, in, in, out) is cc_multi),
+:- mode do_object_fold_members(in, in, in(pred(in, in, in, out) is cc_multi),
     in, out, di, uo) is cc_multi.
 
-do_object_fold_members(Reader, Pred, !.Acc, Result, !State) :-
+do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_curly_bracket,
-        Result = ok(!.Acc)
+        (
+            Where = at_start,
+            Result = ok(!.Acc)
+        ;
+            Where = after_comma,
+            Msg = "expected a string literal",
+            TokenDesc = token_to_string(Token),
+            make_syntax_error(Reader ^ json_reader_stream,
+                TokenDesc, yes(Msg), Error, !State),
+            Result = error(!.Acc, Error)
+        )
     ;
         Token = token_string(Key),
         get_token(Reader, ColonToken, !State),
@@ -491,7 +503,8 @@ do_object_fold_members(Reader, Pred, !.Acc, Result, !State) :-
                     Result = ok(!.Acc)
                 ;
                     NextNextToken = token_comma,
-                    do_object_fold_members(Reader, Pred, !.Acc, Result, !State)
+                    do_object_fold_members(Reader, after_comma, Pred, !.Acc,
+                        Result, !State)
                 ;
                     ( NextNextToken = token_left_curly_bracket
                     ; NextNextToken = token_left_square_bracket
@@ -507,23 +520,23 @@ do_object_fold_members(Reader, Pred, !.Acc, Result, !State) :-
                     NextNextTokenDesc = token_to_string(NextNextToken),
                     make_syntax_error(Reader ^ json_reader_stream,
                         NextNextTokenDesc, yes(Msg), Error, !State),
-                    Result = error(Error)
+                    Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_eof,
                     Msg = "expected '}' or ','",
                     make_unexpected_eof_error(Reader ^ json_reader_stream,
                         yes(Msg), Error, !State),
-                    Result = error(Error)
+                    Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_error(TokenError),
-                    Result = error(TokenError)
+                    Result = error(!.Acc, TokenError)
                 )
             ;
                 ValueResult = eof,
                 unexpected($file, $pred, "unexpected end-of-file")
             ;
                 ValueResult = error(Error),
-                Result = error(Error)
+                Result = error(!.Acc, Error)
             )
         ;
             ( ColonToken = token_left_curly_bracket
@@ -541,14 +554,14 @@ do_object_fold_members(Reader, Pred, !.Acc, Result, !State) :-
             TokenDesc = token_to_string(Token),
             make_syntax_error(Reader ^ json_reader_stream,
                 TokenDesc, yes(Msg), Error, !State),
-            Result = error(Error)
+            Result = error(!.Acc, Error)
         ;
             ColonToken = token_eof,
             make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
-            Result = error(Error)
+            Result = error(!.Acc, Error)
         ;
             ColonToken = token_error(Error),
-            Result = error(Error)
+            Result = error(!.Acc, Error)
         )
     ;
         ( Token = token_left_curly_bracket
@@ -565,21 +578,22 @@ do_object_fold_members(Reader, Pred, !.Acc, Result, !State) :-
         TokenDesc = token_to_string(Token),
         make_syntax_error(Reader ^ json_reader_stream,
             TokenDesc, yes(Msg), Error, !State),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ;
         Token = token_eof,
         make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ).
 
 do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-      
     get_token(Reader, Token, !State),
     (
         Token = token_left_curly_bracket,
-        do_object_fold_state_members(Reader, Pred, !.Acc, Result, !State)
+        do_object_fold_state_members(Reader, at_start, Pred, !.Acc,
+            Result, !State)
     ;
         ( Token = token_right_curly_bracket
         ; Token = token_left_square_bracket
@@ -596,33 +610,43 @@ do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
         TokenDesc = token_to_string(Token),
         make_syntax_error(Reader ^ json_reader_stream,
             TokenDesc, yes(Msg), Error, !State),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ;
         Token = token_eof,
         make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ).
 
-:- pred do_object_fold_state_members(json.reader(Stream),
+:- pred do_object_fold_state_members(json.reader(Stream), object_where,
     pred(string, json.value, A, A, State, State),
-    A, json.res(A, Error), State, State)
+    A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode do_object_fold_state_members(in, in(pred(in, in, in, out, di, uo) is det),
+:- mode do_object_fold_state_members(in, in, in(pred(in, in, in, out, di, uo) is det),
     in, out, di, uo) is det.
-:- mode do_object_fold_state_members(in, in(pred(in, in, in, out, di, uo) is cc_multi),
+:- mode do_object_fold_state_members(in, in, in(pred(in, in, in, out, di, uo) is cc_multi),
     in, out, di, uo) is cc_multi.
 
-do_object_fold_state_members(Reader, Pred, !.Acc, Result, !State) :-
+do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_curly_bracket,
-        Result = ok(!.Acc)
+        (
+            Where = at_start,
+            Result = ok(!.Acc)
+        ;
+            Where = after_comma,
+            Msg = "expected a string literal",
+            TokenDesc = token_to_string(Token),
+            make_syntax_error(Reader ^ json_reader_stream,
+                TokenDesc, yes(Msg), Error, !State),
+            Result = error(!.Acc, Error)
+        )
     ;
         Token = token_string(Key),
         get_token(Reader, ColonToken, !State),
@@ -639,7 +663,8 @@ do_object_fold_state_members(Reader, Pred, !.Acc, Result, !State) :-
                     Result = ok(!.Acc)
                 ;
                     NextNextToken = token_comma,
-                    do_object_fold_state_members(Reader, Pred, !.Acc, Result, !State)
+                    do_object_fold_state_members(Reader, after_comma, Pred,
+                        !.Acc, Result, !State)
                 ;
                     ( NextNextToken = token_left_curly_bracket
                     ; NextNextToken = token_left_square_bracket
@@ -655,23 +680,23 @@ do_object_fold_state_members(Reader, Pred, !.Acc, Result, !State) :-
                     NextNextTokenDesc = token_to_string(NextNextToken),
                     make_syntax_error(Reader ^ json_reader_stream,
                         NextNextTokenDesc, yes(Msg), Error, !State),
-                    Result = error(Error)
+                    Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_eof,
                     Msg = "expected '}' or ','",
                     make_unexpected_eof_error(Reader ^ json_reader_stream,
                         yes(Msg), Error, !State),
-                    Result = error(Error)
+                    Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_error(TokenError),
-                    Result = error(TokenError)
+                    Result = error(!.Acc, TokenError)
                 )
             ;
                 ValueResult = eof,
                 unexpected($file, $pred, "unexpected end-of-file")
             ;
                 ValueResult = error(Error),
-                Result = error(Error)
+                Result = error(!.Acc, Error)
             )
         ;
             ( ColonToken = token_left_curly_bracket
@@ -689,14 +714,14 @@ do_object_fold_state_members(Reader, Pred, !.Acc, Result, !State) :-
             TokenDesc = token_to_string(Token),
             make_syntax_error(Reader ^ json_reader_stream,
                 TokenDesc, yes(Msg), Error, !State),
-            Result = error(Error)
+            Result = error(!.Acc, Error)
         ;
             ColonToken = token_eof,
             make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
-            Result = error(Error)
+            Result = error(!.Acc, Error)
         ;
             ColonToken = token_error(Error),
-            Result = error(Error)
+            Result = error(!.Acc, Error)
         )
     ;
         ( Token = token_left_curly_bracket
@@ -713,14 +738,14 @@ do_object_fold_state_members(Reader, Pred, !.Acc, Result, !State) :-
         TokenDesc = token_to_string(Token),
         make_syntax_error(Reader ^ json_reader_stream,
             TokenDesc, yes(Msg), Error, !State),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ;
         Token = token_eof,
         make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
-        Result = error(Error)
+        Result = error(!.Acc, Error)
     ).
 
 %-----------------------------------------------------------------------------%
