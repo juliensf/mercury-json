@@ -191,6 +191,39 @@
 
 %-----------------------------------------------------------------------------%
 %
+% Folding over object members.
+%
+
+
+    % object_fold(Reader, Pred, InitialAcc, Result, !State):
+    %
+:- pred json.object_fold(json.reader(Stream), pred(string, json.value, A, A),
+    A, json.res(A, Error), State, State)
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+:- mode json.object_fold(in, in(pred(in, in, in, out) is det),
+    in, out, di, uo) is det.
+:- mode json.object_fold(in, in(pred(in, in, in, out) is cc_multi),
+    in, out, di, uo) is cc_multi.
+
+:- pred json.object_fold_state(json.reader(Stream),
+    pred(string, json.value, A, A, State, State),
+    A, json.res(A, Error), State, State)
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+:- mode json.object_fold_state(in,
+    in(pred(in, in, in, out, di, uo) is det),
+    in, out, di, uo) is det.
+:- mode json.object_fold_state(in,
+    in(pred(in, in, in, out, di, uo) is cc_multi),
+    in, out, di, uo) is cc_multi.
+
+%-----------------------------------------------------------------------------%
+%
 % Stream type class instances for JSON readers.
 %
 
@@ -389,6 +422,17 @@ get_array(Reader, Result, !State) :-
         ValueResult = error(Error),
         Result = error(Error)
     ).
+
+%-----------------------------------------------------------------------------%
+%
+% Folding over object members.
+%
+
+object_fold(Reader, Pred, !.Acc, Result, !State) :-
+    do_object_fold(Reader, Pred, !.Acc, Result, !State).
+
+object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
+    do_object_fold_state(Reader, Pred, !.Acc, Result, !State).
 
 %-----------------------------------------------------------------------------%
 %
