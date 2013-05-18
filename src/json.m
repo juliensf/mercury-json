@@ -296,9 +296,15 @@
     %
 :- type json.writer(Stream).
 
-:- type json.comment
-    --->    comment_eol(string)
-    ;       comment_multiline(string).
+
+:- type json.writer_params
+    --->    writer_params(
+                output_style :: output_style
+            ).
+
+:- type json.output_style
+    --->    compact
+    ;       pretty.
 
     % init_writer(Stream) = Writer:
     % Writer is a new JSON writer that writes JSON values to Stream.
@@ -309,6 +315,10 @@
         stream.writer(Stream, string, State)
     ).
 
+    % init_writer(Stream, Parameters) = Writer:
+    %
+:- func json.init_writer(Stream, writer_params) = json.writer(Stream).
+
     % put_json(Writer, Value, !State):
     % Write the JSON value Value using the given Writer.
     %
@@ -318,6 +328,10 @@
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
+
+:- type json.comment
+    --->    comment_eol(string)
+    ;       comment_multiline(string).
 
     % put_comment(Writer, Comment, !State):
     %
@@ -499,18 +513,28 @@ array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
 
 :- type json.writer(Stream)
     --->    json_writer(
-                json_writer_stream :: Stream
+                json_writer_stream :: Stream,
+                json_output_style  :: output_style
             ).
 
-json.init_writer(Stream) = json_writer(Stream).
+json.init_writer(Stream) = 
+    json_writer(Stream, compact).
+
+json.init_writer(Stream, Parameters) = Writer :-
+    Parameters = writer_params(OutputStyle),
+    Writer = json_writer(Stream, OutputStyle). 
 
 %-----------------------------------------------------------------------------%
 
 put_json(Writer, Value, !State) :-
-    % XXX currently, we only have a single output format.
-    % If we ever support others, e.g. pretty-printing of the JSON, then
-    % that should be handled here.
-    writer.raw_put_json(Writer ^ json_writer_stream, Value, !State).
+    OutputStyle = Writer ^ json_output_style,
+    (
+        OutputStyle = compact,
+        writer.raw_put_json(Writer ^ json_writer_stream, Value, !State)
+    ;
+        OutputStyle = pretty,
+        writer.pretty_put_json(Writer ^ json_writer_stream, Value, !State)
+    ).
 
 put_comment(Writer, Comment, !State) :-
     Stream = Writer ^ json_writer_stream,

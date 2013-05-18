@@ -21,6 +21,12 @@
         stream.writer(Stream, string, State)
     ).
 
+:- pred pretty_put_json(Stream::in, json.value::in, State::di, State::uo) is det
+    <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
 %-----------------------------------------------------------------------------%
 %
 % Comments.
@@ -70,10 +76,7 @@ raw_put_json(Stream, Value, !State) :-
         put_string_literal(Stream, String, !State)
     ;
         Value = number(Number),
-        % XXX if the number is actually an int, then we should
-        % print it as an int.
-        NumberStr = string.from_float(Number),
-        put(Stream, NumberStr, !State)
+        put_number(Stream, Number, !State)
     ;
         Value = object(Members),
         raw_put_object(Stream, Members, !State)
@@ -228,6 +231,136 @@ code_point_to_utf16_surrogates(CodePoint, LS, TS) :-
 
 put_hex_digits(Stream, Int, !State) :-
     string_writer.format(Stream, "\\u%04x", [i(Int)], !State).    
+
+%-----------------------------------------------------------------------------%
+
+:- pred put_number(Stream::in, float::in, State::di, State::uo) is det
+    <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+put_number(Stream, Number, !State) :-
+    Int = floor_to_int(Number),
+    ( if Number = float(Int)
+    then NumberStr = string.from_int(Int)
+    else NumberStr = string.from_float(Number)
+    ),
+    put(Stream, NumberStr, !State).
+
+%-----------------------------------------------------------------------------%
+
+pretty_put_json(Stream, Value, !State) :-
+    do_pretty_put_json(Stream, 0, Value, !State),
+    put(Stream, "\n", !State).
+
+:- pred do_pretty_put_json(Stream::in, int::in, json.value::in,
+    State::di, State::uo) is det
+    <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+do_pretty_put_json(Stream, N, Value, !State) :-
+    (
+        Value = null,
+        put(Stream, "null", !State)
+    ;
+        Value = bool(Bool),
+        (
+            Bool = no,
+            put(Stream, "false", !State)
+        ;
+            Bool = yes,
+            put(Stream, "true", !State)
+        )
+    ;
+        Value = string(String),
+        put_string_literal(Stream, String, !State)
+    ;
+        Value = number(Number),
+        put_number(Stream, Number, !State)
+    ;
+        Value = object(MembersMap),
+        put(Stream, "{\n", !State),
+        MembersList = map.to_assoc_list(MembersMap),
+        pretty_put_members(Stream, N + 2, MembersList, !State),
+        indent(Stream, N, !State),
+        put(Stream, "}", !State)
+    ;
+        Value = array(Elements),
+        (
+            Elements = [],
+            put(Stream, "[]", !State)
+        ;
+            Elements = [_ | _],
+            put(Stream, "[\n", !State),
+            pretty_put_elements(Stream, N + 2, Elements, !State),
+            indent(Stream, N, !State),
+            put(Stream, "]", !State)
+        )
+    ).
+
+:- pred pretty_put_members(Stream::in, int::in,
+    assoc_list(string, json.value)::in, State::di, State::uo) is det
+    <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+pretty_put_members(_, _, [], !State).
+pretty_put_members(Stream, N, [Member], !State) :-
+    pretty_put_member(Stream, N, Member, "\n", !State).
+pretty_put_members(Stream, N, [Member | Members @ [_ | _]], !State) :-
+    pretty_put_member(Stream, N, Member, ",\n", !State),
+    pretty_put_members(Stream, N, Members, !State).
+    
+:- pred pretty_put_member(Stream::in, int::in,
+    pair(string, json.value)::in, string::in, State::di, State::uo) is det
+    <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+pretty_put_member(Stream, N, KeyAndValue, Suffix, !State) :-
+    KeyAndValue = Key - Value,
+    indent(Stream, N, !State),
+    put_string_literal(Stream, Key, !State),
+    put(Stream, " : ", !State),
+    do_pretty_put_json(Stream, N, Value, !State),
+    put(Stream, Suffix, !State).
+
+:- pred pretty_put_elements(Stream::in, int::in,
+    list(json.value)::in, State::di, State::uo) is det
+    <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+pretty_put_elements(_, _, [], !State).
+pretty_put_elements(Stream, N, [Value], !State) :-
+    indent(Stream, N, !State),
+    do_pretty_put_json(Stream, N, Value, !State),
+    put(Stream, "\n", !State).
+pretty_put_elements(Stream, N, [Value | Values @ [_ | _]], !State) :-
+    indent(Stream, N, !State),
+    do_pretty_put_json(Stream, N, Value, !State),
+    put(Stream, ",\n", !State),
+    pretty_put_elements(Stream, N, Values, !State).
+    
+:- pred indent(Stream::in, int::in, State::di, State::uo) is det
+    <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
+
+indent(Stream, N, !State) :-
+    ( if N > 0 then
+        put(Stream, ' ', !State),
+        indent(Stream, N - 1, !State)
+    else
+        true
+    ).
 
 %-----------------------------------------------------------------------------%
 %
