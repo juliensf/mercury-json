@@ -8,9 +8,6 @@
 %
 % A Mercury library for reading and writing JSON.
 %
-% TODO:
-%    - predicates for folding over array elements and fields
-%
 % XXX how should we handle repeated object members?
 %-----------------------------------------------------------------------------%
 
