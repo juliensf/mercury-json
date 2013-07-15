@@ -202,7 +202,24 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                 do_get_value(Reader, NextToken, ValueResult, !State),
                 (
                     ValueResult = ok(Value),
-                    ( if map.insert(FieldName, Value, !Members) then
+                    RepeatedMembers = Reader ^ json_repeated_members,
+                    (
+                        RepeatedMembers = do_not_allow_repeated_members,
+                        ( if map.insert(FieldName, Value, !Members)
+                        then RepeatedMemberError = no
+                        else RepeatedMemberError = yes
+                        )
+                    ;
+                        RepeatedMembers = allow_repeated_members_keep_first,
+                        map.search_insert(FieldName, Value, _, !Members),
+                        RepeatedMemberError = no
+                    ;
+                        RepeatedMembers = allow_repeated_members_keep_last,
+                        map.set(FieldName, Value, !Members),
+                        RepeatedMemberError = no
+                    ),
+                    ( 
+                        RepeatedMemberError = no,
                         get_token(Reader, NextNextToken, !State),
                         (
                             NextNextToken = token_right_curly_bracket,
@@ -237,7 +254,8 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                             NextNextToken = token_error(TokenError),
                             Result = error(TokenError)
                         )
-                    else
+                    ;
+                        RepeatedMemberError = yes,
                         make_error_context(Reader ^ json_reader_stream,
                             Context, !State),
                         ErrorDesc = duplicate_object_member(FieldName),

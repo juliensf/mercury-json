@@ -8,7 +8,6 @@
 %
 % A Mercury library for reading and writing JSON.
 %
-% XXX how should we handle repeated object members?
 %-----------------------------------------------------------------------------%
 
 :- module json.
@@ -118,8 +117,9 @@
 
 :- type json.reader_params
     --->    reader_params(
-                allow_comments        :: allow_comments,
-                allow_trailing_commas :: allow_trailing_commas
+                allow_comments         :: allow_comments,
+                allow_trailing_commas  :: allow_trailing_commas,
+                allow_repeated_members :: allow_repeated_members 
             ).
    
     % Should the extension that allows comments in the JSON
@@ -135,6 +135,21 @@
 :- type json.allow_trailing_commas
     --->    allow_trailing_commas
     ;       do_not_allow_trailing_commas.
+
+    % Should we allow repeated object members in JSON objects?
+    % (And if so, how should that situation be handled?)
+    %
+:- type json.allow_repeated_members
+     --->   do_not_allow_repeated_members
+            % Return an error if a repeated object member is encountered.
+
+    ;       allow_repeated_members_keep_first
+            % If any object members are repeated, keep the first one that we
+            % encounter and discard any others.
+
+    ;       allow_repeated_members_keep_last.
+            % If any object members are repeated, keep the last one that we
+            % encounter and discard any others.
 
     % init_reader(Stream) = Reader:
     % Reader is a new JOSN reader using Stream as a character stream.
@@ -366,17 +381,29 @@
 
 :- type json.reader(Stream)
     --->    json_reader(
-                json_reader_stream   :: Stream,
-                json_comments        :: allow_comments,
-                json_trailing_commas :: allow_trailing_commas
+                json_reader_stream    :: Stream,
+                json_comments         :: allow_comments,
+                json_trailing_commas  :: allow_trailing_commas,
+                json_repeated_members :: allow_repeated_members
             ).
 
-json.init_reader(Stream) =
-    json_reader(Stream, do_not_allow_comments, do_not_allow_trailing_commas).
+json.init_reader(Stream) = Reader :-
+    Reader = json_reader(
+        Stream,
+        do_not_allow_comments,
+        do_not_allow_trailing_commas,
+        do_not_allow_repeated_members
+    ).
 
 json.init_reader(Stream, Params) = Reader :-
-    Params = reader_params(AllowComments, AllowTrailingCommas),
-    Reader = json_reader(Stream, AllowComments, AllowTrailingCommas).
+    Params = reader_params(AllowComments, AllowTrailingCommas,
+        RepeatedMembers),
+    Reader = json_reader(
+        Stream,
+        AllowComments,
+        AllowTrailingCommas,
+        RepeatedMembers
+    ).
 
 %-----------------------------------------------------------------------------%
 

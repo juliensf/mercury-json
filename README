@@ -11,6 +11,7 @@ FEATURES
 - conforms to RFC 4627
 - optionally allows comments in JSON
 - optionally allows trailing commas in JSON objects and arrays
+- user-configurable behaviour for handling repeated members in objects
 
 
 LICENSE
@@ -35,7 +36,7 @@ example
 
     $ make INSTALL_PREFIX=/foo/bar install
 
-says to install the library in /foo/bar
+causes the library to be installed in the directory /foo/bar.
 
 
 TESTING

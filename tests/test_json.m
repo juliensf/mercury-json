@@ -113,7 +113,7 @@ run_test(InputFileName, !IO) :-
         io.open_output(OutputFileName, OpenOutputResult, !IO),
         (
             OpenOutputResult = ok(OutputFile),
-            parse_and_output(InputFile, OutputFile, !IO),
+            parse_and_output(BaseFileName, InputFile, OutputFile, !IO),
             io.close_input(InputFile, !IO),
             io.close_output(OutputFile, !IO),
             ExpFileName = BaseFileName ++ ".exp",
@@ -145,13 +145,31 @@ run_test(InputFileName, !IO) :-
         unexpected($module, $pred, "cannot open input")
     ).
 
-:- pred parse_and_output(io.text_input_stream::in, io.text_output_stream::in,
+:- pred parse_and_output(string::in,
+    io.text_input_stream::in, io.text_output_stream::in,
     io::di, io::uo) is det.
 
-parse_and_output(Input, Output, !IO) :-
+parse_and_output(BaseFileName, Input, Output, !IO) :-
+    % Allow the default JSON reader parameters to be overridden for
+    % specific tests -- such tests need to be added to the table
+    % defined by the override_default_params/4 predicate.
+    ( if
+        override_default_params(BaseFileName, AllowComments0,
+        AllowTrailingCommas0, AllowRepeatedMembers0)
+    then
+        AllowComments = AllowComments0,
+        AllowTrailingCommas = AllowTrailingCommas0,
+        AllowRepeatedMembers = AllowRepeatedMembers0
+    else
+        % The default JSON reader parameters for the tests.
+        AllowComments = allow_comments,
+        AllowTrailingCommas = do_not_allow_trailing_commas,
+        AllowRepeatedMembers = do_not_allow_repeated_members
+    ),
     ReaderParams = reader_params(
-        allow_comments,
-        do_not_allow_trailing_commas
+        AllowComments,
+        AllowTrailingCommas,
+        AllowRepeatedMembers
     ),
     Reader = json.init_reader(Input, ReaderParams),
     Writer = json.init_writer(Output),
@@ -168,6 +186,15 @@ parse_and_output(Input, Output, !IO) :-
         Msg = stream.error_message(Error),
         io.write_string(Output, Msg, !IO)
     ). 
+
+:- pred override_default_params(string::in,
+    allow_comments::out, allow_trailing_commas::out,
+    allow_repeated_members::out) is semidet.
+
+override_default_params("repeated_member_first", allow_comments,
+    do_not_allow_trailing_commas, allow_repeated_members_keep_first).
+override_default_params("repeated_member_last", allow_comments,
+    do_not_allow_trailing_commas, allow_repeated_members_keep_last).
 
 %-----------------------------------------------------------------------------%
 
