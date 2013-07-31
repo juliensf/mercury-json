@@ -4,7 +4,7 @@
 % Copyright (C) 2013, Julien Fischer.
 % All rights reserved.
 %
-% Author: Julien Fischer <jfischer@www.opturion.com>
+% Author: Julien Fischer <jfischer@opturion.com>
 %
 % This module implements writing json.value/0 values to output streams.
 %
