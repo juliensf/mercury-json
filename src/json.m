@@ -355,6 +355,64 @@
     ).
 
 %-----------------------------------------------------------------------------%
+%
+% Marshaling between Mercury types and JSON objects.
+%
+
+% NOTE: THIS IS STILL WORK-IN-PROGRESS.
+
+% The mapping between Mercury types and JSON is:
+%
+%                     Mercury             JSON
+% Primitive types:    
+%                     int                  number#
+%                     string               string
+%                     float                number
+%                     char                 string
+%
+% # cannot have a fractional part.
+%
+% Library types:      
+%
+%                     bool/0               Boolean
+%                     maybe/1              null for "no" or
+%                                          arg of yes/1                 
+%
+%                     list/1               array##
+%
+% ## in principle, most sequence types in the standard library
+% could be converted to/from JSON arrays.
+%
+% User-defined typs:
+%
+%                     enumerations          string
+%                     discriminated unions  objects
+% 
+% User-defined non-enumeration d.u. types must have all there
+% fields named in order to marshaled to JSON.
+%
+% Cannot be marshaled to JSON:
+%   - foreign types
+%   - univs
+%   - d.u types with existentially quantified data constructors
+%   - d.u types without field names
+%
+% TODO
+%   - provide support for a greater range of stdlib types.
+
+    % from_type(Type) = MaybeValue:
+    % MaybeValue = `ok(Value)' if Type is a Mercury term corresponding
+    % to the JSON value Value and `error(...) otherwise.
+    %
+:- func json.from_type(T) = maybe_error(json.value).
+    
+    % to_type(Value) = MaybeType:
+    % MaybeType is `ok(Type)' if Value is a JSON object corresponding
+    % to the Mercury value Type and `error(...)' otherwise.
+    %
+:- func json.to_type(json.value) = maybe_error(T).
+
+%-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
 
 :- implementation.
@@ -362,17 +420,25 @@
 :- include_module json.char_buffer.
 :- include_module json.json_lexer.
 :- include_module json.json_parser.
+:- include_module json.marshal.
+:- include_module json.unmarshal.
 :- include_module json.writer.
 
 :- import_module json.char_buffer.
 :- import_module json.json_lexer.
 :- import_module json.json_parser.
+:- import_module json.marshal.
+:- import_module json.unmarshal.
 :- import_module json.writer.
 
+:- import_module construct.
+:- import_module deconstruct.
 :- import_module int.
 :- import_module float.
 :- import_module string.
 :- import_module require.
+:- import_module type_desc.
+:- import_module univ.
 
 %-----------------------------------------------------------------------------%
 %
@@ -571,6 +637,14 @@ put_comment(Writer, Comment, !State) :-
     ).
 
 %-----------------------------------------------------------------------------%
+%
+% Marshaling / Unmarshaling.
+%
+
+from_type(T) = marshal_from_type(T).
+to_type(V) = unmarshal_to_type(V).
+
+%-----------------------------------------------------------------------------%
 
 :- pred make_unexpected_eof_error(Stream::in, maybe(string)::in,
     json.error(Error)::out, State::di, State::uo) is det
@@ -733,6 +807,22 @@ value_desc(array(_)) = "array".
         json.get_value(Reader, Result, !State)
     )
 ].
+
+%-----------------------------------------------------------------------------%
+%
+% Utility predicate for (un)marshaling.
+%
+
+:- pred all_functors_have_arity_zero(type_desc::in, functor_number_lex::in,
+    functor_number_lex::in) is semidet.
+
+all_functors_have_arity_zero(TypeDesc, I, Limit) :-
+    ( if I < Limit then
+        get_functor(TypeDesc, I, _Name, 0, []),
+        all_functors_have_arity_zero(TypeDesc, I + 1, Limit)
+    else
+        true 
+    ).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.
