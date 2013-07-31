@@ -22,6 +22,10 @@
 
 :- implementation.
 
+:- import_module pair.
+
+%-----------------------------------------------------------------------------%
+
 marshal_from_type(Term) = Result :-
     ( if
         dynamic_cast(Term, Int)
@@ -48,6 +52,28 @@ marshal_from_type(Term) = Result :-
     then
         Value = bool(Bool),
         Result = ok(Value)
+    else if
+        dynamic_cast_to_pair(Term, Pair)
+    then
+        Pair = Fst - Snd,
+        FstResult = marshal_from_type(Fst),
+        (
+            FstResult = ok(FstValue),
+            SndResult = marshal_from_type(Snd),
+            (
+                SndResult = ok(SndValue),
+                Object = map.from_assoc_list(
+                    ["fst" - FstValue, "snd" - SndValue]),
+                Value = object(Object),
+                Result = ok(Value)
+            ;
+                SndResult = error(Msg),
+                Result = error(Msg)
+            )
+        ;
+            FstResult = error(Msg),
+            Result = error(Msg)
+        )
     else if
         dynamic_cast_to_list(Term, List)
     then
@@ -161,6 +187,15 @@ add_members([Univ | Univs], [MaybeArgName | MaybeArgNames], !.Object,
             Result = error(Msg)
         )
     ).
+
+:- some [T2, T3] pred dynamic_cast_to_pair(T1::in, pair(T2, T3)::out)
+    is semidet.
+
+dynamic_cast_to_pair(X, Pair) :-
+    [FstTypeDesc, SndTypeDesc] = type_args(type_of(X)),
+    (_ : FstType) `has_type` FstTypeDesc,
+    (_ : SndType) `has_type` SndTypeDesc,
+    dynamic_cast(X, Pair : pair(FstType, SndType)).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.marshal.

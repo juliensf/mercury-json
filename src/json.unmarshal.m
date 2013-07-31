@@ -22,6 +22,10 @@
 
 :- implementation.
 
+:- import_module pair.
+
+%-----------------------------------------------------------------------------%
+
 unmarshal_to_type(Value) = Result :-
     TypeArgs = type_args(type_of(Result)),
     TypeDesc = list.det_head(TypeArgs),
@@ -70,6 +74,14 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         TypeArgs = [ArgTypeDesc]
     then
         Result = to_maybe_type(ArgTypeDesc, Value)
+    else if
+        % Is this type a Mercury pair/2?
+        ModuleName = "pair",
+        TypeName = "pair",
+        Arity = 2,
+        TypeArgs = [FstTypeDesc, SndTypeDesc]
+    then
+        Result = to_pair_type(FstTypeDesc, SndTypeDesc, Value)    
     else if
         % Check if this is a (non-list) d.u. type.
         NumFunctors = num_functors(TypeDesc)
@@ -224,7 +236,54 @@ to_maybe_type(ArgTypeDesc, Value) = Result :-
             Result = error(Msg)
         )
     ).
-         
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> pair/2 types.
+%
+
+:- func to_pair_type(type_desc, type_desc, value) = maybe_error(univ).
+
+to_pair_type(FstTypeDesc, SndTypeDesc, Value) = Result :-
+    (
+        Value = object(Object),
+        ( if
+            map.count(Object) = 2,
+            map.search(Object, "fst", FstValue),
+            map.search(Object, "snd", SndValue)
+        then
+            (_ : FstType) `has_type` FstTypeDesc,
+            MaybeFst : maybe_error(FstType) = unmarshal_to_type(FstValue),
+            (
+                MaybeFst = ok(Fst),
+                (_ : SndType) `has_type` SndTypeDesc,
+                MaybeSnd : maybe_error(SndType) = unmarshal_to_type(SndValue),
+                (
+                    MaybeSnd = ok(Snd),
+                    Pair = Fst - Snd,
+                    Univ = univ(Pair),
+                    Result = ok(Univ)
+                ;
+                    MaybeSnd = error(Msg),
+                    Result = error(Msg)
+                )
+            ;
+                MaybeFst = error(Msg),
+                Result = error(Msg)
+            )
+        else
+            Result = error("object is not a pair/2")
+        )   
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = string(_)
+        ; Value = array(_)
+        ),
+        Result = error("expected JSON object for pair/2")
+    ).
+            
 %-----------------------------------------------------------------------------%
 %
 % JSON -> enum types.
