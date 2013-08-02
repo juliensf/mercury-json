@@ -22,7 +22,12 @@
 
 :- implementation.
 
+:- import_module bimap.
 :- import_module pair.
+:- import_module set_ctree234.
+:- import_module set_ordlist.
+:- import_module set_tree234.
+:- import_module set_unordlist.
 
 %-----------------------------------------------------------------------------%
 
@@ -81,12 +86,31 @@ marshal_from_type(Term) = Result :-
         (
             ValuesResult = ok(RevValues),
             list.reverse(RevValues, Values),
-            Value = array(Values),
-            Result = ok(Value)
+            Result = ok(array(Values))
         ;
             ValuesResult = error(Msg),
             Result = error(Msg)
         )
+    else if
+        dynamic_cast_to_set_ordlist(Term, Set)
+    then
+        set_ordlist.to_sorted_list(Set, List),
+        Result = marshal_from_type(List)
+    else if
+        dynamic_cast_to_set_unordlist(Term, Set)
+    then
+        set_unordlist.to_sorted_list(Set, List),
+        Result = marshal_from_type(List)
+    else if
+        dynamic_cast_to_set_tree234(Term, Set)
+    then
+        set_tree234.to_sorted_list(Set, List),
+        Result = marshal_from_type(List)
+    else if
+        dynamic_cast_to_set_ctree234(Term, Set)
+    then
+        List = set_ctree234.to_sorted_list(Set),
+        Result = marshal_from_type(List)
     else if
         dynamic_cast_to_maybe(Term, Maybe)
     then
@@ -97,6 +121,43 @@ marshal_from_type(Term) = Result :-
             Maybe = yes(Arg),
             Result = marshal_from_type(Arg)
         )
+    else if
+        dynamic_cast_to_maybe_error(Term, MaybeError)
+    then
+        (
+            MaybeError = ok(OkArg),
+            MaybeOkValue = marshal_from_type(OkArg),
+            (
+                MaybeOkValue = ok(OkValue),
+                Object = map.singleton("ok", OkValue),
+                Value = object(Object),
+                Result = ok(Value)
+            ;
+                MaybeOkValue = error(Msg),
+                Result = error(Msg)
+            )
+        ;
+            MaybeError = error(ErrorArg),
+            MaybeErrorValue = marshal_from_type(ErrorArg),
+            (
+                MaybeErrorValue = ok(ErrorValue),
+                Object = map.singleton("error", ErrorValue),
+                Result = ok(object(Object))
+            ;
+                MaybeErrorValue = error(Msg),
+                Result = error(Msg)
+            )
+        )
+    else if
+        dynamic_cast_to_map(Term, Map)
+    then
+        map.to_assoc_list(Map, KVs),
+        Result = marshal_from_type(KVs)
+    else if
+        dynamic_cast_to_bimap(Term, Bimap)
+    then
+        bimap.to_assoc_list(Bimap, KVs),
+        Result = marshal_from_type(KVs)
     else if
         TypeDesc = type_of(Term),
         NumFunctors = num_functors(TypeDesc),
@@ -152,6 +213,34 @@ list_to_values([T | Ts], !.Values, Result) :-
         ValueResult = error(Msg),
         Result = error(Msg)
     ).  
+        
+:- some [T2] pred dynamic_cast_to_set_ordlist(T1::in, set_ordlist(T2)::out) is semidet.
+
+dynamic_cast_to_set_ordlist(X, L) :-
+    [ArgTypeDesc] = type_args(type_of(X)),
+    (_ : ArgType) `has_type` ArgTypeDesc,
+    dynamic_cast(X, L : set_ordlist(ArgType)).
+
+:- some [T2] pred dynamic_cast_to_set_unordlist(T1::in, set_unordlist(T2)::out) is semidet.
+
+dynamic_cast_to_set_unordlist(X, L) :-
+    [ArgTypeDesc] = type_args(type_of(X)),
+    (_ : ArgType) `has_type` ArgTypeDesc,
+    dynamic_cast(X, L : set_unordlist(ArgType)).
+
+:- some [T2] pred dynamic_cast_to_set_tree234(T1::in, set_tree234(T2)::out) is semidet.
+
+dynamic_cast_to_set_tree234(X, L) :-
+    [ArgTypeDesc] = type_args(type_of(X)),
+    (_ : ArgType) `has_type` ArgTypeDesc,
+    dynamic_cast(X, L : set_tree234(ArgType)).
+
+:- some [T2] pred dynamic_cast_to_set_ctree234(T1::in, set_ctree234(T2)::out) is semidet.
+
+dynamic_cast_to_set_ctree234(X, L) :-
+    [ArgTypeDesc] = type_args(type_of(X)),
+    (_ : ArgType) `has_type` ArgTypeDesc,
+    dynamic_cast(X, L : set_ctree234(ArgType)).
 
 :- some [T2] pred dynamic_cast_to_maybe(T1::in, maybe(T2)::out) is semidet.
 
@@ -196,6 +285,33 @@ dynamic_cast_to_pair(X, Pair) :-
     (_ : FstType) `has_type` FstTypeDesc,
     (_ : SndType) `has_type` SndTypeDesc,
     dynamic_cast(X, Pair : pair(FstType, SndType)).
+
+:- some [T2, T3] pred dynamic_cast_to_maybe_error(T1::in,
+    maybe_error(T2, T3)::out) is semidet.
+
+dynamic_cast_to_maybe_error(X, M) :-
+    [OkTypeDesc, ErrorTypeDesc] = type_args(type_of(X)),
+    (_ : OkType) `has_type` OkTypeDesc,
+    (_ : ErrorType) `has_type` ErrorTypeDesc,
+    dynamic_cast(X, M : maybe_error(OkType, ErrorType)).
+
+:- some [T2, T3] pred dynamic_cast_to_map(T1::in, map(T2, T3)::out)
+    is semidet.
+
+dynamic_cast_to_map(X, M) :-
+    [KeyTypeDesc, ValueTypeDesc] = type_args(type_of(X)),
+    (_ : KeyType) `has_type` KeyTypeDesc,
+    (_ : ValueType) `has_type` ValueTypeDesc,
+    dynamic_cast(X, M : map(KeyType, ValueType)).
+
+:- some [T2, T3] pred dynamic_cast_to_bimap(T1::in, bimap(T2, T3)::out)
+    is semidet.
+
+dynamic_cast_to_bimap(X, M) :-
+    [KeyTypeDesc, ValueTypeDesc] = type_args(type_of(X)),
+    (_ : KeyType) `has_type` KeyTypeDesc,
+    (_ : ValueType) `has_type` ValueTypeDesc,
+    dynamic_cast(X, M : bimap(KeyType, ValueType)).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.marshal.

@@ -396,6 +396,7 @@
 %   - univs
 %   - d.u types with existentially quantified data constructors
 %   - d.u types without field names
+%   - no higher-order types
 %
 % TODO
 %   - provide support for a greater range of stdlib types.
