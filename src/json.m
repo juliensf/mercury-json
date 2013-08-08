@@ -308,7 +308,6 @@
     %
 :- type json.writer(Stream).
 
-
 :- type json.writer_params
     --->    writer_params(
                 output_style :: output_style
@@ -403,7 +402,7 @@
 
     % from_type(Type) = MaybeValue:
     % MaybeValue = `ok(Value)' if Type is a Mercury term corresponding
-    % to the JSON value Value and `error(...) otherwise.
+    % to the JSON value Value and `error(...)' otherwise.
     %
 :- func json.from_type(T) = maybe_error(json.value).
     

@@ -24,6 +24,7 @@
 
 :- import_module assoc_list.
 :- import_module bimap.
+:- import_module integer.
 :- import_module pair.
 :- import_module set_ctree234.
 :- import_module set_ordlist.
@@ -64,6 +65,14 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         TypeArgs = []
     then
         Result = to_bool_type(Value)
+    else if
+        % Is this type a Mercury integer?
+        ModuleName = "integer",
+        TypeName = "integer",
+        Arity = 0,
+        TypeArgs = []
+    then
+        Result = to_integer_type(Value)
     else if
         % Is this type a Mercury list?
         ModuleName = "list",
@@ -215,7 +224,31 @@ to_bool_type(Value) = Result :-
         ),
         Result = error("expected JSON Boolean for bool/1 conversion")
     ).
+        
+%-----------------------------------------------------------------------------%
+%
+% JSON -> integer/0 type.
+%
 
+:- func to_integer_type(value) = maybe_error(univ).
+
+to_integer_type(Value) = Result :-
+    (
+        Value = string(String),
+        ( if Integer = integer.from_string(String)
+        then Result = ok(univ(Integer))
+        else Result = error("string is not an integer/0")
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ; Value = array(_)
+        ),
+        Result = error("expected JSON Boolean for integer/0 conversion")
+    ).
+        
 %-----------------------------------------------------------------------------%
 %
 % JSON -> list/1 types.

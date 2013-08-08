@@ -23,6 +23,7 @@
 :- implementation.
 
 :- import_module bimap.
+:- import_module integer.
 :- import_module pair.
 :- import_module set_ctree234.
 :- import_module set_ordlist.
@@ -35,13 +36,12 @@ marshal_from_type(Term) = Result :-
     ( if
         dynamic_cast(Term, Int)
     then
-        Value = number(float(Int)),
-        Result = ok(Value)
+        Number = float.float(Int),
+        Result = ok(number(Number))
     else if
         dynamic_cast(Term, Float)
     then
-        Value = number(Float),
-        Result = ok(Value)
+        Result = ok(number(Float))
     else if
         dynamic_cast(Term, String)
     then
@@ -57,6 +57,11 @@ marshal_from_type(Term) = Result :-
     then
         Value = bool(Bool),
         Result = ok(Value)
+    else if
+        dynamic_cast(Term, Integer)
+    then
+        IntegerString : string = integer.to_string(Integer),
+        Result = ok(string(IntegerString))
     else if
         dynamic_cast_to_pair(Term, Pair)
     then
