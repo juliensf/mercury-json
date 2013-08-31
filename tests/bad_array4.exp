@@ -1,1 +1,1 @@
-bad_array4.json:2: error: unexpected end-of-file: array missing terminating ']'
+bad_array4.json:2:0 error: unexpected end-of-file: array missing terminating ']'

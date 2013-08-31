@@ -1,1 +1,1 @@
-bad_multiline_comment2.json:2: error: unterminated multiline comment
+bad_multiline_comment2.json:2:0: error: unterminated multiline comment

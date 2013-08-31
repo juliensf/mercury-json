@@ -1,1 +1,1 @@
-bad_object4.json:1: syntax error at '}': missing value for object member "foo"
+bad_object4.json:1:8: syntax error at '}': missing value for object member "foo"

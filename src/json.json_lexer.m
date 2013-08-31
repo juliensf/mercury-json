@@ -43,6 +43,7 @@ get_token(Reader, Token, !State) :-
     stream.get(Reader ^ json_reader_stream, ReadResult, !State),
     (
         ReadResult = ok(Char),
+        update_column_number(Reader, Char, !State),
         ( if
             json_lexer.is_whitespace(Char)
         then
@@ -86,7 +87,7 @@ get_token(Reader, Token, !State) :-
         else if
             Char = '"'
         then
-            get_string_literal(Reader ^ json_reader_stream, Token, !State)
+            get_string_literal(Reader, Token, !State)
         else if
             Char = ('-')
         then
@@ -110,7 +111,7 @@ get_token(Reader, Token, !State) :-
             get_keyword(Reader, Buffer, Token, !State) 
         else
             string.format("unexpected character '%c'", [c(Char)], Msg),
-            make_json_error(Reader ^ json_reader_stream, Msg, Error, !State),
+            make_json_error(Reader, Msg, Error, !State),
             Token = token_error(Error)
         ) 
     ;
@@ -130,18 +131,38 @@ is_whitespace('\t').
 
 %-----------------------------------------------------------------------------%
 %
+% Column numbers.
+%
+
+:- pred update_column_number(json.reader(Stream)::in, char::in,
+    State::di, State::uo) is det.
+
+update_column_number(Reader, Char, !State) :-
+    promise_pure (
+        ColMutVar = Reader ^ json_column_number,
+        ( if Char = ('\n') then
+            impure set_mutvar(ColMutVar, 0)
+        else
+            impure get_mutvar(ColMutVar, Col),
+            impure set_mutvar(ColMutVar, Col + 1)
+        ),
+        !:State = !.State
+    ).
+        
+%-----------------------------------------------------------------------------%
+%
 % String literals.
 %
 
-:- pred get_string_literal(Stream::in, token(Error)::out,
+:- pred get_string_literal(json.reader(Stream)::in, token(Error)::out,
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_string_literal(Stream, Token, !State) :-
-    get_string_chars(Stream, [], RevChars, Result, !State),
+get_string_literal(Reader, Token, !State) :-
+    get_string_chars(Reader, [], RevChars, Result, !State),
     (
         Result = ok,
         String = string.from_rev_char_list(RevChars),   
@@ -151,22 +172,25 @@ get_string_literal(Stream, Token, !State) :-
         Token = token_error(Error)
     ).
 
-:- pred get_string_chars(Stream::in, list(char)::in, list(char)::out,
+:- pred get_string_chars(json.reader(Stream)::in,
+    list(char)::in, list(char)::out,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_string_chars(Stream, !Chars, Result, !State) :-
+get_string_chars(Reader, !Chars, Result, !State) :-
+    Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
         ReadResult = ok(Char),
+        update_column_number(Reader, Char, !State),
         ( if Char = ('\\') then
-            get_escaped_char(Stream, !Chars, EscapedCharResult, !State),
+            get_escaped_char(Reader, !Chars, EscapedCharResult, !State),
             (
                 EscapedCharResult = ok,
-                get_string_chars(Stream, !Chars, Result, !State)
+                get_string_chars(Reader, !Chars, Result, !State)
             ;
                 EscapedCharResult = error(Error),
                 Result = error(Error)
@@ -175,43 +199,46 @@ get_string_chars(Stream, !Chars, Result, !State) :-
             Result = ok
         else
             !:Chars = [Char | !.Chars],
-            get_string_chars(Stream, !Chars, Result, !State)
+            get_string_chars(Reader, !Chars, Result, !State)
         )
     ;
         ReadResult = eof,
         Msg = "unterminated string literal",
-        make_unexpected_eof_error(Stream, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(Error)
     ;
         ReadResult = error(StreamError),
         Result = error(stream_error(StreamError))
     ).
 
-:- pred get_escaped_char(Stream::in, list(char)::in, list(char)::out,
+:- pred get_escaped_char(json.reader(Stream)::in,
+    list(char)::in, list(char)::out,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_escaped_char(Stream, !Chars, Result, !State) :-
+get_escaped_char(Reader, !Chars, Result, !State) :-
+    Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
         ReadResult = ok(Char),
+        update_column_number(Reader, Char, !State),
         ( if escaped_json_char(Char, EscapedChar) then
             !:Chars = [EscapedChar | !.Chars],
             Result = ok
         else if Char = 'u' then
-            get_escaped_unicode_char(Stream, !Chars, Result, !State)
+            get_escaped_unicode_char(Reader, !Chars, Result, !State)
         else
-            make_error_context(Stream, Context, !State),
+            make_error_context(Reader, Context, !State),
             ErrorDesc = invalid_character_escape(Char),
             Error = json_error(Context, ErrorDesc),  
             Result = error(Error)
         )
     ;
         ReadResult = eof,
-        make_unexpected_eof_error(Stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(Error)
     ;
         ReadResult = error(StreamError),
@@ -229,15 +256,16 @@ escaped_json_char('n', '\n').
 escaped_json_char('r', '\r').
 escaped_json_char('t', '\t').
 
-:- pred get_escaped_unicode_char(Stream::in, list(char)::in, list(char)::out,
+:- pred get_escaped_unicode_char(json.reader(Stream)::in,
+    list(char)::in, list(char)::out,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_escaped_unicode_char(Stream, !Chars, Result, !State) :-
-    get_hex_digits(Stream, 4, [], HexDigits, HexDigitsResult, !State),
+get_escaped_unicode_char(Reader, !Chars, Result, !State) :-
+    get_hex_digits(Reader, 4, [], HexDigits, HexDigitsResult, !State),
     (
         HexDigitsResult = ok,
         HexString = string.from_char_list(HexDigits),
@@ -253,20 +281,20 @@ get_escaped_unicode_char(Stream, !Chars, Result, !State) :-
                 Result = ok
             ;
                 CharCodeClass = code_point_leading_surrogate,
-                get_trailing_surrogate_and_combine(Stream, UnicodeCharCode,
+                get_trailing_surrogate_and_combine(Reader, UnicodeCharCode,
                     !Chars, Result, !State)
             ;
                 CharCodeClass = code_point_trailing_surrogate,
                 unexpected($file, $pred, "unpaired trailing surrogate")
             ;
                 CharCodeClass = code_point_invalid,
-                make_error_context(Stream, Context, !State),
+                make_error_context(Reader, Context, !State),
                 ErrorDesc = invalid_unicode_character(HexString),
                 Error = json_error(Context, ErrorDesc),
                 Result = error(Error)
             )
         else
-            make_error_context(Stream, Context, !State),
+            make_error_context(Reader, Context, !State),
             ErrorDesc = invalid_unicode_character(HexString),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
@@ -276,31 +304,34 @@ get_escaped_unicode_char(Stream, !Chars, Result, !State) :-
         Result = error(Error)
     ).
 
-:- pred get_hex_digits(Stream::in, int::in, list(char)::in, list(char)::out,
+:- pred get_hex_digits(json.reader(Stream)::in, int::in,
+    list(char)::in, list(char)::out,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_hex_digits(Stream, !.N, !HexDigits, Result, !State) :-
+get_hex_digits(Reader, !.N, !HexDigits, Result, !State) :-
     ( if !.N > 0 then
+        Stream = Reader ^ json_reader_stream,
         stream.get(Stream, ReadResult, !State),
         (
             ReadResult = ok(Char),
+            update_column_number(Reader, Char, !State),
             ( if char.is_hex_digit(Char) then
                 !:HexDigits = [Char | !.HexDigits],
                 !:N = !.N - 1,
-                get_hex_digits(Stream, !.N, !HexDigits, Result, !State)
+                get_hex_digits(Reader, !.N, !HexDigits, Result, !State)
             else
                 string.format("invalid hex character in Unicode escape: `%c'",
                     [c(Char)], Msg),
-                make_json_error(Stream, Msg, Error, !State),
+                make_json_error(Reader, Msg, Error, !State),
                 Result = error(Error)
             )
         ;
             ReadResult = eof,
-            make_unexpected_eof_error(Stream, no, Error, !State),
+            make_unexpected_eof_error(Reader, no, Error, !State),
             Result = error(Error)
         ;
             ReadResult = error(StreamError),
@@ -342,7 +373,7 @@ is_trailing_surrogate(Code) :-
     Code >= 0xDC00,
     Code =< 0xDFFF.
 
-:- pred get_trailing_surrogate_and_combine(Stream::in, 
+:- pred get_trailing_surrogate_and_combine(json.reader(Stream)::in, 
     int::in, list(char)::in, list(char)::out,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
@@ -350,17 +381,20 @@ is_trailing_surrogate(Code) :-
         stream.putback(Stream, char, State, Error)
     ).
 
-get_trailing_surrogate_and_combine(Stream, LeadingSurrogate,
+get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
         !Chars, Result, !State) :-
+    Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
         ReadResult = ok(Char),
+        update_column_number(Reader, Char, !State),
         ( if Char = ('\\') then
             stream.get(Stream, ReadResultPrime, !State),
             (
                 ReadResultPrime = ok(CharPrime),
+                update_column_number(Reader, CharPrime, !State),
                 ( if CharPrime = 'u' then
-                    get_hex_digits(Stream, 4, [], HexDigits, HexDigitsResult,
+                    get_hex_digits(Reader, 4, [], HexDigits, HexDigitsResult,
                         !State),
                     (
                         HexDigitsResult = ok,
@@ -383,14 +417,14 @@ get_trailing_surrogate_and_combine(Stream, LeadingSurrogate,
                         Result = error(Error)
                     )
                 else
-                    make_error_context(Stream, Context, !State),
+                    make_error_context(Reader, Context, !State),
                     ErrorDesc = invalid_character_escape(Char),
                     Error = json_error(Context, ErrorDesc),  
                     Result = error(Error)
                 )
             ;
                 ReadResultPrime = eof,
-                make_error_context(Stream, Context, !State),
+                make_error_context(Reader, Context, !State),
                 ErrorDesc = invalid_character_escape(Char),
                 Error = json_error(Context, ErrorDesc),  
                 Result = error(Error)
@@ -399,14 +433,14 @@ get_trailing_surrogate_and_combine(Stream, LeadingSurrogate,
                 Result = error(stream_error(StreamError))
             ) 
         else
-            make_error_context(Stream, Context, !State),
+            make_error_context(Reader, Context, !State),
             ErrorDesc = unpaired_utf16_surrogate,
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
         )
     ;
         ReadResult = eof,
-        make_error_context(Stream, Context, !State),
+        make_error_context(Reader, Context, !State),
         ErrorDesc = unpaired_utf16_surrogate,
         Error = json_error(Context, ErrorDesc),
         Result = error(Error)
@@ -437,17 +471,18 @@ get_negative_number(Reader, Buffer, Token, !State) :-
     stream.get(Stream, GetResult, !State),
     (
         GetResult = ok(Char),
+        update_column_number(Reader, Char, !State),
         ( if char.is_digit(Char) then
             char_buffer.add(Buffer, Char, !State),
             get_number(Reader, Buffer, Token, !State)
         else
             Msg = "expected a digit after '-'",
-            make_json_error(Stream, Msg, Error, !State),
+            make_json_error(Reader, Msg, Error, !State),
             Token = token_error(Error)
         )
     ;
         GetResult = eof,
-        make_unexpected_eof_error(Stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Token = token_error(Error)
     ;
         GetResult = error(StreamError),
@@ -489,6 +524,7 @@ get_number_chars(Reader, Buffer, Result, !State) :-
         ( if
             char.is_digit(Char)
         then
+            update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
             get_number_chars(Reader, Buffer, Result, !State)
         else if
@@ -496,6 +532,7 @@ get_number_chars(Reader, Buffer, Result, !State) :-
             char_buffer.last(Buffer, LastChar, !.State),
             char.is_digit(LastChar)
         then
+            update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
             get_frac(Reader, Buffer, Result, !State)
         else if
@@ -503,6 +540,7 @@ get_number_chars(Reader, Buffer, Result, !State) :-
             ; Char = 'E'
             )
         then
+            update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
             get_exp(Reader, exp_start, Buffer, Result, !State)
         else
@@ -511,7 +549,7 @@ get_number_chars(Reader, Buffer, Result, !State) :-
         )
     ;
         GetResult = eof,
-        make_unexpected_eof_error(Stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(Error)
     ;
         GetResult = error(StreamError),
@@ -534,6 +572,7 @@ get_frac(Reader, Buffer, Result, !State) :-
         ( if
             char.is_digit(Char)
         then
+            update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
             get_frac(Reader, Buffer, Result, !State)
         else
@@ -542,7 +581,7 @@ get_frac(Reader, Buffer, Result, !State) :-
         )
     ;
         GetResult = eof,
-        make_unexpected_eof_error(Stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(Error)
     ;
         GetResult = error(StreamError),
@@ -574,11 +613,13 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
             ; Char = ('+')
             )
         then
+            update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
             get_exp(Reader, exp_sign, Buffer, Result, !State)
         else if
             char.is_digit(Char)
         then
+            update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
             get_exp(Reader, exp_digit, Buffer, Result, !State)
         else
@@ -588,21 +629,23 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
                 Result = ok
             ;
                 Where = exp_sign,
+                update_column_number(Reader, Char, !State),
                 ( if char_buffer.last(Buffer, SignChar, !.State) then
                     string.format("expected digit after '%c' in exponent",
                         [c(SignChar)], Msg),
-                    make_json_error(Stream, Msg, Error, !State),
+                    make_json_error(Reader, Msg, Error, !State),
                     Result = error(Error)
                 else 
                     unexpected($module, $pred, "corrupted buffer")
                 )
             ;
                 Where = exp_start,
+                update_column_number(Reader, Char, !State),
                 ( if char_buffer.last(Buffer, ExpChar, !.State) then
                     string.format(
                         "expected '+', '-' or digit after '%c' in exponent",
                         [c(ExpChar)], Msg),
-                    make_json_error(Stream, Msg, Error, !State),
+                    make_json_error(Reader, Msg, Error, !State),
                     Result = error(Error)
                 else 
                     unexpected($module, $pred, "corrupted buffer")
@@ -611,7 +654,7 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
         )
     ;
         GetResult = eof,
-        make_unexpected_eof_error(Stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(Error)
     ;
         GetResult = error(StreamError),
@@ -636,8 +679,7 @@ get_keyword(Reader, Buffer, Token, !State) :-
         ( if is_keyword(Keyword, Token0) then
             Token = Token0
         else
-            Stream = Reader ^ json_reader_stream,
-            make_syntax_error(Stream, Keyword, no, Error, !State),
+            make_syntax_error(Reader, Keyword, no, Error, !State),
             Token = token_error(Error)
         ) 
     ;
@@ -659,6 +701,7 @@ get_keyword_chars(Reader, Buffer, Result, !State) :-
     (
         ReadResult = ok(Char),
         ( if char.is_lower(Char) then
+            update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
             get_keyword_chars(Reader, Buffer, Result, !State)
         else
@@ -693,41 +736,43 @@ consume_comment(Reader, Result, !State) :-
     stream.get(Stream, ReadResult, !State),
     (
         ReadResult = ok(Char),
+        update_column_number(Reader, Char, !State),
         ( if Char = ('/') then
-            consume_until_next_nl_or_eof(Stream, Result, !State)
+            consume_until_next_nl_or_eof(Reader, Result, !State)
         else if Char = ('*') then
             % The last char kind must be other here since we don't
             % want to accept /*/ as multiline comment.
             LastCharKind = char_other,
-            consume_multiline_comment(Stream, LastCharKind, Result, !State)
+            consume_multiline_comment(Reader, LastCharKind, Result, !State)
         else
             string.format("unexpected character: '%c'", [c(Char)], Msg),
-            make_json_error(Stream, Msg, Error, !State),
+            make_json_error(Reader, Msg, Error, !State),
             Result = error(Error)
         )
     ;
         ReadResult = eof,
-        make_unexpected_eof_error(Stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(Error)
     ;
         ReadResult = error(Error),
         Result = error(stream_error(Error))
     ).
 
-:- pred consume_until_next_nl_or_eof(Stream::in,
+:- pred consume_until_next_nl_or_eof(json.reader(Stream)::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-consume_until_next_nl_or_eof(Stream, Result, !State) :-
-    stream.get(Stream, ReadResult, !State),
+consume_until_next_nl_or_eof(Reader, Result, !State) :-
+    stream.get(Reader ^ json_reader_stream, ReadResult, !State),
     ( 
         ReadResult = ok(Char),
+        update_column_number(Reader, Char, !State),
         ( if Char = ('\n')
         then Result = ok
-        else consume_until_next_nl_or_eof(Stream, Result, !State)
+        else consume_until_next_nl_or_eof(Reader, Result, !State)
         ) 
     ;
         ReadResult = eof,
@@ -741,17 +786,20 @@ consume_until_next_nl_or_eof(Stream, Result, !State) :-
     --->    char_star
     ;       char_other.
 
-:- pred consume_multiline_comment(Stream::in, last_multiline_comment_char::in,
+:- pred consume_multiline_comment(json.reader(Stream)::in,
+    last_multiline_comment_char::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-consume_multiline_comment(Stream, LastCharKind, Result, !State) :-
+consume_multiline_comment(Reader, LastCharKind, Result, !State) :-
+    Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     ( 
         ReadResult = ok(Char),
+        update_column_number(Reader, Char, !State),
         ( if 
             LastCharKind = char_star,
             Char = ('/')
@@ -759,12 +807,12 @@ consume_multiline_comment(Stream, LastCharKind, Result, !State) :-
             Result = ok
         else 
             ThisCharKind = ( if Char = ('*') then char_star else char_other ),
-            consume_multiline_comment(Stream, ThisCharKind, Result, !State)
+            consume_multiline_comment(Reader, ThisCharKind, Result, !State)
         )
     ;
         ReadResult = eof,
         % XXX we should record the context of the beginning of the comment.
-        make_error_context(Stream, Context, !State),
+        make_error_context(Reader, Context, !State),
         Error = json_error(Context, unterminated_multiline_comment),
         Result = error(Error)
     ;

@@ -30,8 +30,9 @@
 
 :- type json.context
     --->    context(
-                stream_name :: string,
-                line_number :: int
+                stream_name   :: string,
+                line_number   :: int,
+                column_number :: int
             ).
 
     % This type describes errors that can occur while reading JSON data.
@@ -435,6 +436,7 @@
 :- import_module deconstruct.
 :- import_module int.
 :- import_module float.
+:- import_module mutvar.
 :- import_module string.
 :- import_module require.
 :- import_module type_desc.
@@ -450,25 +452,37 @@
                 json_reader_stream    :: Stream,
                 json_comments         :: allow_comments,
                 json_trailing_commas  :: allow_trailing_commas,
-                json_repeated_members :: allow_repeated_members
+                json_repeated_members :: allow_repeated_members,
+                json_column_number    :: mutvar(int)
             ).
 
 json.init_reader(Stream) = Reader :-
-    Reader = json_reader(
-        Stream,
-        do_not_allow_comments,
-        do_not_allow_trailing_commas,
-        do_not_allow_repeated_members
+    promise_pure (
+        impure new_mutvar(0, ColNumVar),
+        Reader = json_reader(
+            Stream,
+            do_not_allow_comments,
+            do_not_allow_trailing_commas,
+            do_not_allow_repeated_members,
+            ColNumVar
+        )
     ).
 
 json.init_reader(Stream, Params) = Reader :-
-    Params = reader_params(AllowComments, AllowTrailingCommas,
-        RepeatedMembers),
-    Reader = json_reader(
-        Stream,
+    Params = reader_params(
         AllowComments,
         AllowTrailingCommas,
         RepeatedMembers
+    ),
+    promise_pure (
+        impure new_mutvar(0, ColNumVar),
+        Reader = json_reader(
+            Stream,
+            AllowComments,
+            AllowTrailingCommas,
+            RepeatedMembers,
+            ColNumVar
+        )
     ).
 
 %-----------------------------------------------------------------------------%
@@ -480,7 +494,7 @@ get_value(Reader, Result, !State) :-
 get_text(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
     % Save the context of the beginning of the value.
-    make_error_context(Reader ^ json_reader_stream, Context, !State),
+    make_error_context(Reader, Context, !State),
     do_get_value(Reader, Token, ValueResult, !State),
     (
         ValueResult = ok(Value),
@@ -515,7 +529,7 @@ get_text(Reader, Result, !State) :-
 get_object(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
     % Save the context of the beginning of the value.
-    make_error_context(Reader ^ json_reader_stream, Context, !State),
+    make_error_context(Reader, Context, !State),
     do_get_value(Reader, Token, ValueResult, !State),
     (
         ValueResult = ok(Value),
@@ -546,7 +560,7 @@ get_object(Reader, Result, !State) :-
 get_array(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
     % Save the context of the beginning of the value.
-    make_error_context(Reader ^ json_reader_stream, Context, !State),
+    make_error_context(Reader, Context, !State),
     do_get_value(Reader, Token, ValueResult, !State),
     (
         ValueResult = ok(Value),
@@ -646,50 +660,55 @@ to_type(V) = unmarshal_to_type(V).
 
 %-----------------------------------------------------------------------------%
 
-:- pred make_unexpected_eof_error(Stream::in, maybe(string)::in,
+:- pred make_unexpected_eof_error(json.reader(Stream)::in, maybe(string)::in,
     json.error(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-make_unexpected_eof_error(Stream, MaybeMsg, Error, !State) :-
-    make_error_context(Stream, Context, !State),
+make_unexpected_eof_error(Reader, MaybeMsg, Error, !State) :-
+    make_error_context(Reader, Context, !State),
     Error = json_error(Context, unexpected_eof(MaybeMsg)). 
 
-:- pred make_json_error(Stream::in, string::in, json.error(Error)::out,
-    State::di, State::uo) is det
-    <= (
-        stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
-    ).
-
-make_json_error(Stream, Msg, Error, !State) :-
-    make_error_context(Stream, Context, !State),
-    Error = json_error(Context, other(Msg)).
-
-:- pred make_syntax_error(Stream::in, string::in, maybe(string)::in,
+:- pred make_json_error(json.reader(Stream)::in, string::in,
     json.error(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-make_syntax_error(Stream, Where, MaybeMsg, Error, !State) :-
-    make_error_context(Stream, Context, !State),
+make_json_error(Reader, Msg, Error, !State) :-
+    make_error_context(Reader, Context, !State),
+    Error = json_error(Context, other(Msg)).
+
+:- pred make_syntax_error(json.reader(Stream)::in, string::in,
+    maybe(string)::in, json.error(Error)::out, State::di, State::uo)
+    is det <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+make_syntax_error(Reader, Where, MaybeMsg, Error, !State) :-
+    make_error_context(Reader, Context, !State),
     Error = json_error(Context, syntax_error(Where, MaybeMsg)). 
 
-:- pred make_error_context(Stream::in, json.context::out,
-    State::di, State::uo) is det
+:- pred make_error_context(json.reader(Stream)::in,
+    json.context::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-make_error_context(Stream, Context, !State) :-
-    stream.name(Stream, Name, !State),
-    stream.get_line(Stream, LineNo, !State),
-    Context = context(Name, LineNo).
+make_error_context(Reader, Context, !State) :-
+    promise_pure (
+        Stream = Reader ^ json_reader_stream,
+        stream.name(Stream, Name, !State),
+        stream.get_line(Stream, LineNo, !State),
+        ColNumVar = Reader ^ json_column_number,
+        impure get_mutvar(ColNumVar, ColNum),
+        Context = context(Name, LineNo, ColNum)
+    ).
 
 %-----------------------------------------------------------------------------%
  
@@ -706,64 +725,64 @@ make_error_message(Error) = Msg :-
         Msg = stream.error_message(StreamError)
     ;
         Error = json_error(Context, ErrorDesc),
-        Context = context(StreamName, LineNo),
+        Context = context(StreamName, LineNo, ColNo),
         (
             ErrorDesc = unexpected_eof(MaybeExtraMsg),
             (
                 MaybeExtraMsg = no,
-                string.format("%s:%d: error: unexpected end-of-file\n",
-                    [s(StreamName), i(LineNo)], Msg)
+                string.format("%s:%d:%d: error: unexpected end-of-file\n",
+                    [s(StreamName), i(LineNo), i(ColNo)], Msg)
             ;
                 MaybeExtraMsg = yes(ExtraMsg),
-                string.format("%s:%d: error: unexpected end-of-file: %s\n",
-                    [s(StreamName), i(LineNo), s(ExtraMsg)], Msg)
+                string.format("%s:%d:%d error: unexpected end-of-file: %s\n",
+                    [s(StreamName), i(LineNo), i(ColNo), s(ExtraMsg)], Msg)
             )
         ; 
             ErrorDesc = syntax_error(Where, MaybeExtraMsg),
             (
                 MaybeExtraMsg = yes(ExtraMsg),
-                string.format("%s:%d: syntax error at '%s': %s\n",
-                    [s(StreamName), i(LineNo), s(Where), s(ExtraMsg)], Msg)
+                string.format("%s:%d:%d: syntax error at '%s': %s\n",
+                    [s(StreamName), i(LineNo), i(ColNo), s(Where), s(ExtraMsg)], Msg)
             ;
                 MaybeExtraMsg = no,
-                string.format("%s:%d: syntax error at '%s'\n",
-                    [s(StreamName), i(LineNo), s(Where)], Msg)
+                string.format("%s:%d:%d: syntax error at '%s'\n",
+                    [s(StreamName), i(LineNo), i(ColNo), s(Where)], Msg)
             )
         ;
             ErrorDesc = invalid_character_escape(What),
-            string.format("%s:%d: error: invalid character escape: '\\%c'\n",
-                [s(StreamName), i(LineNo), c(What)], Msg)
+            string.format("%s:%d:%d: error: invalid character escape: '\\%c'\n",
+                [s(StreamName), i(LineNo), i(ColNo), c(What)], Msg)
         ;
             ErrorDesc = other(ErrorMsg),
-            string.format("%s:%d: error: %s\n", 
-                [s(StreamName), i(LineNo), s(ErrorMsg)], Msg)
+            string.format("%s:%d:%d: error: %s\n", 
+                [s(StreamName), i(LineNo), i(ColNo), s(ErrorMsg)], Msg)
         ;
             ErrorDesc = unexpected_value(What, MaybeExtraMsg),
             (
                 MaybeExtraMsg = no,
-                string.format("%s:%d: error: unexpected %s value\n",
-                    [s(StreamName), i(LineNo), s(What)], Msg)
+                string.format("%s:%d:%d: error: unexpected %s value\n",
+                    [s(StreamName), i(LineNo), i(ColNo), s(What)], Msg)
             ;
                 MaybeExtraMsg = yes(ExtraMsg),
-                string.format("%s:%d: error: unexpected %s value: %s\n",
-                    [s(StreamName), i(LineNo), s(What), s(ExtraMsg)], Msg)
+                string.format("%s:%d:%d: error: unexpected %s value: %s\n",
+                    [s(StreamName), i(LineNo), i(ColNo), s(What), s(ExtraMsg)], Msg)
             )
         ;
             ErrorDesc = duplicate_object_member(Name),
-            string.format("%s:%d: error: object member \"%s\" is not unique\n",
-                [s(StreamName), i(LineNo), s(Name)], Msg)
+            string.format("%s:%d:%d: error: object member \"%s\" is not unique\n",
+                [s(StreamName), i(LineNo), i(ColNo), s(Name)], Msg)
         ;
             ErrorDesc = unterminated_multiline_comment,
-            string.format("%s:%d: error: unterminated multiline comment\n",
-                [s(StreamName), i(LineNo)], Msg)
+            string.format("%s:%d:%d: error: unterminated multiline comment\n",
+                [s(StreamName), i(LineNo), i(ColNo)], Msg)
         ;
             ErrorDesc = invalid_unicode_character(What),
-            string.format("%s:%d: error: invalid Unicode character: \\u%s\n",
-                [s(StreamName), i(LineNo), s(What)], Msg)
+            string.format("%s:%d:%d: error: invalid Unicode character: \\u%s\n",
+                [s(StreamName), i(LineNo), i(ColNo), s(What)], Msg)
         ;
             ErrorDesc = unpaired_utf16_surrogate,
-            string.format("%s:%d: error: unpaired UTF-16 surrogate\n",
-                [s(StreamName), i(LineNo)], Msg)
+            string.format("%s:%d:%d: error: unpaired UTF-16 surrogate\n",
+                [s(StreamName), i(LineNo), i(ColNo)], Msg)
         )
     ).
 

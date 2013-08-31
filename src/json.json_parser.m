@@ -118,11 +118,11 @@ do_get_value(Reader, Token, Result, !State) :-
         ),
         string.format("error: '%c' at start of JSON value",
             [c(ErrorChar)], Msg),
-        make_json_error(Reader ^ json_reader_stream, Msg, Error, !State),
+        make_json_error(Reader, Msg, Error, !State),
         Result = error(Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(Error)
     ;
         Token = token_error(TokenError),
@@ -180,8 +180,7 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
         else
             TokenDesc = token_to_string(Token),
             Msg = "expected a string literal",
-            make_syntax_error(Reader ^ json_reader_stream,
-                TokenDesc, yes(Msg), Error, !State),
+            make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(Error)
         )
     ;
@@ -241,14 +240,14 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                             ),
                             Msg = "expected '}' or ','",
                             NextNextTokenDesc = token_to_string(NextNextToken),
-                            make_syntax_error(Reader ^ json_reader_stream,
-                                NextNextTokenDesc, yes(Msg), Error, !State),
+                            make_syntax_error(Reader, NextNextTokenDesc,
+                                yes(Msg), Error, !State),
                             Result = error(Error)
                         ;
                             NextNextToken = token_eof,
                             Msg = "expected '}' or ','",
-                            make_unexpected_eof_error(Reader ^ json_reader_stream,
-                                yes(Msg), Error, !State),
+                            make_unexpected_eof_error(Reader, yes(Msg),
+                                Error, !State),
                             Result = error(Error)
                         ;
                             NextNextToken = token_error(TokenError),
@@ -256,8 +255,7 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                         )
                     ;
                         RepeatedMemberError = yes,
-                        make_error_context(Reader ^ json_reader_stream,
-                            Context, !State),
+                        make_error_context(Reader, Context, !State),
                         ErrorDesc = duplicate_object_member(FieldName),
                         Error = json_error(Context, ErrorDesc),
                         Result = error(Error)
@@ -275,15 +273,15 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                 string.format("missing value for object member \"%s\"",
                     [s(FieldName)], Msg),
                 NextTokenDesc = token_to_string(NextToken),
-                make_syntax_error(Reader ^ json_reader_stream, NextTokenDesc,
-                    yes(Msg), Error, !State),
+                make_syntax_error(Reader, NextTokenDesc, yes(Msg), Error,
+                    !State),
                 Result = error(Error)
             ;
                 NextToken = token_colon,
                 NextTokenDesc = token_to_string(NextToken),
                 Msg = "multiple colons after object member name",
-                make_syntax_error(Reader ^ json_reader_stream, NextTokenDesc,
-                    yes(Msg), Error, !State),
+                make_syntax_error(Reader, NextTokenDesc, yes(Msg), Error,
+                    !State),
                 Result = error(Error)
             ;
                 ( NextToken = token_right_square_bracket
@@ -291,14 +289,13 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                 ),
                 NextTokenDesc = token_to_string(NextToken),
                 Msg = "expected a value after ':'",
-                make_syntax_error(Reader ^ json_reader_stream, NextTokenDesc,
-                    yes(Msg), Error, !State),
+                make_syntax_error(Reader, NextTokenDesc, yes(Msg), Error,
+                    !State),
                 Result = error(Error)
             ;
                 NextToken = token_eof,
                 Msg = "expected a value after ':'",
-                make_unexpected_eof_error(Reader ^ json_reader_stream,
-                    yes(Msg), Error, !State),
+                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
                 Result = error(Error)
             ;
                 NextToken = token_error(Error),
@@ -318,14 +315,12 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
             ),
             ColonTokenDesc = token_to_string(ColonToken),
             Msg = "expected ':' after object member name",
-            make_syntax_error(Reader ^ json_reader_stream, ColonTokenDesc,
-                yes(Msg), Error, !State),
+            make_syntax_error(Reader, ColonTokenDesc, yes(Msg), Error, !State),
             Result = error(Error)
         ;
             ColonToken = token_eof,
             Msg = "expected ':' after object member name",
-            make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-                Error, !State),
+            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
             Result = error(Error)
         ;
             ColonToken = token_error(Error),
@@ -344,14 +339,12 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
         ),
         Msg = "object member name not a string",
         TokenDesc = token_to_string(Token),
-        make_syntax_error(Reader ^ json_reader_stream, TokenDesc, yes(Msg),
-            Error, !State),
+        make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
         Result = error(Error)
     ;
         Token = token_eof,
         Msg = "object missing terminating '}'",
-        make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-            Error, !State),
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(Error)
     ;
         Token = token_error(Error),
@@ -409,8 +402,7 @@ do_get_array_items(Reader, Where, !.Items, Result, !State) :-
         else 
             TokenDesc = token_to_string(Token),
             Msg = "expected a value",
-            make_syntax_error(Reader ^ json_reader_stream,
-                TokenDesc, yes(Msg), Error, !State),
+            make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(Error)
         )
     ;
@@ -446,14 +438,12 @@ do_get_array_items(Reader, Where, !.Items, Result, !State) :-
                 ),
                 TokenDesc = token_to_string(NextToken),
                 Msg = "expected ']' or ','",
-                make_syntax_error(Reader ^ json_reader_stream, TokenDesc,
-                    yes(Msg), Error, !State),
+                make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
                 Result = error(Error)
             ;
                 NextToken = token_eof,
                 Msg = "array missing terminating ']'",
-                make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-                    Error, !State),
+                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
                 Result = error(Error)
             ;
                 NextToken = token_error(TokenError),
@@ -473,14 +463,12 @@ do_get_array_items(Reader, Where, !.Items, Result, !State) :-
         ),
         TokenStr = token_to_string(Token),
         Msg = "expected a value",
-        make_syntax_error(Reader ^ json_reader_stream, TokenStr, yes(Msg),
-            Error, !State),
+        make_syntax_error(Reader, TokenStr, yes(Msg), Error, !State),
         Result = error(Error)
     ;
         Token = token_eof,
         Msg = "array missing terminating ']'",
-        make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-            Error, !State),
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(Error)
     ;
         Token = token_error(TokenError),
@@ -512,12 +500,11 @@ do_object_fold(Reader, Pred, !.Acc, Result, !State) :-
         ),
         Msg = "expected '{'",
         TokenDesc = token_to_string(Token),
-        make_syntax_error(Reader ^ json_reader_stream,
-            TokenDesc, yes(Msg), Error, !State),
+        make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -549,8 +536,7 @@ do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
         else 
             Msg = "expected a string literal",
             TokenDesc = token_to_string(Token),
-            make_syntax_error(Reader ^ json_reader_stream,
-                TokenDesc, yes(Msg), Error, !State),
+            make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         )
     ;
@@ -584,14 +570,13 @@ do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
                     ),
                     Msg = "expected '}' or ','",
                     NextNextTokenDesc = token_to_string(NextNextToken),
-                    make_syntax_error(Reader ^ json_reader_stream,
-                        NextNextTokenDesc, yes(Msg), Error, !State),
+                    make_syntax_error(Reader, NextNextTokenDesc, yes(Msg),
+                        Error, !State),
                     Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_eof,
                     Msg = "expected '}' or ','",
-                    make_unexpected_eof_error(Reader ^ json_reader_stream,
-                        yes(Msg), Error, !State),
+                    make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
                     Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_error(TokenError),
@@ -618,12 +603,11 @@ do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
             ),
             Msg = "expected ':'",
             TokenDesc = token_to_string(Token),
-            make_syntax_error(Reader ^ json_reader_stream,
-                TokenDesc, yes(Msg), Error, !State),
+            make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_eof,
-            make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+            make_unexpected_eof_error(Reader, no, Error, !State),
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_error(Error),
@@ -642,12 +626,11 @@ do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
         ),
         Msg = "expected string literal or '}'",
         TokenDesc = token_to_string(Token),
-        make_syntax_error(Reader ^ json_reader_stream,
-            TokenDesc, yes(Msg), Error, !State),
+        make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -674,12 +657,11 @@ do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
         ),
         Msg = "expected '{'",
         TokenDesc = token_to_string(Token),
-        make_syntax_error(Reader ^ json_reader_stream,
-            TokenDesc, yes(Msg), Error, !State),
+        make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -711,8 +693,7 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
         else 
             Msg = "expected a string literal",
             TokenDesc = token_to_string(Token),
-            make_syntax_error(Reader ^ json_reader_stream,
-                TokenDesc, yes(Msg), Error, !State),
+            make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         )
     ;
@@ -746,14 +727,13 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
                     ),
                     Msg = "expected '}' or ','",
                     NextNextTokenDesc = token_to_string(NextNextToken),
-                    make_syntax_error(Reader ^ json_reader_stream,
-                        NextNextTokenDesc, yes(Msg), Error, !State),
+                    make_syntax_error(Reader, NextNextTokenDesc, yes(Msg),
+                        Error, !State),
                     Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_eof,
                     Msg = "expected '}' or ','",
-                    make_unexpected_eof_error(Reader ^ json_reader_stream,
-                        yes(Msg), Error, !State),
+                    make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
                     Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_error(TokenError),
@@ -780,12 +760,11 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
             ),
             Msg = "expected ':'",
             TokenDesc = token_to_string(Token),
-            make_syntax_error(Reader ^ json_reader_stream,
-                TokenDesc, yes(Msg), Error, !State),
+            make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_eof,
-            make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+            make_unexpected_eof_error(Reader, no, Error, !State),
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_error(Error),
@@ -804,12 +783,11 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
         ),
         Msg = "expected string literal or '}'",
         TokenDesc = token_to_string(Token),
-        make_syntax_error(Reader ^ json_reader_stream,
-            TokenDesc, yes(Msg), Error, !State),
+        make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -841,12 +819,11 @@ do_array_fold(Reader, Pred, !.Acc, Result, !State) :-
         ),
         Msg = "expected '['",
         TokenDesc = token_to_string(Token),
-        make_syntax_error(Reader ^ json_reader_stream,
-            TokenDesc, yes(Msg), Error, !State),
+        make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -878,8 +855,7 @@ do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
         else 
             TokenDesc = token_to_string(Token),
             Msg = "expected a value",
-            make_syntax_error(Reader ^ json_reader_stream,
-                TokenDesc, yes(Msg), Error, !State),
+            make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         )
     ;
@@ -916,14 +892,12 @@ do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
                 ),
                 TokenDesc = token_to_string(NextToken),
                 Msg = "expected ']' or ','",
-                make_syntax_error(Reader ^ json_reader_stream, TokenDesc,
-                    yes(Msg), Error, !State),
+                make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
                 Result = error(!.Acc, Error)
             ;
                 NextToken = token_eof,
                 Msg = "array missing terminating ']'",
-                make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-                    Error, !State),
+                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
                 Result = error(!.Acc, Error)
             ;
                 NextToken = token_error(TokenError),
@@ -932,8 +906,7 @@ do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
         ;
             ItemResult = eof,
             Msg = "expected a value",
-            make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-                Error, !State),
+            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         ;
             ItemResult = error(Error),
@@ -946,14 +919,13 @@ do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
         ),
         TokenStr = token_to_string(Token),
         Msg = "expected a value",
-        make_syntax_error(Reader ^ json_reader_stream, TokenStr, yes(Msg),
+        make_syntax_error(Reader, TokenStr, yes(Msg),
             Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
         Msg = "array missing terminating ']'",
-        make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-            Error, !State),
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(TokenError),
@@ -980,12 +952,11 @@ do_array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
         ),
         Msg = "expected '['",
         TokenDesc = token_to_string(Token),
-        make_syntax_error(Reader ^ json_reader_stream,
-            TokenDesc, yes(Msg), Error, !State),
+        make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader ^ json_reader_stream, no, Error, !State),
+        make_unexpected_eof_error(Reader, no, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -1017,8 +988,7 @@ do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
         else 
             TokenDesc = token_to_string(Token),
             Msg = "expected a value",
-            make_syntax_error(Reader ^ json_reader_stream,
-                TokenDesc, yes(Msg), Error, !State),
+            make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         )
     ;
@@ -1055,14 +1025,12 @@ do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
                 ),
                 TokenDesc = token_to_string(NextToken),
                 Msg = "expected ']' or ','",
-                make_syntax_error(Reader ^ json_reader_stream, TokenDesc,
-                    yes(Msg), Error, !State),
+                make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
                 Result = error(!.Acc, Error)
             ;
                 NextToken = token_eof,
                 Msg = "array missing terminating ']'",
-                make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-                    Error, !State),
+                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
                 Result = error(!.Acc, Error)
             ;
                 NextToken = token_error(TokenError),
@@ -1071,8 +1039,7 @@ do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
         ;
             ItemResult = eof,
             Msg = "expected a value",
-            make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-                Error, !State),
+            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         ;
             ItemResult = error(Error),
@@ -1085,14 +1052,12 @@ do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
         ),
         TokenStr = token_to_string(Token),
         Msg = "expected a value",
-        make_syntax_error(Reader ^ json_reader_stream, TokenStr, yes(Msg),
-            Error, !State),
+        make_syntax_error(Reader, TokenStr, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
         Msg = "array missing terminating ']'",
-        make_unexpected_eof_error(Reader ^ json_reader_stream, yes(Msg),
-            Error, !State),
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(TokenError),

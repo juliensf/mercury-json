@@ -1,1 +1,1 @@
-bad_object2.json:1: syntax error at 'null': object member name not a string
+bad_object2.json:1:5: syntax error at 'null': object member name not a string

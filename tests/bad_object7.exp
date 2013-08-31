@@ -1,1 +1,1 @@
-bad_object7.json:1: syntax error at ']': expected a value after ':'
+bad_object7.json:1:8: syntax error at ']': expected a value after ':'
