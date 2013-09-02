@@ -75,8 +75,10 @@ get_token(Reader, Token, !State) :-
         else if
             Char = ('/'),
             Reader ^ json_comments = allow_comments
-        then 
-            consume_comment(Reader, CommentResult, !State),
+        then
+            make_error_context(Reader, StartCommentContext, !State),
+            consume_comment(Reader, StartCommentContext, CommentResult,
+                !State),
             (
                 CommentResult = ok,
                 get_token(Reader, Token, !State)
@@ -724,14 +726,14 @@ is_keyword("null", token_null).
 
 %-----------------------------------------------------------------------------%
 
-:- pred consume_comment(json.reader(Stream)::in, json.res(Error)::out,
-    State::di, State::uo) is det
+:- pred consume_comment(json.reader(Stream)::in, json.context::in,
+    json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-consume_comment(Reader, Result, !State) :-
+consume_comment(Reader, StartCommentContext, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
@@ -743,7 +745,8 @@ consume_comment(Reader, Result, !State) :-
             % The last char kind must be other here since we don't
             % want to accept /*/ as multiline comment.
             LastCharKind = char_other,
-            consume_multiline_comment(Reader, LastCharKind, Result, !State)
+            consume_multiline_comment(Reader, StartCommentContext,
+                LastCharKind, Result, !State)
         else
             string.format("unexpected character: '%c'", [c(Char)], Msg),
             make_json_error(Reader, Msg, Error, !State),
@@ -787,14 +790,15 @@ consume_until_next_nl_or_eof(Reader, Result, !State) :-
     ;       char_other.
 
 :- pred consume_multiline_comment(json.reader(Stream)::in,
-    last_multiline_comment_char::in,
+    json.context::in, last_multiline_comment_char::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-consume_multiline_comment(Reader, LastCharKind, Result, !State) :-
+consume_multiline_comment(Reader, StartCommentContext, LastCharKind, Result,
+        !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     ( 
@@ -807,13 +811,13 @@ consume_multiline_comment(Reader, LastCharKind, Result, !State) :-
             Result = ok
         else 
             ThisCharKind = ( if Char = ('*') then char_star else char_other ),
-            consume_multiline_comment(Reader, ThisCharKind, Result, !State)
+            consume_multiline_comment(Reader, StartCommentContext,
+                ThisCharKind, Result, !State)
         )
     ;
         ReadResult = eof,
-        % XXX we should record the context of the beginning of the comment.
-        make_error_context(Reader, Context, !State),
-        Error = json_error(Context, unterminated_multiline_comment),
+        Error = json_error(StartCommentContext,
+            unterminated_multiline_comment),
         Result = error(Error)
     ;
         ReadResult = error(Error),
