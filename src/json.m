@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013, Julien Fischer.
+% Copyright (C) 2013-2014, Julien Fischer.
 % All rights reserved.
 %
 % Author: Julien Fischer <jfischer@opturion.com>
@@ -97,12 +97,6 @@
     ;       object(json.object)
     ;       array(json.array).
 
-    % A JSON text is a serialized object or array.
-    %
-:- type json.text
-    --->    object(json.object)
-    ;       array(json.array).
-
 :- type json.object == map(string, json.value).
 
 :- type json.array == list(json.value).
@@ -123,15 +117,15 @@
                 allow_repeated_members :: allow_repeated_members 
             ).
    
-    % Should the extension that allows comments in the JSON
-    % being read be enabled? 
+    % Should the extension that allows comments in the JSON being read be
+    % enabled? 
     %
 :- type json.allow_comments
     --->    allow_comments
     ;       do_not_allow_comments.
 
-    % Should the extension that allows trailing commas in JSON objects
-    % and arrays be enabled?
+    % Should the extension that allows trailing commas in JSON objects and
+    % arrays be enabled?
     %
 :- type json.allow_trailing_commas
     --->    allow_trailing_commas
@@ -153,9 +147,9 @@
             % encounter and discard any others.
 
     % init_reader(Stream) = Reader:
-    % Reader is a new JOSN reader using Stream as a character stream.
+    % Reader is a new JSON reader using Stream as a character stream.
     % Use the default reader parameters, with which the reader will
-    % conform to the RFC 4627 definition of JSON.
+    % conform to the RFC 7159 definition of JSON.
     %
 :- func json.init_reader(Stream) = json.reader(Stream)
     <= (
@@ -174,20 +168,9 @@
 
     % get_value(Reader, Result, !State):
     % Get a JSON value from Reader.
-    % The value can be any valid JSON value, not just an array or object.
     %
 :- pred json.get_value(json.reader(Stream)::in,
     json.result(json.value, Error)::out, State::di, State::uo) is det
-    <= (
-        stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
-    ).
-
-    % get_text(Reader, Result, !State):
-    % Get a JSON text from Reader.
-    %
-:- pred json.get_text(json.reader(Stream)::in,
-    json.result(json.text, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -490,41 +473,6 @@ json.init_reader(Stream, Params) = Reader :-
 get_value(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
     do_get_value(Reader, Token, Result, !State). 
-
-get_text(Reader, Result, !State) :-
-    get_token(Reader, Token, !State),
-    % Save the context of the beginning of the value.
-    make_error_context(Reader, Context, !State),
-    do_get_value(Reader, Token, ValueResult, !State),
-    (
-        ValueResult = ok(Value),
-        (
-            Value = object(Members),
-            Text = object(Members),
-            Result = ok(Text)
-        ;
-            Value = array(Elements),
-            Text = array(Elements),
-            Result = ok(Text)
-        ;
-            ( Value = null
-            ; Value = bool(_)
-            ; Value = string(_)
-            ; Value = number(_)
-            ),
-            Msg = "text must be an array or object",
-            ValueDesc = value_desc(Value),
-            ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
-            Error = json_error(Context, ErrorDesc),
-            Result = error(Error)
-        )   
-    ;
-        ValueResult = eof,
-        Result = eof
-    ;
-        ValueResult = error(Error),
-        Result = error(Error)
-    ).
 
 get_object(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
