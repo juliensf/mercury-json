@@ -372,8 +372,8 @@
 %                     enumerations          string
 %                     discriminated unions  objects
 %
-% User-defined non-enumeration d.u. types must have all there
-% fields named in order to marshaled to JSON.
+% User-defined non-enumeration d.u. types must have all their
+% fields named in order to be marshaled to JSON.
 %
 % Cannot be marshaled to JSON:
 %   - foreign types

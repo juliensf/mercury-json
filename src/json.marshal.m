@@ -227,7 +227,8 @@ dynamic_cast_to_set_ordlist(X, L) :-
     (_ : ArgType) `has_type` ArgTypeDesc,
     dynamic_cast(X, L : set_ordlist(ArgType)).
 
-:- some [T2] pred dynamic_cast_to_set_unordlist(T1::in, set_unordlist(T2)::out) is semidet.
+:- some [T2] pred dynamic_cast_to_set_unordlist(T1::in, set_unordlist(T2)::out)
+    is semidet.
 
 dynamic_cast_to_set_unordlist(X, L) :-
     [ArgTypeDesc] = type_args(type_of(X)),
@@ -242,7 +243,8 @@ dynamic_cast_to_set_tree234(X, L) :-
     (_ : ArgType) `has_type` ArgTypeDesc,
     dynamic_cast(X, L : set_tree234(ArgType)).
 
-:- some [T2] pred dynamic_cast_to_set_ctree234(T1::in, set_ctree234(T2)::out) is semidet.
+:- some [T2] pred dynamic_cast_to_set_ctree234(T1::in, set_ctree234(T2)::out)
+    is semidet.
 
 dynamic_cast_to_set_ctree234(X, L) :-
     [ArgTypeDesc] = type_args(type_of(X)),
