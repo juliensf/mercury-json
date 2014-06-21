@@ -3,4 +3,6 @@ Mercury.modules
 *.mh
 *.err
 *.out
+*.res
 test_json
+test_json.exe
