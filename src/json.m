@@ -53,7 +53,7 @@
     ;       syntax_error(string, maybe(string))
             % syntax_error(Where, MaybeMsg)
             % syntax error at `Where': MaybeMsg
-            
+
     ;       invalid_character_escape(char)
 
     ;       unexpected_value(string, maybe(string))
@@ -65,7 +65,7 @@
     ;       invalid_unicode_character(string)
 
     ;       unpaired_utf16_surrogate
-    
+
     ;       other(string).
 
 :- instance stream.error(json.error(Error)) <= stream.error(Error).
@@ -81,7 +81,7 @@
 
 :- type json.result(T, Error) == stream.result(T, json.error(Error)).
 
-:- type json.maybe_partial_res(T, Error) == 
+:- type json.maybe_partial_res(T, Error) ==
     stream.maybe_partial_res(T, json.error(Error)).
 
 %-----------------------------------------------------------------------------%
@@ -114,11 +114,11 @@
     --->    reader_params(
                 allow_comments         :: allow_comments,
                 allow_trailing_commas  :: allow_trailing_commas,
-                allow_repeated_members :: allow_repeated_members 
+                allow_repeated_members :: allow_repeated_members
             ).
-   
+
     % Should the extension that allows comments in the JSON being read be
-    % enabled? 
+    % enabled?
     %
 :- type json.allow_comments
     --->    allow_comments
@@ -234,7 +234,7 @@
 %
 % Folding over array elements.
 %
-    
+
     % array_fold(Reader, Pred, InitialAcc, Result, !State):
     %
 :- pred json.array_fold(json.reader(Stream), pred(json.value, A, A),
@@ -277,7 +277,8 @@
 
 :- instance stream.input(json.reader(Stream), io) <= stream.input(Stream, io).
 
-:- instance stream.reader(json.reader(Stream), json.value, io, json.error(Error))
+:- instance stream.reader(json.reader(Stream), json.value, io,
+    json.error(Error))
     <= (
         stream.line_oriented(Stream, io),
         stream.putback(Stream, char, io, Error)
@@ -318,7 +319,7 @@
     % Write the JSON value Value using the given Writer.
     %
 :- pred json.put_json(json.writer(Stream)::in, json.value::in,
-    State::di, State::uo) is det 
+    State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
@@ -347,7 +348,7 @@
 % The mapping between Mercury types and JSON is:
 %
 %                     Mercury             JSON
-% Primitive types:    
+% Primitive types:
 %                     int                  number#
 %                     string               string
 %                     float                number
@@ -355,11 +356,11 @@
 %
 % # cannot have a fractional part.
 %
-% Library types:      
+% Library types:
 %
 %                     bool/0               Boolean
 %                     maybe/1              null for "no" or
-%                                          arg of yes/1                 
+%                                          arg of yes/1
 %
 %                     list/1               array##
 %
@@ -370,7 +371,7 @@
 %
 %                     enumerations          string
 %                     discriminated unions  objects
-% 
+%
 % User-defined non-enumeration d.u. types must have all there
 % fields named in order to marshaled to JSON.
 %
@@ -389,7 +390,7 @@
     % to the JSON value Value and `error(...)' otherwise.
     %
 :- func json.from_type(T) = maybe_error(json.value).
-    
+
     % to_type(Value) = MaybeType:
     % MaybeType is `ok(Type)' if Value is a JSON object corresponding
     % to the Mercury value Type and `error(...)' otherwise.
@@ -472,7 +473,7 @@ json.init_reader(Stream, Params) = Reader :-
 
 get_value(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
-    do_get_value(Reader, Token, Result, !State). 
+    do_get_value(Reader, Token, Result, !State).
 
 get_object(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
@@ -496,7 +497,7 @@ get_object(Reader, Result, !State) :-
             ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
-        )   
+        )
     ;
         ValueResult = eof,
         Result = eof
@@ -527,7 +528,7 @@ get_array(Reader, Result, !State) :-
             ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
-        )   
+        )
     ;
         ValueResult = eof,
         Result = eof
@@ -569,12 +570,12 @@ array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
                 json_output_style  :: output_style
             ).
 
-json.init_writer(Stream) = 
+json.init_writer(Stream) =
     json_writer(Stream, compact).
 
 json.init_writer(Stream, Parameters) = Writer :-
     Parameters = writer_params(OutputStyle),
-    Writer = json_writer(Stream, OutputStyle). 
+    Writer = json_writer(Stream, OutputStyle).
 
 %-----------------------------------------------------------------------------%
 
@@ -617,7 +618,7 @@ to_type(V) = unmarshal_to_type(V).
 
 make_unexpected_eof_error(Reader, MaybeMsg, Error, !State) :-
     make_error_context(Reader, Context, !State),
-    Error = json_error(Context, unexpected_eof(MaybeMsg)). 
+    Error = json_error(Context, unexpected_eof(MaybeMsg)).
 
 :- pred make_json_error(json.reader(Stream)::in, string::in,
     json.error(Error)::out, State::di, State::uo) is det
@@ -639,7 +640,7 @@ make_json_error(Reader, Msg, Error, !State) :-
 
 make_syntax_error(Reader, Where, MaybeMsg, Error, !State) :-
     make_error_context(Reader, Context, !State),
-    Error = json_error(Context, syntax_error(Where, MaybeMsg)). 
+    Error = json_error(Context, syntax_error(Where, MaybeMsg)).
 
 :- pred make_error_context(json.reader(Stream)::in,
     json.context::out, State::di, State::uo) is det
@@ -659,7 +660,7 @@ make_error_context(Reader, Context, !State) :-
     ).
 
 %-----------------------------------------------------------------------------%
- 
+
 :- instance stream.error(json.error(Error)) <= stream.error(Error) where
 [
     func(error_message/1) is make_error_message
@@ -685,12 +686,13 @@ make_error_message(Error) = Msg :-
                 string.format("%s:%d:%d error: unexpected end-of-file: %s\n",
                     [s(StreamName), i(LineNo), i(ColNo), s(ExtraMsg)], Msg)
             )
-        ; 
+        ;
             ErrorDesc = syntax_error(Where, MaybeExtraMsg),
             (
                 MaybeExtraMsg = yes(ExtraMsg),
                 string.format("%s:%d:%d: syntax error at '%s': %s\n",
-                    [s(StreamName), i(LineNo), i(ColNo), s(Where), s(ExtraMsg)], Msg)
+                    [s(StreamName), i(LineNo), i(ColNo), s(Where), s(ExtraMsg)],
+                    Msg)
             ;
                 MaybeExtraMsg = no,
                 string.format("%s:%d:%d: syntax error at '%s'\n",
@@ -702,7 +704,7 @@ make_error_message(Error) = Msg :-
                 [s(StreamName), i(LineNo), i(ColNo), c(What)], Msg)
         ;
             ErrorDesc = other(ErrorMsg),
-            string.format("%s:%d:%d: error: %s\n", 
+            string.format("%s:%d:%d: error: %s\n",
                 [s(StreamName), i(LineNo), i(ColNo), s(ErrorMsg)], Msg)
         ;
             ErrorDesc = unexpected_value(What, MaybeExtraMsg),
@@ -713,11 +715,13 @@ make_error_message(Error) = Msg :-
             ;
                 MaybeExtraMsg = yes(ExtraMsg),
                 string.format("%s:%d:%d: error: unexpected %s value: %s\n",
-                    [s(StreamName), i(LineNo), i(ColNo), s(What), s(ExtraMsg)], Msg)
+                    [s(StreamName), i(LineNo), i(ColNo), s(What),
+                     s(ExtraMsg)], Msg)
             )
         ;
             ErrorDesc = duplicate_object_member(Name),
-            string.format("%s:%d:%d: error: object member \"%s\" is not unique\n",
+            string.format(
+                "%s:%d:%d: error: object member \"%s\" is not unique\n",
                 [s(StreamName), i(LineNo), i(ColNo), s(Name)], Msg)
         ;
             ErrorDesc = unterminated_multiline_comment,
@@ -764,7 +768,8 @@ value_desc(array(_)) = "array".
 :- instance stream.input(json.reader(Stream), io)
     <= stream.input(Stream, io) where [].
 
-:- instance stream.reader(json.reader(Stream), json.value, io, json.error(Error))
+:- instance stream.reader(json.reader(Stream), json.value, io,
+    json.error(Error))
     <= (
         stream.line_oriented(Stream, io),
         stream.putback(Stream, char, io, Error)
@@ -788,7 +793,7 @@ all_functors_have_arity_zero(TypeDesc, I, Limit) :-
         get_functor(TypeDesc, I, _Name, 0, []),
         all_functors_have_arity_zero(TypeDesc, I + 1, Limit)
     else
-        true 
+        true
     ).
 
 %-----------------------------------------------------------------------------%

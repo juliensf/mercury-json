@@ -161,7 +161,7 @@ raw_put_elements(Stream, [Element, NextElement | Elements], !State) :-
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
-         
+
 put_string_literal(Stream, String, !State) :-
     put(Stream, '"', !State),
     string.foldl(escape_and_put_char(Stream), String, !State),
@@ -172,7 +172,7 @@ put_string_literal(Stream, String, !State) :-
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
-    
+
 escape_and_put_char(Stream, Char, !State) :-
     ( if escape_char(Char, EscapedCharStr) then
         put(Stream, EscapedCharStr, !State)
@@ -214,14 +214,14 @@ put_unicode_escape(Stream, Char, !State) :-
         put_hex_digits(Stream, TS, !State)
     else
         put_hex_digits(Stream, CodePoint, !State)
-    ).   
+    ).
 
 :- pred code_point_to_utf16_surrogates(int::in, int::out, int::out) is det.
 
 code_point_to_utf16_surrogates(CodePoint, LS, TS) :-
     AdjustedCodePoint = CodePoint - 0x10000,
     LS = 0xD800 + (AdjustedCodePoint >> 10),
-    TS = 0xDC00 + (AdjustedCodePoint /\ 0x3FF). 
+    TS = 0xDC00 + (AdjustedCodePoint /\ 0x3FF).
 
 :- pred put_hex_digits(Stream::in, int::in, State::di, State::uo)
     is det <= (
@@ -230,7 +230,7 @@ code_point_to_utf16_surrogates(CodePoint, LS, TS) :-
     ).
 
 put_hex_digits(Stream, Int, !State) :-
-    string_writer.format(Stream, "\\u%04x", [i(Int)], !State).    
+    string_writer.format(Stream, "\\u%04x", [i(Int)], !State).
 
 %-----------------------------------------------------------------------------%
 
@@ -314,7 +314,7 @@ pretty_put_members(Stream, N, [Member], !State) :-
 pretty_put_members(Stream, N, [Member | Members @ [_ | _]], !State) :-
     pretty_put_member(Stream, N, Member, ",\n", !State),
     pretty_put_members(Stream, N, Members, !State).
-    
+
 :- pred pretty_put_member(Stream::in, int::in,
     pair(string, json.value)::in, string::in, State::di, State::uo) is det
     <= (
@@ -347,7 +347,7 @@ pretty_put_elements(Stream, N, [Value | Values @ [_ | _]], !State) :-
     do_pretty_put_json(Stream, N, Value, !State),
     put(Stream, ",\n", !State),
     pretty_put_elements(Stream, N, Values, !State).
-    
+
 :- pred indent(Stream::in, int::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),

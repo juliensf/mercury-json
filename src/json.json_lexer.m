@@ -110,17 +110,17 @@ get_token(Reader, Token, !State) :-
         then
             char_buffer.init(Buffer, !State),
             char_buffer.add(Buffer, Char, !State),
-            get_keyword(Reader, Buffer, Token, !State) 
+            get_keyword(Reader, Buffer, Token, !State)
         else
             string.format("unexpected character '%c'", [c(Char)], Msg),
             make_json_error(Reader, Msg, Error, !State),
             Token = token_error(Error)
-        ) 
+        )
     ;
         ReadResult = eof,
         Token = token_eof
     ;
-        ReadResult = error(StreamError),   
+        ReadResult = error(StreamError),
         Token = token_error(stream_error(StreamError))
     ).
 
@@ -150,7 +150,7 @@ update_column_number(Reader, Char, !State) :-
         ),
         !:State = !.State
     ).
-        
+
 %-----------------------------------------------------------------------------%
 %
 % String literals.
@@ -167,7 +167,7 @@ get_string_literal(Reader, Token, !State) :-
     get_string_chars(Reader, [], RevChars, Result, !State),
     (
         Result = ok,
-        String = string.from_rev_char_list(RevChars),   
+        String = string.from_rev_char_list(RevChars),
         Token = token_string(String)
     ;
         Result = error(Error),
@@ -235,7 +235,7 @@ get_escaped_char(Reader, !Chars, Result, !State) :-
         else
             make_error_context(Reader, Context, !State),
             ErrorDesc = invalid_character_escape(Char),
-            Error = json_error(Context, ErrorDesc),  
+            Error = json_error(Context, ErrorDesc),
             Result = error(Error)
         )
     ;
@@ -352,7 +352,7 @@ get_hex_digits(Reader, !.N, !HexDigits, Result, !State) :-
 
 :- func classify_code_point(int) = code_point_class.
 
-classify_code_point(Code) = 
+classify_code_point(Code) =
     ( if is_leading_surrogate(Code) then
         code_point_leading_surrogate
     else if is_trailing_surrogate(Code) then
@@ -361,7 +361,7 @@ classify_code_point(Code) =
         code_point_valid
     else
         code_point_invalid
-    ). 
+    ).
 
 :- pred is_leading_surrogate(int::in) is semidet.
 
@@ -375,7 +375,7 @@ is_trailing_surrogate(Code) :-
     Code >= 0xDC00,
     Code =< 0xDFFF.
 
-:- pred get_trailing_surrogate_and_combine(json.reader(Stream)::in, 
+:- pred get_trailing_surrogate_and_combine(json.reader(Stream)::in,
     int::in, list(char)::in, list(char)::out,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
@@ -406,8 +406,8 @@ get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
                                 TrailingSurrogate),
                             is_trailing_surrogate(TrailingSurrogate)
                         then
-                            CharCode = combine_utf16_surrogates(LeadingSurrogate,
-                                TrailingSurrogate),
+                            CharCode = combine_utf16_surrogates(
+                                LeadingSurrogate, TrailingSurrogate),
                             UnicodeChar = char.det_from_int(CharCode),
                             !:Chars = [UnicodeChar | !.Chars],
                             Result = ok
@@ -421,19 +421,19 @@ get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
                 else
                     make_error_context(Reader, Context, !State),
                     ErrorDesc = invalid_character_escape(Char),
-                    Error = json_error(Context, ErrorDesc),  
+                    Error = json_error(Context, ErrorDesc),
                     Result = error(Error)
                 )
             ;
                 ReadResultPrime = eof,
                 make_error_context(Reader, Context, !State),
                 ErrorDesc = invalid_character_escape(Char),
-                Error = json_error(Context, ErrorDesc),  
+                Error = json_error(Context, ErrorDesc),
                 Result = error(Error)
             ;
-                ReadResultPrime = error(StreamError),   
+                ReadResultPrime = error(StreamError),
                 Result = error(stream_error(StreamError))
-            ) 
+            )
         else
             make_error_context(Reader, Context, !State),
             ErrorDesc = unpaired_utf16_surrogate,
@@ -446,7 +446,7 @@ get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
         ErrorDesc = unpaired_utf16_surrogate,
         Error = json_error(Context, ErrorDesc),
         Result = error(Error)
-    ;   
+    ;
         ReadResult = error(StreamError),
         Result = error(stream_error(StreamError))
     ).
@@ -467,7 +467,7 @@ combine_utf16_surrogates(Lead, Tail) =
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-            
+
 get_negative_number(Reader, Buffer, Token, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, GetResult, !State),
@@ -637,7 +637,7 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
                         [c(SignChar)], Msg),
                     make_json_error(Reader, Msg, Error, !State),
                     Result = error(Error)
-                else 
+                else
                     unexpected($module, $pred, "corrupted buffer")
                 )
             ;
@@ -649,7 +649,7 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
                         [c(ExpChar)], Msg),
                     make_json_error(Reader, Msg, Error, !State),
                     Result = error(Error)
-                else 
+                else
                     unexpected($module, $pred, "corrupted buffer")
                 )
             )
@@ -683,14 +683,14 @@ get_keyword(Reader, Buffer, Token, !State) :-
         else
             make_syntax_error(Reader, Keyword, no, Error, !State),
             Token = token_error(Error)
-        ) 
+        )
     ;
         Result = error(StreamError),
         Error = stream_error(StreamError),
         Token = token_error(Error)
     ).
 
-:- pred get_keyword_chars(json.reader(Stream)::in, char_buffer::in, 
+:- pred get_keyword_chars(json.reader(Stream)::in, char_buffer::in,
     stream.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
@@ -770,13 +770,13 @@ consume_comment(Reader, StartCommentContext, Result, !State) :-
 
 consume_until_next_nl_or_eof(Reader, Result, !State) :-
     stream.get(Reader ^ json_reader_stream, ReadResult, !State),
-    ( 
+    (
         ReadResult = ok(Char),
         update_column_number(Reader, Char, !State),
         ( if Char = ('\n')
         then Result = ok
         else consume_until_next_nl_or_eof(Reader, Result, !State)
-        ) 
+        )
     ;
         ReadResult = eof,
         Result = ok
@@ -801,15 +801,15 @@ consume_multiline_comment(Reader, StartCommentContext, LastCharKind, Result,
         !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
-    ( 
+    (
         ReadResult = ok(Char),
         update_column_number(Reader, Char, !State),
-        ( if 
+        ( if
             LastCharKind = char_star,
             Char = ('/')
         then
             Result = ok
-        else 
+        else
             ThisCharKind = ( if Char = ('*') then char_star else char_other ),
             consume_multiline_comment(Reader, StartCommentContext,
                 ThisCharKind, Result, !State)
@@ -832,9 +832,9 @@ token_to_string(token_left_square_bracket) = "[".
 token_to_string(token_right_square_bracket) = "]".
 token_to_string(token_comma) = ",".
 token_to_string(token_colon) = ":".
-token_to_string(token_string(String)) = 
+token_to_string(token_string(String)) =
     "\"" ++ String ++ "\"". % XXX Should escape special chars.
-token_to_string(token_number(Float)) = 
+token_to_string(token_number(Float)) =
     string.from_float(Float).
 token_to_string(token_false) = "false".
 token_to_string(token_true) = "true".

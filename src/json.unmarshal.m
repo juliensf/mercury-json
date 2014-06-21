@@ -51,7 +51,7 @@ unmarshal_to_type(Value) = Result :-
 unmarshal_to_type_2(TypeDesc, Value) = Result :-
     type_ctor_and_args(TypeDesc, TypeCtor, TypeArgs),
     type_ctor_name_and_arity(TypeCtor, ModuleName, TypeName, Arity),
-    ( if 
+    ( if
         % The value is a builtin type.
         ModuleName = "builtin",
         Arity = 0
@@ -96,7 +96,7 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         Arity = 2,
         TypeArgs = [FstTypeDesc, SndTypeDesc]
     then
-        Result = to_pair_type(FstTypeDesc, SndTypeDesc, Value)    
+        Result = to_pair_type(FstTypeDesc, SndTypeDesc, Value)
     else if
         % Is this a Mercury maybe_error/2?
         ModuleName = "maybe",
@@ -224,7 +224,7 @@ to_bool_type(Value) = Result :-
         ),
         Result = error("expected JSON Boolean for bool/1 conversion")
     ).
-        
+
 %-----------------------------------------------------------------------------%
 %
 % JSON -> integer/0 type.
@@ -248,7 +248,7 @@ to_integer_type(Value) = Result :-
         ),
         Result = error("expected JSON Boolean for integer/0 conversion")
     ).
-        
+
 %-----------------------------------------------------------------------------%
 %
 % JSON -> list/1 types.
@@ -472,7 +472,7 @@ to_maybe_error_type(OkTypeDesc, ErrorTypeDesc, Value) = Result :-
         else
             Result =  error("object is not a maybe_error/2")
         )
-    ;    
+    ;
         ( Value = null
         ; Value = bool(_)
         ; Value = number(_)
@@ -518,7 +518,7 @@ to_pair_type(FstTypeDesc, SndTypeDesc, Value) = Result :-
             )
         else
             Result = error("object is not a pair/2")
-        )   
+        )
     ;
         ( Value = null
         ; Value = bool(_)
@@ -536,7 +536,7 @@ to_pair_type(FstTypeDesc, SndTypeDesc, Value) = Result :-
 
 :- func to_tree234_type(type_desc, type_desc, value) = maybe_error(univ).
 
-to_tree234_type(KeyTypeDesc, ValueTypeDesc, Value) = Result :-  
+to_tree234_type(KeyTypeDesc, ValueTypeDesc, Value) = Result :-
     (
         Value = array(_),
         (_ : KeyType) `has_type` KeyTypeDesc,
@@ -568,7 +568,7 @@ to_tree234_type(KeyTypeDesc, ValueTypeDesc, Value) = Result :-
 
 :- func to_bimap_type(type_desc, type_desc, value) = maybe_error(univ).
 
-to_bimap_type(KeyTypeDesc, ValueTypeDesc, Value) = Result :-  
+to_bimap_type(KeyTypeDesc, ValueTypeDesc, Value) = Result :-
     (
         Value = array(_),
         (_ : KeyType) `has_type` KeyTypeDesc,
@@ -661,8 +661,8 @@ to_du_type(TypeDesc, NumFunctors, Value) = Result :-
 
 :- type matching_functor_result
     --->    mfres_match(functor_number_lex, list(univ))
-    ;       mfres_no_match 
-    ;       mfres_error(string). 
+    ;       mfres_no_match
+    ;       mfres_error(string).
 
 :- pred find_matching_functor(type_desc::in, object::in, int::in,
     functor_number_lex::in, functor_number_lex::in,
@@ -671,12 +671,13 @@ to_du_type(TypeDesc, NumFunctors, Value) = Result :-
 find_matching_functor(TypeDesc, Object, NumMembers, FunctorNumLex,
         NumFunctors, Result) :-
     ( if FunctorNumLex < NumFunctors then
-        ( if 
+        ( if
             get_functor_with_names(TypeDesc, FunctorNumLex, FunctorName,
                 Arity, ArgTypes, ArgNames)
         then
             ( if
-                % Zero-arity constructors are represented by the following JSON:
+                % Zero-arity constructors are represented by the following
+                % JSON:
                 %
                 %    { "<functor-name>" : null }
                 %
@@ -691,7 +692,7 @@ find_matching_functor(TypeDesc, Object, NumMembers, FunctorNumLex,
                 % Because field names need to be unique within a module we only
                 % need to check the first one to see if we have a match.
                 ArgNames = [MaybeFirstArgName | _],
-                MaybeFirstArgName = yes(FirstArgName),  % XXX Maybe abort if no?
+                MaybeFirstArgName = yes(FirstArgName), % XXX Maybe abort if no?
                 map.contains(Object, FirstArgName)
             then
                 du_args_to_types(Object, 1, ArgTypes, ArgNames, [], ArgResult),
@@ -704,16 +705,17 @@ find_matching_functor(TypeDesc, Object, NumMembers, FunctorNumLex,
                     Result = mfres_error(Msg)
                 )
             else
-                find_matching_functor(TypeDesc, Object, NumMembers, FunctorNumLex + 1,
-                    NumFunctors, Result)
+                find_matching_functor(TypeDesc, Object, NumMembers,
+                    FunctorNumLex + 1, NumFunctors, Result)
             )
         else
             type_ctor_and_args(TypeDesc, TypeCtorDesc, _),
-            type_ctor_name_and_arity(TypeCtorDesc, ModuleName, TypeName, TypeArity),
+            type_ctor_name_and_arity(TypeCtorDesc, ModuleName, TypeName,
+                TypeArity),
             string.format("type `%s.%s'/%d is not a discriminated union",
                 [s(ModuleName), s(TypeName), i(TypeArity)], Msg),
             Result = mfres_error(Msg)
-        )        
+        )
     else
         Result = mfres_no_match
     ).

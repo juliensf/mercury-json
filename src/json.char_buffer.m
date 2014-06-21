@@ -57,7 +57,7 @@ add(Buffer, Char, !State) :-
         BufferRep = char_buffer_rep([Char | Chars], NumChars + 1),
         impure set_mutvar(Buffer, BufferRep),
         !:State = !.State
-    ).    
+    ).
 
 num_chars(Buffer, _State) = NumChars :-
     promise_pure (
@@ -87,7 +87,7 @@ chomp_cr(Buffer, !State) :-
                 true
             )
         )
-    ). 
+    ).
 
 last(Buffer, LastChar, _State) :-
     promise_pure (
