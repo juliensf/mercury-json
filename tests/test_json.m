@@ -118,7 +118,7 @@ run_test(InputFileName, !IO) :-
             io.close_output(OutputFile, !IO),
             ExpFileName = BaseFileName ++ ".exp",
             ResFileName = BaseFileName ++ ".res",
-            string.format("diff -u %s %s > %s",
+            string.format("diff --strip-trailing-cr -u %s %s >%s",
                 [s(ExpFileName), s(OutputFileName), s(ResFileName)],
                 DiffCmd),
             io.call_system(DiffCmd, DiffCmdRes, !IO),
