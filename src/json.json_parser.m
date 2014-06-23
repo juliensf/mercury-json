@@ -34,7 +34,8 @@
 :- mode do_object_fold(in, in(pred(in, in, in, out) is cc_multi),
     in, out, di, uo) is cc_multi.
 
-:- pred do_object_fold_state(json.reader(Stream), pred(string, json.value, A, A, State, State),
+:- pred do_object_fold_state(json.reader(Stream),
+    pred(string, json.value, A, A, State, State),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
@@ -103,16 +104,16 @@ do_get_value(Reader, Token, Result, !State) :-
         Token = token_null,
         Result = ok(json.null)
     ;
-        ( 
+        (
             Token = token_right_curly_bracket,
             ErrorChar = ('}')
-        ; 
+        ;
             Token = token_right_square_bracket,
             ErrorChar = (']')
-        ; 
+        ;
             Token = token_comma,
             ErrorChar = (',')
-        ; 
+        ;
             Token = token_colon,
             ErrorChar = (':')
         ),
@@ -134,7 +135,7 @@ do_get_value(Reader, Token, Result, !State) :-
 % Parse objects.
 %
 
-:- pred do_get_object(json.reader(Stream)::in, 
+:- pred do_get_object(json.reader(Stream)::in,
     json.result(json.value, Error)::out,
     State::di, State::uo) is det
     <= (
@@ -145,7 +146,7 @@ do_get_value(Reader, Token, Result, !State) :-
 do_get_object(Stream, Result, !State) :-
     do_get_members(Stream, at_start, map.init, MaybeMembers, !State),
     (
-        MaybeMembers = ok(Members),    
+        MaybeMembers = ok(Members),
         Result = ok(json.object(Members))
     ;
         MaybeMembers = eof,
@@ -160,7 +161,8 @@ do_get_object(Stream, Result, !State) :-
     ;       after_comma.    % We have just seen ",".
 
 :- pred do_get_members(json.reader(Stream)::in, object_where::in,
-    map(string, json.value)::in, json.result(map(string, json.value), Error)::out,
+    map(string, json.value)::in,
+    json.result(map(string, json.value), Error)::out,
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
@@ -217,7 +219,7 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                         map.set(FieldName, Value, !Members),
                         RepeatedMemberError = no
                     ),
-                    ( 
+                    (
                         RepeatedMemberError = no,
                         get_token(Reader, NextNextToken, !State),
                         (
@@ -348,9 +350,9 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
         Result = error(Error)
     ;
         Token = token_error(Error),
-        Result = error(Error)    
+        Result = error(Error)
     ).
-        
+
 %-----------------------------------------------------------------------------%
 %
 % Parse arrays.
@@ -480,7 +482,7 @@ do_get_array_items(Reader, Where, !.Items, Result, !State) :-
 % Folding over object members.
 %
 
-do_object_fold(Reader, Pred, !.Acc, Result, !State) :-      
+do_object_fold(Reader, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_left_curly_bracket,
@@ -533,7 +535,7 @@ do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
             )
         then
             Result = ok(!.Acc)
-        else 
+        else
             Msg = "expected a string literal",
             TokenDesc = token_to_string(Token),
             make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
@@ -637,7 +639,7 @@ do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, Error)
     ).
 
-do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-      
+do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_left_curly_bracket,
@@ -690,7 +692,7 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
             )
         then
             Result = ok(!.Acc)
-        else 
+        else
             Msg = "expected a string literal",
             TokenDesc = token_to_string(Token),
             make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
@@ -799,7 +801,7 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
 % Folding over array elements.
 %
 
-do_array_fold(Reader, Pred, !.Acc, Result, !State) :-      
+do_array_fold(Reader, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_left_square_bracket,
@@ -852,7 +854,7 @@ do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
             )
         then
             Result = ok(!.Acc)
-        else 
+        else
             TokenDesc = token_to_string(Token),
             Msg = "expected a value",
             make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
@@ -932,7 +934,7 @@ do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, TokenError)
     ).
 
-do_array_fold_state(Reader, Pred, !.Acc, Result, !State) :-      
+do_array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_left_square_bracket,
@@ -985,7 +987,7 @@ do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
             )
         then
             Result = ok(!.Acc)
-        else 
+        else
             TokenDesc = token_to_string(Token),
             Msg = "expected a value",
             make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),

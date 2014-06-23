@@ -174,7 +174,7 @@ marshal_from_type(Term) = Result :-
     else if
         deconstruct_du(Term, do_not_allow, FunctorNumLex, Arity, Args),
         TypeDesc = type_of(Term),
-        construct.get_functor_with_names(TypeDesc, FunctorNumLex, Name,  Arity,
+        construct.get_functor_with_names(TypeDesc, FunctorNumLex, Name, Arity,
             _ArgTypes, MaybeArgNames)
     then
         ( if Arity = 0 then
@@ -217,30 +217,34 @@ list_to_values([T | Ts], !.Values, Result) :-
     ;
         ValueResult = error(Msg),
         Result = error(Msg)
-    ).  
-        
-:- some [T2] pred dynamic_cast_to_set_ordlist(T1::in, set_ordlist(T2)::out) is semidet.
+    ).
+
+:- some [T2] pred dynamic_cast_to_set_ordlist(T1::in, set_ordlist(T2)::out)
+    is semidet.
 
 dynamic_cast_to_set_ordlist(X, L) :-
     [ArgTypeDesc] = type_args(type_of(X)),
     (_ : ArgType) `has_type` ArgTypeDesc,
     dynamic_cast(X, L : set_ordlist(ArgType)).
 
-:- some [T2] pred dynamic_cast_to_set_unordlist(T1::in, set_unordlist(T2)::out) is semidet.
+:- some [T2] pred dynamic_cast_to_set_unordlist(T1::in, set_unordlist(T2)::out)
+    is semidet.
 
 dynamic_cast_to_set_unordlist(X, L) :-
     [ArgTypeDesc] = type_args(type_of(X)),
     (_ : ArgType) `has_type` ArgTypeDesc,
     dynamic_cast(X, L : set_unordlist(ArgType)).
 
-:- some [T2] pred dynamic_cast_to_set_tree234(T1::in, set_tree234(T2)::out) is semidet.
+:- some [T2] pred dynamic_cast_to_set_tree234(T1::in, set_tree234(T2)::out)
+    is semidet.
 
 dynamic_cast_to_set_tree234(X, L) :-
     [ArgTypeDesc] = type_args(type_of(X)),
     (_ : ArgType) `has_type` ArgTypeDesc,
     dynamic_cast(X, L : set_tree234(ArgType)).
 
-:- some [T2] pred dynamic_cast_to_set_ctree234(T1::in, set_ctree234(T2)::out) is semidet.
+:- some [T2] pred dynamic_cast_to_set_ctree234(T1::in, set_ctree234(T2)::out)
+    is semidet.
 
 dynamic_cast_to_set_ctree234(X, L) :-
     [ArgTypeDesc] = type_args(type_of(X)),
@@ -255,7 +259,7 @@ dynamic_cast_to_maybe(X, M) :-
     dynamic_cast(X, M : maybe(ArgType)).
 
 :- pred add_members(list(univ)::in, list(maybe(string))::in,
-    json.object::in, maybe_error(json.object)::out) is det. 
+    json.object::in, maybe_error(json.object)::out) is det.
 
 add_members([], [], Object, ok(Object)).
 add_members([], [_ | _], _, _) :-
