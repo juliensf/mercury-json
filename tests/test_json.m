@@ -185,7 +185,7 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
         Result = error(Error),
         Msg = stream.error_message(Error),
         io.write_string(Output, Msg, !IO)
-    ). 
+    ).
 
 :- pred override_default_params(string::in,
     allow_comments::out, allow_trailing_commas::out,
