@@ -118,8 +118,8 @@ run_test(InputFileName, !IO) :-
             io.close_output(OutputFile, !IO),
             ExpFileName = BaseFileName ++ ".exp",
             ResFileName = BaseFileName ++ ".res",
-            string.format("diff -u %s %s > %s",
-                [s(ExpFileName), s(OutputFileName), s(ResFileName)],
+            string.format("sed -e 's/\\r\\n/\\n/' <%s | diff -u %s - >%s",
+                [s(OutputFileName), s(ExpFileName), s(ResFileName)],
                 DiffCmd),
             io.call_system(DiffCmd, DiffCmdRes, !IO),
             (
@@ -185,7 +185,7 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
         Result = error(Error),
         Msg = stream.error_message(Error),
         io.write_string(Output, Msg, !IO)
-    ). 
+    ).
 
 :- pred override_default_params(string::in,
     allow_comments::out, allow_trailing_commas::out,
