@@ -52,7 +52,7 @@
 
     ;       syntax_error(string, maybe(string))
             % syntax_error(Where, MaybeMsg)
-            % syntax error at `Where': MaybeMsg
+            % syntax error at 'Where': MaybeMsg
 
     ;       invalid_character_escape(char)
 
@@ -386,14 +386,14 @@
 %   - provide support for a greater range of stdlib types.
 
     % from_type(Type) = MaybeValue:
-    % MaybeValue = `ok(Value)' if Type is a Mercury term corresponding
-    % to the JSON value Value and `error(...)' otherwise.
+    % MaybeValue = 'ok(Value)' if Type is a Mercury term corresponding
+    % to the JSON value Value and 'error(...)' otherwise.
     %
 :- func json.from_type(T) = maybe_error(json.value).
 
     % to_type(Value) = MaybeType:
-    % MaybeType is `ok(Type)' if Value is a JSON object corresponding
-    % to the Mercury value Type and `error(...)' otherwise.
+    % MaybeType is 'ok(Type)' if Value is a JSON object corresponding
+    % to the Mercury value Type and 'error(...)' otherwise.
     %
 :- func json.to_type(json.value) = maybe_error(T).
 
