@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013, Julien Fischer.
+% Copyright (C) 2013-2014 Julien Fischer.
 % All rights reserved.
 %
 % Author: Julien Fischer <jfischer@opturion.com>
@@ -63,10 +63,12 @@ main(!IO) :-
             (
                 MaybeGatherResult = ok(TestCases0),
                 list.sort(TestCases0, TestCases),
-                list.foldl(run_test, TestCases, !IO)
+                list.foldl(run_test(OptionTable), TestCases, !IO)
             ;
-                MaybeGatherResult = error(_, _IO_Error),
-                unexpected($module, $pred, "IO Error")
+                MaybeGatherResult = error(_, IO_Error),
+                io.stderr_stream(Stderr, !IO),
+                io.write_string(Stderr, io.error_message(IO_Error), !IO),
+                io.set_exit_status(1, !IO)
             )
         )
     ;
@@ -102,9 +104,9 @@ gather_json_file(_Dir, File, Type, Continue, !Files, !IO) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred run_test(string::in, io::di, io::uo) is det.
+:- pred run_test(option_table(option)::in, string::in, io::di, io::uo) is det.
 
-run_test(InputFileName, !IO) :-
+run_test(OptionTable, InputFileName, !IO) :-
     io.open_input(InputFileName, OpenInputResult, !IO),
     (
         OpenInputResult = ok(InputFile),
@@ -118,8 +120,10 @@ run_test(InputFileName, !IO) :-
             io.close_output(OutputFile, !IO),
             ExpFileName = BaseFileName ++ ".exp",
             ResFileName = BaseFileName ++ ".res",
-            string.format("diff -u %s %s > %s",
-                [s(ExpFileName), s(OutputFileName), s(ResFileName)],
+            lookup_accumulating_option(OptionTable, diff_flags, UserDiffFlags),
+            DiffFlags = string.join_list(" ", ["-u" | UserDiffFlags]),
+            string.format("diff %s %s %s > %s",
+                [s(DiffFlags), s(ExpFileName), s(OutputFileName), s(ResFileName)],
                 DiffCmd),
             io.call_system(DiffCmd, DiffCmdRes, !IO),
             (
@@ -185,7 +189,7 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
         Result = error(Error),
         Msg = stream.error_message(Error),
         io.write_string(Output, Msg, !IO)
-    ). 
+    ).
 
 :- pred override_default_params(string::in,
     allow_comments::out, allow_trailing_commas::out,
@@ -201,11 +205,11 @@ override_default_params("repeated_member_last", allow_comments,
 :- type option
     --->    help
     ;       verbose
-    ;       keep_files.
+    ;       keep_files
+    ;       diff_flags.
 
 :- pred short_option(char, option).
 :- mode short_option(in, out) is semidet.
-:- mode short_option(out, in) is det.
 
 short_option('h', help).
 short_option('v', verbose).
@@ -216,6 +220,7 @@ short_option('k', keep_files).
 long_option("help", help).
 long_option("verbose", verbose).
 long_option("keep-files", keep_files).
+long_option("diff-flags", diff_flags).
 
 :- pred option_defaults(option, option_data).
 :- mode option_defaults(in, out) is det.
@@ -224,6 +229,7 @@ long_option("keep-files", keep_files).
 option_defaults(help, bool(no)).
 option_defaults(verbose, bool(no)).
 option_defaults(keep_files, bool(no)).
+option_defaults(diff_flags, accumulating([])).
 
 %-----------------------------------------------------------------------------%
 
@@ -235,10 +241,12 @@ help(!IO) :-
         "Options:\n",
         "\t-h, --help\n",
         "\t\tPrint this message.\n",
-        "\t-v, -verbose\n",
+        "\t-v, --verbose\n",
         "\t\tOutput progress information.\n",
         "\t-k, --keep-files\n",
-        "\t\tDo not delete files generated during a test run.\n"
+        "\t\tDo not delete files generated during a test run.\n",
+        "\t--diff-flags\n",
+        "\t\tExtra flags to pass to the diff command.\n"
     ], !IO).
 
 %-----------------------------------------------------------------------------%
