@@ -37,8 +37,6 @@
 
     % XXX this could be much more efficient if we implemented it directly
     % as code in the target language.
-    % NOTE: if we do so, we should use the maximum field width, if availble
-    % to initialise the buffer.
     %
 :- type char_buffer_rep
     --->   char_buffer_rep(list(char), int).
