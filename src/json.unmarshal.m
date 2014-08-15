@@ -759,7 +759,7 @@ du_args_to_types(Object, FieldNum, [PTD | PTDs], [MaybeFN | MaybeFNs],
     =  maybe_error(list(univ)).
 
 make_non_ground_type_error(_PTD, MaybeFN, FieldNum) = Error :-
-    % XXX we could use psuedo_type_ctor/1 here to provide a more precise error
+    % XXX we could use pseudo_type_ctor/1 here to provide a more precise error
     % message, but some of the non-C backends don't currently implement it and
     % would abort if we did.
     (
