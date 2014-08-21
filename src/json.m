@@ -101,6 +101,10 @@
 
 :- type json.array == list(json.value).
 
+    % int(I) = number(float(I)).
+    %
+:- func json.int(int) = json.value.
+
 %-----------------------------------------------------------------------------%
 %
 % JSON reader.
@@ -795,6 +799,10 @@ all_functors_have_arity_zero(TypeDesc, I, Limit) :-
     else
         true
     ).
+
+%-----------------------------------------------------------------------------%
+
+int(I) = number(float(I)).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.
