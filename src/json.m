@@ -107,6 +107,58 @@
 
 %-----------------------------------------------------------------------------%
 %
+% Procedures for working with JSON values.
+%
+
+    % The following are true iff the given value is a JSON value of the
+    % type specified by the predicate name.
+    %
+:- pred is_null(value::in) is semidet.
+:- pred is_bool(value::in) is semidet.
+:- pred is_string(value::in) is semidet.
+:- pred is_number(value::in) is semidet.
+:- pred is_object(value::in) is semidet.
+:- pred is_array(value::in) is semidet.
+
+    % The following are true iff the given value is a JSON value of the type
+    % specified by the predicate name.  They return the underlying value.
+    % The are false if the given value is not a JSON value of the type
+    % specified by the predicate name.
+    %
+:- pred get_bool(value::in, bool::out) is semidet.
+:- pred get_string(value::in, string::out) is semidet.
+:- pred get_number(value::in, float::out) is semidet.
+:- pred get_object(value::in, object::out) is semidet.
+:- pred get_array(value::in, array::out) is semidet.
+
+    % As above, but calls error/1 if the given value is not a JSON value of the
+    % type specified by the predicate name.
+    %
+:- func det_get_bool(value) = bool.
+:- func det_get_string(value) = string.
+:- func det_get_number(value) = float.
+:- func det_get_object(value) = object.
+:- func det_get_array(value) = array.
+
+%-----------------------------------------------------------------------------%
+%
+% Procedures for working with JSON objects.
+%
+
+    % lookup_<type>(Object, Member) = Value:
+    % Lookup Member in Object and return the underlying value if it is a
+    % JSON value of the type specified by the predicate name.
+    % Calls error/1 if Member is not a member of Object or if the member value
+    % is not a JSON value of the type specified by the predicate name.
+    %
+:- func lookup_bool(object, string) = bool.
+:- func lookup_string(object, string) = string.
+:- func lookup_number(object, string) = float.
+:- func lookup_object(object, string) = object.
+:- func lookup_array(object, string) = array.
+
+%-----------------------------------------------------------------------------%
+%
 % JSON reader.
 %
 
@@ -803,6 +855,73 @@ all_functors_have_arity_zero(TypeDesc, I, Limit) :-
 %-----------------------------------------------------------------------------%
 
 int(I) = number(float(I)).
+
+%-----------------------------------------------------------------------------%
+
+is_null(null).
+is_bool(bool(_)).
+is_string(string(_)).
+is_number(number(_)).
+is_object(object(_)).
+is_array(array(_)).
+
+get_bool(bool(Bool), Bool).
+get_string(string(String), String).
+get_number(number(Number), Number).
+get_object(object(Object), Object).
+get_array(array(Array), Array).
+
+det_get_bool(Value) =
+    ( if get_bool(Value, Bool)
+    then Bool
+    else func_error("json.det_get_bool: not a JSON Boolean")
+    ).
+
+det_get_string(Value) = 
+    ( if get_string(Value, String)
+    then String
+    else func_error("json.det_get_string: not a JSON string")
+    ).
+
+det_get_number(Value) = 
+    ( if get_number(Value, Number)
+    then Number
+    else func_error("json.det_get_number: not a JSON number")
+    ).
+
+det_get_object(Value) = 
+    ( if get_object(Value, Object)
+    then Object
+    else func_error("json.det_get_object: not a JSON object")
+    ).
+
+det_get_array(Value) = 
+    ( if get_array(Value, Array)
+    then Array
+    else func_error("json.get_get_array: not a JSON array")
+    ).
+
+%-----------------------------------------------------------------------------%
+
+lookup_bool(Object, Member) = Bool :-
+    Value = lookup(Object, Member),
+    Bool = det_get_bool(Value).
+
+lookup_string(Object, Member) = String :-
+    Value = lookup(Object, Member),
+    String = det_get_string(Value).
+
+lookup_number(Object, Member) = Number :-
+    Value = lookup(Object, Member),
+    Number = det_get_number(Value).
+
+lookup_object(Object, Member) = ObjectPrime :-
+    Value = lookup(Object, Member),
+    ObjectPrime = det_get_object(Value).
+
+lookup_array(Object, Member) = Array :-
+    Value = lookup(Object, Member),
+    Array = det_get_array(Value). 
 
 %-----------------------------------------------------------------------------%
 :- end_module json.
