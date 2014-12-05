@@ -326,7 +326,7 @@ get_hex_digits(Reader, !.N, !HexDigits, Result, !State) :-
                 !:N = !.N - 1,
                 get_hex_digits(Reader, !.N, !HexDigits, Result, !State)
             else
-                string.format("invalid hex character in Unicode escape: `%c'",
+                string.format("invalid hex character in Unicode escape: '%c'",
                     [c(Char)], Msg),
                 make_json_error(Reader, Msg, Error, !State),
                 Result = error(Error)
@@ -536,7 +536,7 @@ get_number_chars(Reader, Buffer, Result, !State) :-
         then
             update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
-            get_frac(Reader, Buffer, Result, !State)
+            get_frac(Reader, frac_start, Buffer, Result, !State)
         else if
             ( Char = 'e'
             ; Char = 'E'
@@ -558,15 +558,19 @@ get_number_chars(Reader, Buffer, Result, !State) :-
         Result = error(stream_error(StreamError))
     ).
 
+:- type frac_where
+    --->    frac_start  % Have just seen '.'.
+    ;       frac_digit. % Have just seen a digit.
+
 :- pred get_frac(json.reader(Stream)::in,
-    char_buffer::in, json.res(Error)::out,
-    State::di, State::uo) is det
+    frac_where::in, char_buffer::in,
+    json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_frac(Reader, Buffer, Result, !State) :-
+get_frac(Reader, Where, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, GetResult, !State),
     (
@@ -576,7 +580,18 @@ get_frac(Reader, Buffer, Result, !State) :-
         then
             update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
-            get_frac(Reader, Buffer, Result, !State)
+            get_frac(Reader, frac_digit, Buffer, Result, !State)
+        else if
+            ( Char = 'e'
+            ; Char = 'E'
+            ),
+            % There must be a least on digit before the exponent
+            % indicator.  We cannot have literals of the form "10.e30".
+            Where = frac_digit
+        then
+            update_column_number(Reader, Char, !State),
+            char_buffer.add(Buffer, Char, !State),
+            get_exp(Reader, exp_start, Buffer, Result, !State)
         else
             stream.unget(Stream, Char, !State),
             Result = ok
