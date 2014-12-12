@@ -131,6 +131,11 @@
 :- pred get_object(value::in, object::out) is semidet.
 :- pred get_array(value::in, array::out) is semidet.
 
+    % Return the value of a JSON number as an integer.
+    % The fractional part is truncated.
+    %
+:- pred get_int(value::in, int::out) is semidet.
+
     % As above, but calls error/1 if the given value is not a JSON value of the
     % type specified by the predicate name.
     %
@@ -139,6 +144,8 @@
 :- func det_get_number(value) = float.
 :- func det_get_object(value) = object.
 :- func det_get_array(value) = array.
+
+:- func det_get_int(value) = int.
 
 %-----------------------------------------------------------------------------%
 %
@@ -156,6 +163,8 @@
 :- func lookup_number(object, string) = float.
 :- func lookup_object(object, string) = object.
 :- func lookup_array(object, string) = array.
+
+:- func lookup_int(object, string) = int.
 
 %-----------------------------------------------------------------------------%
 %
@@ -871,6 +880,9 @@ get_number(number(Number), Number).
 get_object(object(Object), Object).
 get_array(array(Array), Array).
 
+get_int(number(Number), Int) :-
+    Int = truncate_to_int(Number).
+
 det_get_bool(Value) =
     ( if get_bool(Value, Bool)
     then Bool
@@ -898,7 +910,13 @@ det_get_object(Value) =
 det_get_array(Value) = 
     ( if get_array(Value, Array)
     then Array
-    else func_error("json.get_get_array: not a JSON array")
+    else func_error("json.get_array: not a JSON array")
+    ).
+
+det_get_int(Value) =
+    ( if get_int(Value, Int)
+    then Int
+    else func_error("json.get_int: not a JSON number")
     ).
 
 %-----------------------------------------------------------------------------%
@@ -922,6 +940,10 @@ lookup_object(Object, Member) = ObjectPrime :-
 lookup_array(Object, Member) = Array :-
     Value = lookup(Object, Member),
     Array = det_get_array(Value). 
+
+lookup_int(Object, Member) = Int :-
+    Value = lookup(Object, Member),
+    Int = det_get_int(Value).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.
