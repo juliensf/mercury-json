@@ -45,7 +45,8 @@ test_marshaling(File, !IO) :-
     test(File, 561, !IO),
     % XXX FIXME: max_int case is not working.
     %test(File, int.max_int : int, !IO),
-    test(File, int.min_int : int, !IO),
+    % XXX disabled since it's machine specific.
+    %test(File, int.min_int : int, !IO),
 
     % Test strings.
     test(File, "", !IO),
@@ -135,6 +136,8 @@ test_marshaling(File, !IO) :-
 :- type foreign.
 
 :- pragma foreign_type("C", foreign, "int").
+:- pragma foreign_type("Java", foreign, "java.lang.Object").
+:- pragma foreign_type("C#", foreign, "object").
 
 :- func make_foreign = foreign.
 
@@ -143,6 +146,20 @@ test_marshaling(File, !IO) :-
     [promise_pure, will_not_call_mercury, thread_safe],
 "
     F = 3;
+").
+
+:- pragma foreign_proc("Java",
+    make_foreign = (F::out),
+    [promise_pure, will_not_call_mercury, thread_safe],
+"
+    F = null;
+").
+
+:- pragma foreign_proc("C#",
+    make_foreign = (F::out),
+    [promise_pure, will_not_call_mercury, thread_safe],
+"
+    F = null;
 ").
 
 :- type existq
