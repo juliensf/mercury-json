@@ -416,10 +416,11 @@
 % Primitive types:
 %                     int                  number#
 %                     string               string
-%                     float                number
+%                     float##              number
 %                     char                 string
 %
 % # cannot have a fractional part.
+% ## only finite floats may be converted to JSON.
 %
 % Library types:
 %
