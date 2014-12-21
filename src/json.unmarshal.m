@@ -210,7 +210,7 @@ to_builtin_type(TypeName, Value) = Result :-
         TypeName = "character",
         Value = string(String),
         string.length(String, 1),
-        Char = String ^ elem(1)
+        Char = String ^ elem(0)
     then
         Univ = univ(Char),
         Result = ok(Univ)
