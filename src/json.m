@@ -427,6 +427,10 @@
 %                     maybe/1              null for "no" or
 %                                          arg of yes/1
 %
+%                     date/0               string
+%                     duration/0           string
+%                     integer/0            string
+%
 %                     list/1               array##
 %
 % ## in principle, most sequence types in the standard library

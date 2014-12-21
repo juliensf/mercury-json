@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013, Julien Fischer.
+% Copyright (C) 2013-2014 Julien Fischer.
 % All rights reserved.
 %
 % Author: Julien Fischer <jfischer@opturion.com>
@@ -23,6 +23,7 @@
 :- implementation.
 
 :- import_module bimap.
+:- import_module calendar.
 :- import_module integer.
 :- import_module pair.
 :- import_module set_ctree234.
@@ -62,6 +63,16 @@ marshal_from_type(Term) = Result :-
     then
         IntegerString : string = integer.to_string(Integer),
         Result = ok(string(IntegerString))
+    else if
+        dynamic_cast(Term, DateTime)
+    then
+        Value = string(date_to_string(DateTime)),
+        Result = ok(Value)
+    else if
+        dynamic_cast(Term, Duration)
+    then
+        Value = string(duration_to_string(Duration)),
+        Result = ok(Value)
     else if
         dynamic_cast_to_pair(Term, Pair)
     then

@@ -24,6 +24,7 @@
 
 :- import_module assoc_list.
 :- import_module bimap.
+:- import_module calendar.
 :- import_module integer.
 :- import_module pair.
 :- import_module set_ctree234.
@@ -73,6 +74,22 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         TypeArgs = []
     then
         Result = to_integer_type(Value)
+    else if
+        % Is this type a Mercury date/0 type?
+        ModuleName = "calendar",
+        TypeName = "date",
+        Arity = 0,
+        TypeArgs = []
+    then
+        Result = to_date_type(Value)
+    else if
+        % Is this type a Mercury duration/0 type?
+        ModuleName = "calendar",
+        TypeName = "duration",
+        Arity = 0,
+        TypeArgs = []
+    then
+        Result = to_duration_type(Value)
     else if
         % Is this type a Mercury list?
         ModuleName = "list",
@@ -246,7 +263,55 @@ to_integer_type(Value) = Result :-
         ; Value = object(_)
         ; Value = array(_)
         ),
-        Result = error("expected JSON Boolean for integer/0 conversion")
+        Result = error("expected JSON string for integer/0 conversion")
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> date/0 type.
+%
+
+:- func to_date_type(value) = maybe_error(univ).
+
+to_date_type(Value) = Result :-
+    (
+        Value = string(String),
+        ( if calendar.date_from_string(String, Date)
+        then Result = ok(univ(Date))
+        else Result = error("string is not a date/0")
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ; Value = array(_)
+        ),
+        Result = error("expected JSON string for date/0 conversion")
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% Json -> duration/0 type.
+%
+
+:- func to_duration_type(value) = maybe_error(univ).
+
+to_duration_type(Value) = Result :-
+    (
+        Value = string(String),
+        ( if calendar.duration_from_string(String, Duration)
+        then Result = ok(univ(Duration))
+        else Result = error("string is not a duration/0")
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ; Value = array(_)
+        ),
+        Result = error("expected JSON string for duration/0 conversion")
     ).
 
 %-----------------------------------------------------------------------------%
@@ -764,7 +829,7 @@ make_non_ground_type_error(_PTD, MaybeFN, FieldNum) = Error :-
     % would abort if we did.
     (
         MaybeFN = yes(FieldName0),
-        FieldName = "`" ++ FieldName0 ++ "'"
+        FieldName = "'" ++ FieldName0 ++ "'"
     ;
         MaybeFN = no,
         FieldName = "number " ++ int_to_string(FieldNum)
