@@ -437,18 +437,15 @@
 % ## in principle, most sequence types in the standard library
 % could be converted to/from JSON arrays.
 %
-% User-defined typs:
+% User-defined types:
 %
 %                     enumerations          string
 %                     discriminated unions  objects
 %
-% User-defined non-enumeration d.u. types must have all their
-% fields named in order to be marshaled to JSON.
-%
 % Cannot be marshaled to JSON:
 %   - foreign types
 %   - univs
-%   - d.u types with existentially quantified data constructors
+%   - existentially quantified data constructors
 %   - d.u types without field names
 %   - no higher-order types
 %

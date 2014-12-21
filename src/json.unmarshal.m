@@ -25,12 +25,14 @@
 :- import_module assoc_list.
 :- import_module bimap.
 :- import_module calendar.
+:- import_module construct.
 :- import_module integer.
 :- import_module pair.
 :- import_module set_ctree234.
 :- import_module set_ordlist.
 :- import_module set_tree234.
 :- import_module set_unordlist.
+:- import_module type_desc.
 
 %-----------------------------------------------------------------------------%
 
@@ -174,7 +176,7 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         else Result = to_du_type(TypeDesc, NumFunctors, Value)
         )
     else
-        string.format("cannot convert JSON for type %s.%s/%d",
+        string.format("cannot convert JSON for type '%s.%s'/%d",
             [s(ModuleName), s(TypeName), i(Arity)], Msg),
         Result = error(Msg)
     ).
@@ -676,7 +678,7 @@ to_enum_type(TypeDesc, Value) = Result :-
         then
             Result = ok(Univ)
         else
-            string.format("cannot convert `%s' to enum", [s(Name)], Msg),
+            string.format("cannot convert '%s' to enum", [s(Name)], Msg),
             Result = error(Msg)
         )
     ;
@@ -695,25 +697,30 @@ to_enum_type(TypeDesc, Value) = Result :-
 
 :- func to_du_type(type_desc, int, value) = maybe_error(univ).
 
-to_du_type(TypeDesc, NumFunctors, Value) = Result :-
+to_du_type(TypeDesc, _NumFunctors, Value) = Result :-
     (
         Value = object(Object),
         NumMembers = map.count(Object),
-        find_matching_functor(TypeDesc, Object, NumMembers, 0, NumFunctors,
-            MatchingFunctorResult),
-        (
-            MatchingFunctorResult = mfres_match(FunctorNumLex, ArgUnivs),
-            ( if Univ = construct(TypeDesc, FunctorNumLex, ArgUnivs)
-            then Result = ok(Univ)
-            else Result = error("cannot construct term")
+        ( if
+            map.search(Object, "functor", FunctorValue),
+            FunctorValue = string(FunctorName)
+        then
+            ( if NumMembers = 1 then
+                Result = to_du_type_2(TypeDesc, FunctorName, 0, [])
+            else
+                ( if
+                    map.search(Object, "args", ArgsValue),
+                    ArgsValue = array(ArgValues)
+                then
+                    list.length(ArgValues, Arity),
+                    Result = to_du_type_2(TypeDesc, FunctorName, Arity, ArgValues)
+                else
+                    Result = error("expected array member named 'args' in d.u. object")
+                )
             )
-        ;
-            MatchingFunctorResult = mfres_no_match,
-            Result = error("cannot find functor matching JSON object")
-        ;
-            MatchingFunctorResult = mfres_error(Msg),
-            Result = error(Msg)
-        )
+        else
+            Result = error("expected string member named 'functor' in d.u. object")
+        )    
     ;
         ( Value = null
         ; Value = bool(_)
@@ -724,119 +731,100 @@ to_du_type(TypeDesc, NumFunctors, Value) = Result :-
         Result = error("expected JSON object for d.u. conversion")
     ).
 
-:- type matching_functor_result
-    --->    mfres_match(functor_number_lex, list(univ))
-    ;       mfres_no_match
-    ;       mfres_error(string).
+:- func to_du_type_2(type_desc, string, int, list(json.value)) =
+    maybe_error(univ).
 
-:- pred find_matching_functor(type_desc::in, object::in, int::in,
-    functor_number_lex::in, functor_number_lex::in,
-    matching_functor_result::out) is det.
-
-find_matching_functor(TypeDesc, Object, NumMembers, FunctorNumLex,
-        NumFunctors, Result) :-
-    ( if FunctorNumLex < NumFunctors then
-        ( if
-            get_functor_with_names(TypeDesc, FunctorNumLex, FunctorName,
-                Arity, ArgTypes, ArgNames)
-        then
-            ( if
-                % Zero-arity constructors are represented by the following
-                % JSON:
-                %
-                %    { "<functor-name>" : null }
-                %
-                Arity = 0,
-                NumMembers = 1,
-                map.search(Object, FunctorName, Value),
-                Value = null
-            then
-                Result = mfres_match(FunctorNumLex, [])
-            else if
-                Arity = NumMembers,
-                % Because field names need to be unique within a module we only
-                % need to check the first one to see if we have a match.
-                ArgNames = [MaybeFirstArgName | _],
-                MaybeFirstArgName = yes(FirstArgName), % XXX Maybe abort if no?
-                map.contains(Object, FirstArgName)
-            then
-                du_args_to_types(Object, 1, ArgTypes, ArgNames, [], ArgResult),
-                (
-                    ArgResult = ok(RevArgUnivs),
-                    list.reverse(RevArgUnivs, ArgUnivs),
-                    Result = mfres_match(FunctorNumLex, ArgUnivs)
-                ;
-                    ArgResult = error(Msg),
-                    Result = mfres_error(Msg)
-                )
-            else
-                find_matching_functor(TypeDesc, Object, NumMembers,
-                    FunctorNumLex + 1, NumFunctors, Result)
-            )
-        else
-            type_ctor_and_args(TypeDesc, TypeCtorDesc, _),
-            type_ctor_name_and_arity(TypeCtorDesc, ModuleName, TypeName,
-                TypeArity),
-            string.format("type `%s.%s'/%d is not a discriminated union",
-                [s(ModuleName), s(TypeName), i(TypeArity)], Msg),
-            Result = mfres_error(Msg)
-        )
-    else
-        Result = mfres_no_match
-    ).
-
-:- pred du_args_to_types(object::in, int::in,
-    list(pseudo_type_desc)::in, list(maybe(string))::in,
-    list(univ)::in, maybe_error(list(univ))::out) is det.
-
-du_args_to_types(_, _, [], [], RevArgUnivs, ok(RevArgUnivs)).
-du_args_to_types(_, _, [], [_ | _], _, _) :-
-    unexpected($file, $pred, "argument length mismatch (1)").
-du_args_to_types(_, _, [_ | _], [], _, _) :-
-    unexpected($file, $pred, "argument length mismatch (2)").
-du_args_to_types(Object, FieldNum, [PTD | PTDs], [MaybeFN | MaybeFNs],
-        !.RevArgUnivs, Result) :-
-    ( if TypeDesc = ground_pseudo_type_desc_to_type_desc(PTD) then
+to_du_type_2(TypeDesc, FunctorName, Arity, Args) = Result :-
+    find_matching_functor(TypeDesc, FunctorName,
+        Arity, MaybeMatchingFunctor),
+    (
+        MaybeMatchingFunctor = ok(MatchingFunctor),
+        MatchingFunctor = matching_functor(FunctorNumLex, ArgTypes),
+        du_args_to_types(Args, ArgTypes, [], ArgsResult),
         (
-            MaybeFN = yes(FieldName),
-            % XXX should report an error if field is missing from object.
-            FieldValue = map.lookup(Object, FieldName),
-            MaybeUniv = unmarshal_to_type_2(TypeDesc, FieldValue),
-            (
-                MaybeUniv = ok(Univ),
-                !:RevArgUnivs = [Univ | !.RevArgUnivs],
-                du_args_to_types(Object, FieldNum + 1, PTDs, MaybeFNs,
-                    !.RevArgUnivs, Result)
-            ;
-                MaybeUniv = error(Msg),
-                Result = error(Msg)
+            ArgsResult = ok(RevArgUnivs),
+            list.reverse(RevArgUnivs, ArgUnivs),
+            ( if Univ = construct(TypeDesc, FunctorNumLex, ArgUnivs)
+            then Result = ok(Univ)
+            else Result = error("cannot construct term")    % XXX better error message.
             )
         ;
-            MaybeFN = no,
-            string.format("field number %d has no name", [i(FieldNum)], Msg),
+            ArgsResult = error(Msg),
             Result = error(Msg)
         )
-    else
-        Result = make_non_ground_type_error(PTD, MaybeFN, FieldNum)
+    ;
+        MaybeMatchingFunctor = error(Msg),
+        Result = error(Msg)
     ).
 
-:- func make_non_ground_type_error(pseudo_type_desc, maybe(string), int)
-    =  maybe_error(list(univ)).
+:- type matching_functor
+    --->    matching_functor(functor_number_lex, list(type_desc)).
 
-make_non_ground_type_error(_PTD, MaybeFN, FieldNum) = Error :-
-    % XXX we could use pseudo_type_ctor/1 here to provide a more precise error
-    % message, but some of the non-C backends don't currently implement it and
-    % would abort if we did.
+:- pred find_matching_functor(type_desc::in, string::in, int::in,
+    maybe_error(matching_functor)::out) is det.
+
+find_matching_functor(TypeDesc, FunctorName, Arity, MaybeMatchingFunctor) :-
+    ( if NumFunctors = construct.num_functors(TypeDesc) then
+        find_matching_functor_2(TypeDesc, FunctorName, Arity, NumFunctors,
+            MaybeMatchingFunctor)
+    else
+        unexpected($file, $pred, "not a d.u. type")
+    ).
+
+:- pred find_matching_functor_2(type_desc::in, string::in, int::in,
+    int::in, maybe_error(matching_functor)::out) is det.
+
+find_matching_functor_2(TypeDesc, FunctorName, Arity, !.Num,
+        MaybeMatchingFunctor) :-
+    ( if !.Num < 0 then
+        unexpected($file, $pred, "not a d.u. type")
+    else
+        !:Num = !.Num - 1,
+        ( if
+            get_functor(TypeDesc, !.Num, FunctorName, Arity, ArgPsuedoTypes)
+        then
+            % XXX the stdlib should have a predicate version of
+            % ground_pseudo_type_desc_to_type_desc/1.
+            ToTypeDescPred = (pred(PTD::in, TD::out) is semidet :-
+                TD = ground_pseudo_type_desc_to_type_desc(PTD)
+            ),
+            ( if
+                list.map(ToTypeDescPred, ArgPsuedoTypes, ArgTypes)
+            then
+                MatchingFunctor = matching_functor(!.Num, ArgTypes),
+                MaybeMatchingFunctor = ok(MatchingFunctor)
+            else
+                % XXX we could be more specific about 
+                % what the problem is here (e.g. one or more of the
+                % arguments is an existentially quantified type variable.
+                string.format("%s/%d is not a ground functor",
+                    [s(FunctorName), i(Arity)], Msg),
+                MaybeMatchingFunctor = error(Msg)
+            )
+        else
+            find_matching_functor_2(TypeDesc, FunctorName, Arity,
+                !.Num, MaybeMatchingFunctor)
+        )
+    ).
+
+:- pred du_args_to_types(list(json.value)::in, list(type_desc)::in,
+    list(univ)::in, maybe_error(list(univ))::out) is det.
+
+du_args_to_types([], [], RevArgUnivs, ok(RevArgUnivs)).
+du_args_to_types([], [_ | _], _, _) :-
+    unexpected($file, $pred, "argument length mismatch (1)").
+du_args_to_types([_ | _], [], _, _) :-
+    unexpected($file, $pred, "argument length mismatch (2)").
+du_args_to_types([Value | Values], [TypeDesc | TypeDescs], !.RevArgUnivs, Result) :-
+    MaybeUniv = unmarshal_to_type_2(TypeDesc, Value),
     (
-        MaybeFN = yes(FieldName0),
-        FieldName = "'" ++ FieldName0 ++ "'"
+        MaybeUniv = ok(Univ),
+        !:RevArgUnivs = [Univ | !.RevArgUnivs],
+        du_args_to_types(Values, TypeDescs, !.RevArgUnivs, Result)
     ;
-        MaybeFN = no,
-        FieldName = "number " ++ int_to_string(FieldNum)
-    ),
-    string.format("field %s contains a non-ground type or type variable",
-        [s(FieldName)], Msg),
-    Error = error(Msg).
+        MaybeUniv = error(Msg),
+        Result = error(Msg)
+    ).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.unmarshal.

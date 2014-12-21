@@ -189,26 +189,35 @@ marshal_from_type(Term) = Result :-
         deconstruct_du(Term, do_not_allow, FunctorNumLex, Arity, Args),
         TypeDesc = type_of(Term),
         construct.get_functor_with_names(TypeDesc, FunctorNumLex, Name, Arity,
-            _ArgTypes, MaybeArgNames)
+            _ArgTypes, _MaybeArgNames)
     then
+        Object0 = map.singleton("functor", string(Name)),
         ( if Arity = 0 then
-            Object = map.singleton(Name, null),
+            % Omit the 'args' field if the functor has no arguments.
+            Object = Object0,
             Value = object(Object),
             Result = ok(Value)
         else
-            map.init(Object0),
-            add_members(Args, MaybeArgNames, Object0, MaybeObjectResult),
+            gather_du_args(Args, [], MaybeArgsResult),
             (
-                MaybeObjectResult = ok(Object),
+                MaybeArgsResult = ok(RevJSONArgs),
+                list.reverse(RevJSONArgs, JSONArgs),
+                map.det_insert("args", array(JSONArgs), Object0, Object),
                 Value = object(Object),
                 Result = ok(Value)
             ;
-                MaybeObjectResult = error(Msg),
+                MaybeArgsResult = error(Msg),
                 Result = error(Msg)
             )
         )
     else
-        Result = error("cannot convert type to JSON")
+        TypeDesc = type_of(Term),
+        type_ctor_and_args(TypeDesc, TypeCtorDesc, _),
+        type_ctor_name_and_arity(TypeCtorDesc, ModuleName, TypeName,
+            TypeArity),
+        string.format("cannot convert type '%s.%s'/%d to JSON",
+            [s(ModuleName), s(TypeName), i(TypeArity)], Msg),
+        Result = error(Msg)
     ).
 
 :- some [T2] pred dynamic_cast_to_list(T1::in, list(T2)::out) is semidet.
@@ -272,32 +281,20 @@ dynamic_cast_to_maybe(X, M) :-
     (_ : ArgType) `has_type` ArgTypeDesc,
     dynamic_cast(X, M : maybe(ArgType)).
 
-:- pred add_members(list(univ)::in, list(maybe(string))::in,
-    json.object::in, maybe_error(json.object)::out) is det.
+:- pred gather_du_args(list(univ)::in,
+    list(json.value)::in, maybe_error(list(json.value))::out) is det.
 
-add_members([], [], Object, ok(Object)).
-add_members([], [_ | _], _, _) :-
-    unexpected($file, $pred, "mismatched argument lengths (1)").
-add_members([_ | _], [], _, _) :-
-    unexpected($file, $pred, "mismatched argument lengths (2)").
-add_members([Univ | Univs], [MaybeArgName | MaybeArgNames], !.Object,
-        Result) :-
+gather_du_args([], JArgs, ok(JArgs)).
+gather_du_args([Univ | Univs], !.JArgs, Result) :-
+    Arg = univ_value(Univ),
+    ValueResult = marshal_from_type(Arg),
     (
-        MaybeArgName = no,
-        % XXX what type, which field no?
-        Result = error("missing field name")
+        ValueResult = ok(Value),
+        !:JArgs = [Value | !.JArgs],
+        gather_du_args(Univs, !.JArgs, Result)
     ;
-        MaybeArgName = yes(FieldName),
-        Arg = univ_value(Univ),
-        ValueResult = marshal_from_type(Arg),
-        (
-            ValueResult = ok(Value),
-            map.det_insert(FieldName, Value, !Object),
-            add_members(Univs, MaybeArgNames, !.Object, Result)
-        ;
-            ValueResult = error(Msg),
-            Result = error(Msg)
-        )
+        ValueResult = error(Msg),
+        Result = error(Msg)
     ).
 
 :- some [T2, T3] pred dynamic_cast_to_pair(T1::in, pair(T2, T3)::out)
