@@ -2,9 +2,8 @@
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
 % Copyright (C) 2013-2014 Julien Fischer.
-% All rights reserved.
 %
-% Author: Julien Fischer <jfischer@opturion.com>
+% Author: Julien Fischer <juliensf@gmail.com>
 %
 % Test harness for the JSON library.
 %
@@ -23,6 +22,7 @@
 :- implementation.
 
 :- import_module json.
+:- import_module test_marshal.
 
 :- import_module bool.
 :- import_module char.
@@ -63,7 +63,8 @@ main(!IO) :-
             (
                 MaybeGatherResult = ok(TestCases0),
                 list.sort(TestCases0, TestCases),
-                list.foldl(run_test(OptionTable), TestCases, !IO)
+                list.foldl(run_test(OptionTable), TestCases, !IO),
+                run_marshaling_tests(OptionTable, !IO)
             ;
                 MaybeGatherResult = error(_, IO_Error),
                 io.stderr_stream(Stderr, !IO),
@@ -118,28 +119,7 @@ run_test(OptionTable, InputFileName, !IO) :-
             parse_and_output(BaseFileName, InputFile, OutputFile, !IO),
             io.close_input(InputFile, !IO),
             io.close_output(OutputFile, !IO),
-            ExpFileName = BaseFileName ++ ".exp",
-            ResFileName = BaseFileName ++ ".res",
-            lookup_accumulating_option(OptionTable, diff_flags, UserDiffFlags),
-            DiffFlags = string.join_list(" ", ["-u" | UserDiffFlags]),
-            string.format("diff %s %s %s > %s",
-                [s(DiffFlags), s(ExpFileName), s(OutputFileName), s(ResFileName)],
-                DiffCmd),
-            io.call_system(DiffCmd, DiffCmdRes, !IO),
-            (
-                DiffCmdRes = ok(DiffExitStatus),
-                ( if DiffExitStatus = 0 then
-                    io.format("PASSED: %s\n", [s(BaseFileName)], !IO),
-                    io.remove_file(ResFileName, _, !IO),
-                    io.remove_file(OutputFileName, _, !IO)
-                else
-                    io.format("FAILED: %s\n", [s(BaseFileName)], !IO)
-                )
-            ;
-                DiffCmdRes = error(DiffError),
-                io.error_message(DiffError, Msg),
-                io.format("ABORTED: %s (%s)\n", [s(BaseFileName), s(Msg)], !IO)
-            )
+            check_result(OptionTable, BaseFileName, !IO)
         ;
             OpenOutputResult = error(_),
             unexpected($module, $pred, "cannot open output")
@@ -199,6 +179,53 @@ override_default_params("repeated_member_first", allow_comments,
     do_not_allow_trailing_commas, allow_repeated_members_keep_first).
 override_default_params("repeated_member_last", allow_comments,
     do_not_allow_trailing_commas, allow_repeated_members_keep_last).
+
+%-----------------------------------------------------------------------------%
+
+:- pred run_marshaling_tests(option_table(option)::in, io::di, io::uo) is det.
+
+run_marshaling_tests(OptionTable, !IO) :-
+    BaseFileName = "marshal",
+    OutputFileName = BaseFileName ++ ".out",
+    io.open_output(OutputFileName, MaybeOpenResult, !IO),
+    (
+        MaybeOpenResult = ok(OutputFile),
+        test_marshaling(OutputFile, !IO),
+        io.close_output(OutputFile, !IO),
+        check_result(OptionTable, BaseFileName, !IO)
+    ;
+        MaybeOpenResult = error(_),
+        unexpected($file, $pred, "cannot open output")
+    ).
+
+%-----------------------------------------------------------------------------%
+
+:- pred check_result(option_table(option)::in, string::in, io::di, io::uo) is det.
+
+check_result(OptionTable, BaseFileName, !IO) :-
+    OutputFileName = BaseFileName ++ ".out",
+    ExpFileName = BaseFileName ++ ".exp",
+    ResFileName = BaseFileName ++ ".res",
+    lookup_accumulating_option(OptionTable, diff_flags, UserDiffFlags),
+    DiffFlags = string.join_list(" ", ["-u" | UserDiffFlags]),
+    string.format("diff %s %s %s > %s",
+        [s(DiffFlags), s(ExpFileName), s(OutputFileName), s(ResFileName)],
+        DiffCmd),
+    io.call_system(DiffCmd, DiffCmdRes, !IO),
+    (
+        DiffCmdRes = ok(DiffExitStatus),
+        ( if DiffExitStatus = 0 then
+            io.format("PASSED: %s\n", [s(BaseFileName)], !IO),
+            io.remove_file(ResFileName, _, !IO),
+            io.remove_file(OutputFileName, _, !IO)
+        else
+            io.format("FAILED: %s\n", [s(BaseFileName)], !IO)
+        )
+    ;
+        DiffCmdRes = error(DiffError),
+        io.error_message(DiffError, Msg),
+        io.format("ABORTED: %s (%s)\n", [s(BaseFileName), s(Msg)], !IO)
+    ).
 
 %-----------------------------------------------------------------------------%
 

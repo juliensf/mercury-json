@@ -1,0 +1,122 @@
+ Orig. Term: -561
+       JSON: -561
+Result Term: -561
+
+ Orig. Term: 0
+       JSON: 0
+Result Term: 0
+
+ Orig. Term: 561
+       JSON: 561
+Result Term: 561
+
+ Orig. Term: -9223372036854775808
+       JSON: -9223372036854775808
+Result Term: -9223372036854775808
+
+ Orig. Term: 
+       JSON: ""
+Result Term: 
+
+ Orig. Term: aaabbbccc
+       JSON: "aaabbbccc"
+Result Term: aaabbbccc
+
+ Orig. Term: ûń
+       JSON: "\u00fb\u0144"
+Result Term: ûń
+
+ Orig. Term: 3.141
+       JSON: 3.141
+Result Term: 3.141
+
+ Orig. Term: infinity
+       JSON: error: cannot convert non-finite float to JSON
+
+ Orig. Term: A
+       JSON: "A"
+Result Term: A
+
+ Orig. Term: no
+       JSON: false
+Result Term: no
+
+ Orig. Term: yes
+       JSON: true
+Result Term: yes
+
+ Orig. Term: 2365712637126347861237846728356712647827834723847812937812734871293478127
+       JSON: "2365712637126347861237846728356712647827834723847812937812734871293478127"
+Result Term: 2365712637126347861237846728356712647827834723847812937812734871293478127
+
+ Orig. Term: date(2000, 2, 18, 19, 30, 0, 0)
+       JSON: "2000-02-18 19:30:00"
+Result Term: date(2000, 2, 18, 19, 30, 0, 0)
+
+ Orig. Term: date(2013, 3, 2, 20, 30, 11, 123)
+       JSON: "2013-03-02 20:30:11.000123"
+Result Term: date(2013, 3, 2, 20, 30, 11, 123)
+
+ Orig. Term: duration(0, 0, 0, 0)
+       JSON: "P0D"
+Result Term: duration(0, 0, 0, 0)
+
+ Orig. Term: [1, 2, 3]
+       JSON: [1,2,3]
+Result Term: [1, 2, 3]
+
+ Orig. Term: apple
+       JSON: "apple"
+Result Term: apple
+
+ Orig. Term: pear
+       JSON: "pear"
+Result Term: pear
+
+ Orig. Term: [apple, orange, lemon, pear]
+       JSON: ["apple","orange","lemon","pear"]
+Result Term: [apple, orange, lemon, pear]
+
+ Orig. Term: foo(1, 2, 3)
+       JSON: {"args":[1,2,3],"functor":"foo"}
+Result Term: foo(1, 2, 3)
+
+ Orig. Term: bar([1, 2, 3], 4)
+       JSON: {"args":[[1,2,3],4],"functor":"bar"}
+Result Term: bar([1, 2, 3], 4)
+
+ Orig. Term: baaz
+       JSON: {"functor":"baaz"}
+Result Term: baaz
+
+ Orig. Term: poly1
+       JSON: {"functor":"poly1"}
+Result Term: poly1
+
+ Orig. Term: poly2(lemon)
+       JSON: {"args":["lemon"],"functor":"poly2"}
+Result Term: poly2(lemon)
+
+ Orig. Term: poly3(apple, orange)
+       JSON: {"args":["apple","orange"],"functor":"poly3"}
+Result Term: poly3(apple, orange)
+
+ Orig. Term: 561
+       JSON: {"args":[561],"functor":"univ_cons"}
+Result Term: error: univ_cons/1 is not a ground functor
+
+ Orig. Term: '<<foreign>>'
+       JSON: error: cannot convert type 'test_marshal.foreign'/0 to JSON
+
+ Orig. Term: existq1
+       JSON: {"functor":"existq1"}
+Result Term: existq1
+
+ Orig. Term: existq2(561)
+       JSON: {"args":[561],"functor":"existq2"}
+Result Term: existq2(561)
+
+ Orig. Term: existq3(561)
+       JSON: {"args":[561],"functor":"existq3"}
+Result Term: error: existq3/1 is not a ground functor
+
