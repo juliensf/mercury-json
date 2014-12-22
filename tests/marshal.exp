@@ -116,3 +116,59 @@ Result Term: existq2(561)
        JSON: {"args":[561],"functor":"existq3"}
 Result Term: error: existq3/1 is not a ground functor
 
+ Orig. Term: yes("foo")
+       JSON: "foo"
+Result Term: yes("foo")
+
+ Orig. Term: no
+       JSON: null
+Result Term: no
+
+ Orig. Term: apple - orange
+       JSON: {"fst":"apple","snd":"orange"}
+Result Term: apple - orange
+
+ Orig. Term: [1, 2, 3] - [apple, orange, pear]
+       JSON: {"fst":[1,2,3],"snd":["apple","orange","pear"]}
+Result Term: [1, 2, 3] - [apple, orange, pear]
+
+ Orig. Term: ok(pear)
+       JSON: {"args":["pear"],"functor":"ok"}
+Result Term: ok(pear)
+
+ Orig. Term: error("not fruit")
+       JSON: {"args":["not fruit"],"functor":"error"}
+Result Term: error("not fruit")
+
+ Orig. Term: error(apple)
+       JSON: {"args":["apple"],"functor":"error"}
+Result Term: error(apple)
+
+ Orig. Term: sol([1, 2, 3, 4])
+       JSON: [1,2,3,4]
+Result Term: sol([1, 2, 3, 4])
+
+ Orig. Term: sul([1, 1, 2, 2, 3, 3, 4, 4])
+       JSON: [1,2,3,4]
+Result Term: sul([4, 3, 2, 1])
+
+ Orig. Term: two(2, two(1, empty, empty), three(3, 4, empty, empty, empty))
+       JSON: [1,2,3,4]
+Result Term: two(3, three(1, 2, empty, empty, empty), two(4, empty, empty))
+
+ Orig. Term: ct(4, two(2, two(1, empty, empty), three(3, 4, empty, empty, empty)))
+       JSON: [1,2,3,4]
+Result Term: ct(4, two(3, three(1, 2, empty, empty, empty), two(4, empty, empty)))
+
+ Orig. Term: [apple - "Apple", orange - "Orange", lemon - "Lemon"]
+       JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
+Result Term: [apple - "Apple", orange - "Orange", lemon - "Lemon"]
+
+ Orig. Term: four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty)
+       JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
+Result Term: four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty)
+
+ Orig. Term: bimap(four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty), four("Apple", apple, "Lemon", lemon, "Orange", orange, empty, empty, empty, empty))
+       JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
+Result Term: bimap(four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty), four("Apple", apple, "Lemon", lemon, "Orange", orange, empty, empty, empty, empty))
+

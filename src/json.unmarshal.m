@@ -117,14 +117,6 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
     then
         Result = to_pair_type(FstTypeDesc, SndTypeDesc, Value)
     else if
-        % Is this a Mercury maybe_error/2?
-        ModuleName = "maybe",
-        TypeName = "maybe_error",
-        Arity = 2,
-        TypeArgs = [OkTypeDesc, ErrorTypeDesc]
-    then
-        Result = to_maybe_error_type(OkTypeDesc, ErrorTypeDesc, Value)
-    else if
         ModuleName = "tree234",
         TypeName = "tree234",
         Arity = 2,
@@ -496,57 +488,6 @@ to_maybe_type(ArgTypeDesc, Value) = Result :-
             MaybeArgTerm = error(Msg),
             Result = error(Msg)
         )
-    ).
-
-%-----------------------------------------------------------------------------%
-%
-% JSON -> maybe_error/2 types.
-%
-
-:- func to_maybe_error_type(type_desc, type_desc, value) = maybe_error(univ).
-
-to_maybe_error_type(OkTypeDesc, ErrorTypeDesc, Value) = Result :-
-    (
-        Value = object(Object),
-        ( if map.count(Object) = 1 then
-            (_ : OkType) `has_type` OkTypeDesc,
-            (_ : ErrorType) `has_type` ErrorTypeDesc,
-            ( if map.search(Object, "ok", OkValue) then
-                MaybeOkTerm : maybe_error(OkType) =
-                    unmarshal_to_type(OkValue),
-                (
-                    MaybeOkTerm = ok(OkTerm),
-                    Term : maybe_error(OkType, ErrorType) = ok(OkTerm),
-                    Result = ok(univ(Term))
-                ;
-                    MaybeOkTerm = error(Msg),
-                    Result = error(Msg)
-                )
-            else if map.search(Object, "error", ErrorValue) then
-                MaybeErrorTerm : maybe_error(ErrorType) =
-                    unmarshal_to_type(ErrorValue),
-                (
-                    MaybeErrorTerm = ok(ErrorTerm),
-                    Term : maybe_error(OkType, ErrorType) = error(ErrorTerm),
-                    Result = ok(univ(Term))
-                ;
-                    MaybeErrorTerm = error(Msg),
-                    Result = error(Msg)
-                )
-            else
-                Result = error("object is not a maybe_error/2")
-            )
-        else
-            Result =  error("object is not a maybe_error/2")
-        )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = string(_)
-        ; Value = array(_)
-        ),
-        Result = error("expected JSON object for maybe_error/2")
     ).
 
 %-----------------------------------------------------------------------------%

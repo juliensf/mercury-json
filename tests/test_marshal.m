@@ -23,13 +23,21 @@
 
 :- import_module json.
 
+:- import_module assoc_list.
+:- import_module bimap.
 :- import_module bool.
 :- import_module calendar.
 :- import_module float.
 :- import_module int.
 :- import_module integer.
 :- import_module list.
+:- import_module map.
 :- import_module maybe.
+:- import_module pair.
+:- import_module set.
+:- import_module set_unordlist.
+:- import_module set_tree234.
+:- import_module set_ctree234.
 :- import_module stream.
 :- import_module string.
 :- import_module univ.
@@ -113,7 +121,52 @@ test_marshaling(File, !IO) :-
 
     test(File, existq1, !IO),
     test(File, existq2(561), !IO),
-    test(File, 'new existq3'(561), !IO).
+    test(File, 'new existq3'(561), !IO),
+
+    % Test maybe types.
+    %
+    test(File, yes("foo"), !IO),
+    test(File, no : maybe(string), !IO),
+
+    % Test pairs.
+    %
+    test(File, apple - orange, !IO),
+    test(File, [1, 2, 3] - [apple, orange, pear], !IO),
+
+    % Test maybe_error.
+    %
+    test(File, ok(pear) : maybe_error(fruit), !IO),
+    test(File, error("not fruit") : maybe_error(fruit), !IO),
+    test(File, error(apple) : maybe_error(fruit, fruit), !IO),
+
+    % Test sets.
+    %
+    Set = set.from_list([1, 1, 2, 2, 3, 3, 4, 4]),
+    test(File, Set, !IO),
+
+    Set1 = set_unordlist.from_list([1, 1, 2, 2, 3, 3, 4, 4]),
+    test(File, Set1, !IO),
+
+    set_tree234.from_list([1, 1, 2, 2, 3, 3, 4, 4], Set2),
+    test(File, Set2, !IO),
+
+    Set3 = set_ctree234.from_list([1, 1, 2, 2, 3, 3, 4, 4]),
+    test(File, Set3, !IO),
+
+    % Test assoc lists.
+    %
+    AssocList = [apple - "Apple", orange - "Orange", lemon - "Lemon"],
+    test(File, AssocList, !IO),
+
+    % Test maps.
+    %
+    map.from_assoc_list(AssocList, Map),
+    test(File, Map, !IO),
+
+    % Test bimaps.
+    %
+    bimap.det_from_assoc_list(AssocList, Bimap),
+    test(File, Bimap, !IO).
 
 %-----------------------------------------------------------------------------%
 

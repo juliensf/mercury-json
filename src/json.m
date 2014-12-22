@@ -409,8 +409,6 @@
 % Marshaling between Mercury types and JSON objects.
 %
 
-% NOTE: THIS IS STILL WORK-IN-PROGRESS.
-
 % The mapping between Mercury types and JSON is:
 %
 %                     Mercury             JSON
@@ -449,9 +447,6 @@
 %   - existentially quantified data constructors
 %   - d.u types without field names
 %   - no higher-order types
-%
-% TODO
-%   - provide support for a greater range of stdlib types.
 
     % from_type(Type) = MaybeValue:
     % MaybeValue = 'ok(Value)' if Type is a Mercury term corresponding

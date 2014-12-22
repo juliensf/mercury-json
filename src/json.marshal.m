@@ -141,33 +141,6 @@ marshal_from_type(Term) = Result :-
             Result = marshal_from_type(Arg)
         )
     else if
-        dynamic_cast_to_maybe_error(Term, MaybeError)
-    then
-        (
-            MaybeError = ok(OkArg),
-            MaybeOkValue = marshal_from_type(OkArg),
-            (
-                MaybeOkValue = ok(OkValue),
-                Object = map.singleton("ok", OkValue),
-                Value = object(Object),
-                Result = ok(Value)
-            ;
-                MaybeOkValue = error(Msg),
-                Result = error(Msg)
-            )
-        ;
-            MaybeError = error(ErrorArg),
-            MaybeErrorValue = marshal_from_type(ErrorArg),
-            (
-                MaybeErrorValue = ok(ErrorValue),
-                Object = map.singleton("error", ErrorValue),
-                Result = ok(object(Object))
-            ;
-                MaybeErrorValue = error(Msg),
-                Result = error(Msg)
-            )
-        )
-    else if
         dynamic_cast_to_map(Term, Map)
     then
         map.to_assoc_list(Map, KVs),
@@ -305,15 +278,6 @@ dynamic_cast_to_pair(X, Pair) :-
     (_ : FstType) `has_type` FstTypeDesc,
     (_ : SndType) `has_type` SndTypeDesc,
     dynamic_cast(X, Pair : pair(FstType, SndType)).
-
-:- some [T2, T3] pred dynamic_cast_to_maybe_error(T1::in,
-    maybe_error(T2, T3)::out) is semidet.
-
-dynamic_cast_to_maybe_error(X, M) :-
-    [OkTypeDesc, ErrorTypeDesc] = type_args(type_of(X)),
-    (_ : OkType) `has_type` OkTypeDesc,
-    (_ : ErrorType) `has_type` ErrorTypeDesc,
-    dynamic_cast(X, M : maybe_error(OkType, ErrorType)).
 
 :- some [T2, T3] pred dynamic_cast_to_map(T1::in, map(T2, T3)::out)
     is semidet.
