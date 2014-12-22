@@ -50,7 +50,10 @@
 :- implementation.
 
 :- import_module assoc_list.
+:- import_module float.
+:- import_module int.
 :- import_module pair.
+:- import_module require.
 :- import_module stream.string_writer.
 
 %-----------------------------------------------------------------------------%
@@ -241,10 +244,22 @@ put_hex_digits(Stream, Int, !State) :-
     ).
 
 put_number(Stream, Number, !State) :-
-    Int = floor_to_int(Number),
-    ( if Number = float(Int)
-    then NumberStr = string.from_int(Int)
-    else NumberStr = string.from_float(Number)
+    ( if is_nan_or_inf(Number) then
+        error("put_number: number is not finite")
+    else if
+        % Ensure the call to floor_to_int/1 below won't abort in the C#
+        % or Java grades.
+        ( Number > float(int.max_int)
+        ; Number < float(int.min_int)
+        )
+    then
+        NumberStr = string.from_float(Number)
+    else
+        Int = floor_to_int(Number),
+        ( if Number = float(Int)
+        then NumberStr = string.from_int(Int)
+        else NumberStr = string.from_float(Number)
+        )
     ),
     put(Stream, NumberStr, !State).
 

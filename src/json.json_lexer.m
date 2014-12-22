@@ -504,7 +504,15 @@ get_number(Reader, Buffer, Token, !State) :-
         DigitsResult = ok,
         NumberStr = char_buffer.to_string(Buffer, !.State),
         Number = string.det_to_float(NumberStr),
-        Token = token_number(Number)
+        ( if is_inf(Number) then
+            Msg = "number is not finite",
+            % XXX the context here is the end of the number.
+            % Using the start would probably be better.
+            make_json_error(Reader, Msg, Error, !State),
+            Token = token_error(Error)
+        else
+            Token = token_number(Number)
+        )
     ;
         DigitsResult = error(Error),
         Token = token_error(Error)

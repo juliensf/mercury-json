@@ -354,7 +354,7 @@
 % JSON writer.
 %
 
-    % A JSON reader puts JSON values to an underlying string writer stream.
+    % A JSON writer puts JSON values to an underlying string writer stream.
     %
 :- type json.writer(Stream).
 
@@ -382,6 +382,7 @@
 
     % put_json(Writer, Value, !State):
     % Write the JSON value Value using the given Writer.
+    % Throws an exception if the value is, or contains, a non-finite number.
     %
 :- pred json.put_json(json.writer(Stream)::in, json.value::in,
     State::di, State::uo) is det
