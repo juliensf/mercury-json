@@ -55,16 +55,29 @@ main(!IO) :-
             (
                 NonOptionArgs = [],
                 dir.foldl2(gather_json_file, this_directory, [],
-                    MaybeGatherResult, !IO)
+                    MaybeGatherResult, !IO),
+                RunMarshalingTests = yes
             ;
                 NonOptionArgs = [_ | _],
-                MaybeGatherResult = ok(NonOptionArgs)
+                ( if list.member("marshal", NonOptionArgs) then
+                    list.delete_all(NonOptionArgs, "marshal", NonMarshalTests),
+                    MaybeGatherResult = ok(NonMarshalTests),
+                    RunMarshalingTests = yes
+                else
+                    MaybeGatherResult = ok(NonOptionArgs),
+                    RunMarshalingTests = no
+                )
             ),
             (
                 MaybeGatherResult = ok(TestCases0),
                 list.sort(TestCases0, TestCases),
                 list.foldl(run_test(OptionTable), TestCases, !IO),
-                run_marshaling_tests(OptionTable, !IO)
+                (
+                    RunMarshalingTests = yes,
+                    run_marshaling_tests(OptionTable, !IO)
+                ;
+                    RunMarshalingTests = no
+                )
             ;
                 MaybeGatherResult = error(_, IO_Error),
                 io.stderr_stream(Stderr, !IO),
