@@ -431,10 +431,13 @@
 %                     duration/0           string
 %                     integer/0            string
 %
-%                     list/1               array##
-%
-% ## in principle, most sequence types in the standard library
-% could be converted to/from JSON arrays.
+%                     list/1               array
+%                     cord/1               array
+%                     set/1                array
+%                     set_bbbtree/1        array
+%                     set_ctree234/1       array
+%                     set_tree234/1        array
+%                     set_unordlist/1      array
 %
 % User-defined types:
 %
@@ -447,6 +450,13 @@
 %   - existentially quantified data constructors
 %   - d.u types without field names
 %   - no higher-order types
+%
+% For types that do not have a canonical representation the following may
+% may not be true.
+%
+%     ok(J) = json.from_type(T),
+%     ok(TPrime) = json.to_type(J),
+%     T = TPrime
 
     % from_type(Type) = MaybeValue:
     % MaybeValue = 'ok(Value)' if Type is a Mercury term corresponding

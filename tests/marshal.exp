@@ -160,6 +160,10 @@ Result Term: two(3, three(1, 2, empty, empty, empty), two(4, empty, empty))
        JSON: [1,2,3,4]
 Result Term: ct(4, two(3, three(1, 2, empty, empty, empty), two(4, empty, empty)))
 
+ Orig. Term: tree(2, 4, tree(1, 1, empty, empty), tree(3, 2, empty, tree(4, 1, empty, empty)))
+       JSON: [1,2,3,4]
+Result Term: tree(3, 4, tree(2, 2, tree(1, 1, empty, empty), empty), tree(4, 1, empty, empty))
+
  Orig. Term: [apple - "Apple", orange - "Orange", lemon - "Lemon"]
        JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
 Result Term: [apple - "Apple", orange - "Orange", lemon - "Lemon"]
@@ -171,4 +175,8 @@ Result Term: four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty
  Orig. Term: bimap(four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty), four("Apple", apple, "Lemon", lemon, "Orange", orange, empty, empty, empty, empty))
        JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
 Result Term: bimap(four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty), four("Apple", apple, "Lemon", lemon, "Orange", orange, empty, empty, empty, empty))
+
+ Orig. Term: nonempty_cord(branch_node(list_node(1, [2, 3]), list_node(5, [6, 7])))
+       JSON: [1,2,3,5,6,7]
+Result Term: nonempty_cord(list_node(1, [2, 3, 5, 6, 7]))
 

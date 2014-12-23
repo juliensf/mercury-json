@@ -24,8 +24,10 @@
 
 :- import_module bimap.
 :- import_module calendar.
+:- import_module cord.
 :- import_module integer.
 :- import_module pair.
+:- import_module set_bbbtree.
 :- import_module set_ctree234.
 :- import_module set_ordlist.
 :- import_module set_tree234.
@@ -111,6 +113,11 @@ marshal_from_type(Term) = Result :-
             Result = error(Msg)
         )
     else if
+        dynamic_cast_to_cord(Term, Cord)
+    then
+        List = cord.list(Cord),
+        Result = marshal_from_type(List)
+    else if
         dynamic_cast_to_set_ordlist(Term, Set)
     then
         set_ordlist.to_sorted_list(Set, List),
@@ -129,6 +136,11 @@ marshal_from_type(Term) = Result :-
         dynamic_cast_to_set_ctree234(Term, Set)
     then
         List = set_ctree234.to_sorted_list(Set),
+        Result = marshal_from_type(List)
+    else if
+        dynamic_cast_to_set_bbbtree(Term, Set)
+    then
+        set_bbbtree.to_sorted_list(Set, List),
         Result = marshal_from_type(List)
     else if
         dynamic_cast_to_maybe(Term, Maybe)
@@ -215,6 +227,13 @@ list_to_values([T | Ts], !.Values, Result) :-
         Result = error(Msg)
     ).
 
+:- some [T2] pred dynamic_cast_to_cord(T1::in, cord(T2)::out) is semidet.
+
+dynamic_cast_to_cord(X, L) :-
+    [ArgTypeDesc] = type_args(type_of(X)),
+    (_ : ArgType) `has_type` ArgTypeDesc,
+    dynamic_cast(X, L : cord(ArgType)).
+
 :- some [T2] pred dynamic_cast_to_set_ordlist(T1::in, set_ordlist(T2)::out)
     is semidet.
 
@@ -246,6 +265,14 @@ dynamic_cast_to_set_ctree234(X, L) :-
     [ArgTypeDesc] = type_args(type_of(X)),
     (_ : ArgType) `has_type` ArgTypeDesc,
     dynamic_cast(X, L : set_ctree234(ArgType)).
+
+:- some [T2] pred dynamic_cast_to_set_bbbtree(T1::in, set_bbbtree(T2)::out)
+    is semidet.
+
+dynamic_cast_to_set_bbbtree(X, L) :-
+    [ArgTypeDesc] = type_args(type_of(X)),
+    (_ : ArgType) `has_type` ArgTypeDesc,
+    dynamic_cast(X, L : set_bbbtree(ArgType)).
 
 :- some [T2] pred dynamic_cast_to_maybe(T1::in, maybe(T2)::out) is semidet.
 

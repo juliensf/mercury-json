@@ -23,11 +23,13 @@
 :- implementation.
 
 :- import_module assoc_list.
+:- import_module cord.
 :- import_module bimap.
 :- import_module calendar.
 :- import_module construct.
 :- import_module integer.
 :- import_module pair.
+:- import_module set_bbbtree.
 :- import_module set_ctree234.
 :- import_module set_ordlist.
 :- import_module set_tree234.
@@ -101,6 +103,14 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
     then
         Result = to_list_type(ElemTypeDesc, Value)
     else if
+        % Is this type a Mercury cord?
+        ModuleName = "cord",
+        TypeName = "cord",
+        Arity = 1,
+        TypeArgs = [ElemTypeDesc]
+    then
+        Result = to_cord_type(ElemTypeDesc, Value)
+    else if
         % Is this type a Mercury maybe/1?
         ModuleName = "maybe",
         TypeName = "maybe",
@@ -158,6 +168,13 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         TypeArgs = [ElemTypeDesc]
     then
         Result = to_set_ctree234_type(ElemTypeDesc, Value)
+    else if
+        ModuleName = "set_bbbtree",
+        TypeName = "set_bbbtree",
+        Arity = 1,
+        TypeArgs = [ElemTypeDesc]
+    then
+        Result = to_set_bbbtree_type(ElemTypeDesc, Value)
     else if
         % Check if this is a (non-list) d.u. type.
         NumFunctors = num_functors(TypeDesc)
@@ -356,6 +373,38 @@ unmarshal_list_elems([V | Vs], !.Ts, Result) :-
 
 %-----------------------------------------------------------------------------%
 %
+% JSON -> cord/1 types.
+%
+
+:- func to_cord_type(type_desc, value) = maybe_error(univ).
+
+to_cord_type(ElemTypeDesc, Value) = Result :-
+    (
+        Value = array(Values),
+        (_ : ElemType) `has_type` ElemTypeDesc,
+        unmarshal_list_elems(Values, [] : list(ElemType), ListElemsResult),
+        (
+            ListElemsResult = ok(RevElems),
+            list.reverse(RevElems, Elems),
+            Cord = cord.from_list(Elems),
+            Univ = univ(Cord),
+            Result = ok(Univ)
+        ;
+            ListElemsResult = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ),
+        Result = error("expected JSON array for cord/1 conversion")
+    ).
+
+%-----------------------------------------------------------------------------%
+%
 % JSON -> set_ordlist/1 types.
 %
 
@@ -457,6 +506,31 @@ to_set_ctree234_type(ElemTypeDesc, Value) = Result :-
         ; Value = object(_)
         ),
         Result = error("expected JSON array for set_ctree234/1 conversion")
+    ).
+
+:- func to_set_bbbtree_type(type_desc, value) = maybe_error(univ).
+
+to_set_bbbtree_type(ElemTypeDesc, Value) = Result :-
+    (
+        Value = array(Values),
+        (_ : ElemType) `has_type` ElemTypeDesc,
+        unmarshal_list_elems(Values, [] : list(ElemType), ListElemsResult),
+        (
+            ListElemsResult = ok(Elems),
+            set_bbbtree.list_to_set(Elems, Set),
+            Result = ok(univ(Set))
+        ;
+            ListElemsResult = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ),
+        Result = error("expected JSON array for set_bbbtree/1 conversion")
     ).
 
 %-----------------------------------------------------------------------------%

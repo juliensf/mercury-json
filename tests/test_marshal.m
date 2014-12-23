@@ -27,6 +27,7 @@
 :- import_module bimap.
 :- import_module bool.
 :- import_module calendar.
+:- import_module cord.
 :- import_module float.
 :- import_module int.
 :- import_module integer.
@@ -35,6 +36,7 @@
 :- import_module maybe.
 :- import_module pair.
 :- import_module set.
+:- import_module set_bbbtree.
 :- import_module set_unordlist.
 :- import_module set_tree234.
 :- import_module set_ctree234.
@@ -153,6 +155,9 @@ test_marshaling(File, !IO) :-
     Set3 = set_ctree234.from_list([1, 1, 2, 2, 3, 3, 4, 4]),
     test(File, Set3, !IO),
 
+    Set4 = set_bbbtree.from_list([1, 1, 2, 2, 3, 3, 4, 4]),
+    test(File, Set4, !IO),
+
     % Test assoc lists.
     %
     AssocList = [apple - "Apple", orange - "Orange", lemon - "Lemon"],
@@ -166,7 +171,12 @@ test_marshaling(File, !IO) :-
     % Test bimaps.
     %
     bimap.det_from_assoc_list(AssocList, Bimap),
-    test(File, Bimap, !IO).
+    test(File, Bimap, !IO),
+
+    % Test cords.
+    %
+    Cord = cord.from_list([1, 2, 3]) ++ cord.from_list([5, 6, 7]),
+    test(File, Cord, !IO).
 
 %-----------------------------------------------------------------------------%
 
