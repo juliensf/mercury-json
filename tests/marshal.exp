@@ -196,3 +196,7 @@ Result Term: version_array([])
        JSON: ["pear","lemon","lemon","orange","apple"]
 Result Term: version_array([pear, lemon, lemon, orange, apple])
 
+ Orig. Term: "<24:10AFBD>"
+       JSON: "<24:10AFBD>"
+Result Term: "<24:10AFBD>"
+

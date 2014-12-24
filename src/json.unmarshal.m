@@ -24,10 +24,11 @@
 
 :- import_module array.
 :- import_module assoc_list.
-:- import_module cord.
 :- import_module bimap.
+:- import_module bitmap.
 :- import_module calendar.
 :- import_module construct.
+:- import_module cord.
 :- import_module integer.
 :- import_module pair.
 :- import_module set_bbbtree.
@@ -58,6 +59,8 @@ unmarshal_to_type(Value) = Result :-
 unmarshal_to_type_2(TypeDesc, Value) = Result :-
     type_ctor_and_args(TypeDesc, TypeCtor, TypeArgs),
     type_ctor_name_and_arity(TypeCtor, ModuleName, TypeName, Arity),
+    % XXX TODO: re-order this if-then-else so that commonly used types occur at
+    % the start.
     ( if
         % The value is a builtin type.
         ModuleName = "builtin",
@@ -128,6 +131,14 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         TypeArgs = [ElemTypeDesc]
     then
         Result = to_version_array_type(ElemTypeDesc, Value)
+    else if
+        % Is this type a Mercury bitmap?
+        ModuleName = "bitmap",
+        TypeName = "bitmap",
+        Arity = 0,
+        TypeArgs = []
+    then
+        Result = to_bitmap_type(Value)
     else if
         % Is this type a Mercury maybe/1?
         ModuleName = "maybe",
@@ -321,7 +332,7 @@ to_date_type(Value) = Result :-
 
 %-----------------------------------------------------------------------------%
 %
-% Json -> duration/0 type.
+% Json -> duration/0 types.
 %
 
 :- func to_duration_type(value) = maybe_error(univ).
@@ -341,6 +352,30 @@ to_duration_type(Value) = Result :-
         ; Value = array(_)
         ),
         Result = error("expected JSON string for duration/0 conversion")
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> bitmap/0 types.
+%
+
+:- func to_bitmap_type(value) = maybe_error(univ).
+
+to_bitmap_type(Value) = Result :-
+    (
+        Value = string(String),
+        ( if Bitmap = bitmap.from_string(String)
+        then Result = ok(univ(Bitmap))
+        else Result = error("string is not a bitmap/0")
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ; Value = array(_)
+        ),
+        Result = error("expected JSON string for bitmap/0 conversion")
     ).
 
 %-----------------------------------------------------------------------------%

@@ -26,6 +26,7 @@
 :- import_module array.
 :- import_module assoc_list.
 :- import_module bimap.
+:- import_module bitmap.
 :- import_module bool.
 :- import_module calendar.
 :- import_module cord.
@@ -192,7 +193,17 @@ test_marshaling(File, !IO) :-
     EmptyVersionArray = version_array.empty : version_array(fruit),
     test(File, EmptyVersionArray, !IO),
     VersionArray = version_array.from_list([pear, lemon, lemon, orange, apple]),
-    test(File, VersionArray, !IO).
+    test(File, VersionArray, !IO),
+
+    % Test bitmaps.
+    %
+    % XXX the bitmap module should provide det_from_string.
+    % 
+    ( if Bitmap = bitmap.from_string("<24:10AFBD>") then
+        test(File, Bitmap, !IO)
+    else
+        true
+    ).
 
 %-----------------------------------------------------------------------------%
 
