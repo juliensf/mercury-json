@@ -414,6 +414,10 @@
     %
 :- func to_string(value) = string.
 
+:- pred from_string(string::in, value::out) is semidet.
+
+:- func det_from_string(string) = value.
+
 %-----------------------------------------------------------------------------%
 %
 % Marshaling between Mercury types and JSON objects.
@@ -517,6 +521,7 @@
 :- include_module json.json_lexer.
 :- include_module json.json_parser.
 :- include_module json.marshal.
+:- include_module json.string_reader.
 :- include_module json.unmarshal.
 :- include_module json.writer.
 
@@ -524,6 +529,7 @@
 :- import_module json.json_lexer.
 :- import_module json.json_parser.
 :- import_module json.marshal.
+:- import_module json.string_reader.
 :- import_module json.unmarshal.
 :- import_module json.writer.
 
@@ -1000,6 +1006,28 @@ to_string(Value) = String :-
         Writer = json.init_writer(handle),
         json.put_json(Writer, Value, !State),
         String = builder.to_string(!.State)
+    ).
+
+from_string(String, Value) :-
+    some [!State] (
+        init_string_state(!:State),
+        init_string_reader(no, String, StringReader, !State),
+        Reader = json.init_reader(StringReader),
+        json.get_value(Reader, Result, !.State, _)
+    ),
+    require_complete_switch [Result] (
+        Result = ok(Value)
+    ;
+        ( Result = error(_)
+        ; Result = eof
+        ),
+        false
+    ).
+
+det_from_string(String) = Value :-
+    ( if json.from_string(String, Value0)
+    then Value = Value0
+    else error("json.det_from_string: from_string failed")
     ).
 
 %-----------------------------------------------------------------------------%

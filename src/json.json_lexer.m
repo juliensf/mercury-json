@@ -606,8 +606,14 @@ get_frac(Reader, Where, Buffer, Result, !State) :-
         )
     ;
         GetResult = eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
-        Result = error(Error)
+        (
+            Where = frac_digit,
+            Result = ok
+        ;
+            Where = frac_start,
+            make_unexpected_eof_error(Reader, no, Error, !State),
+            Result = error(Error)
+        )
     ;
         GetResult = error(StreamError),
         Error = stream_error(StreamError),
@@ -679,8 +685,16 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
         )
     ;
         GetResult = eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
-        Result = error(Error)
+        (
+            ( Where = exp_start
+            ; Where = exp_sign
+            ),
+            make_unexpected_eof_error(Reader, no, Error, !State),
+            Result = error(Error)
+        ;
+            Where = exp_digit,
+            Result = ok
+        )
     ;
         GetResult = error(StreamError),
         Error = stream_error(StreamError),

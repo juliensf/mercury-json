@@ -203,6 +203,82 @@ test_marshaling(File, !IO) :-
         test(File, Bitmap, !IO)
     else
         true
+    ),
+
+    % Test conversion to strings.
+    %
+    ToStringTests = [ 
+        null,
+        bool(no),
+        bool(yes),
+        number(0.0),
+        number(-3.141),
+        number(3.141),
+        string(""),
+        string("foo"),
+        array([]),
+        array([null, bool(yes), number(1.0), array([number(1.0)])]),
+        object(map.init),
+        object(map.from_assoc_list(["foo" - null, "bar" - bool(yes), "baaz" - number(5.3)]))
+    ],
+    list.foldl(do_to_string_test(File), ToStringTests, !IO),
+    io.nl(File, !IO),
+
+    % Test conversion from strings.
+    %
+    ValidFromStringTests = [
+        "null",
+        "true",
+        "false",
+        "3e2",
+        "3E2",
+        "3.141",
+        "0.0",
+        "-3.141",
+        "-3e2",
+        "-3E2",
+        "\"foo\"",
+        "   null",
+        "[]",
+        "[1.0, 2.0, 3.0]",
+        "[null, true, 3.0]",
+        "{}",
+        "{\"foo\" : 3.0}",
+        "{\"foo\" : -3e2}",
+        "{\"foo\" : true, \"bar\" : false}"
+    ],
+    list.foldl(do_from_string_test(File), ValidFromStringTests, !IO),
+    io.nl(File, !IO),
+
+    InvalidFromStringTests = [
+        "Null",
+        "12.",
+        "12e",
+        "12E",
+        ".12",
+        "[1.0, 2.0",
+        "{\"foo\" : }"
+    ],
+    list.foldl(do_from_string_test(File), InvalidFromStringTests, !IO).
+
+:- pred do_to_string_test(io.text_output_stream::in,
+    value::in, io::di, io::uo) is det.
+
+do_to_string_test(File, Value, !IO) :-
+    io.format(File, "to_string(%s) = \"%s\"\n",
+        [s(string(Value)), s(to_string(Value))], !IO).
+
+
+:- pred do_from_string_test(io.text_output_stream::in,
+    string::in, io::di, io::uo) is det.
+
+do_from_string_test(File, String, !IO) :-
+    ( if json.from_string(String, Value) then
+        io.format(File, "from_string(\"%s\") = %s\n",
+            [s(String), s(string(Value))], !IO)
+    else
+        io.format(File, "from_string(\"%s\") <<FALSE>>\n",
+            [s(String)], !IO)
     ).
 
 %-----------------------------------------------------------------------------%

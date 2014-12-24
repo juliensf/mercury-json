@@ -200,3 +200,43 @@ Result Term: version_array([pear, lemon, lemon, orange, apple])
        JSON: "<24:10AFBD>"
 Result Term: "<24:10AFBD>"
 
+to_string(null) = "null"
+to_string(bool(no)) = "false"
+to_string(bool(yes)) = "true"
+to_string(number(0.0)) = "0"
+to_string(number(-3.141)) = "-3.141"
+to_string(number(3.141)) = "3.141"
+to_string(string("")) = """"
+to_string(string("foo")) = ""foo""
+to_string(array([])) = "[]"
+to_string(array([null, bool(yes), number(1.0), array([number(1.0)])])) = "[null,true,1,[1]]"
+to_string(object(empty)) = "{}"
+to_string(object(four("baaz", number(5.3), "bar", bool(yes), "foo", null, empty, empty, empty, empty))) = "{"baaz":5.3,"bar":true,"foo":null}"
+
+from_string("null") = null
+from_string("true") = bool(yes)
+from_string("false") = bool(no)
+from_string("3e2") = number(300.0)
+from_string("3E2") = number(300.0)
+from_string("3.141") = number(3.141)
+from_string("0.0") = number(0.0)
+from_string("-3.141") = number(-3.141)
+from_string("-3e2") = number(-300.0)
+from_string("-3E2") = number(-300.0)
+from_string(""foo"") = string("foo")
+from_string("   null") = null
+from_string("[]") = array([])
+from_string("[1.0, 2.0, 3.0]") = array([number(1.0), number(2.0), number(3.0)])
+from_string("[null, true, 3.0]") = array([null, bool(yes), number(3.0)])
+from_string("{}") = object(empty)
+from_string("{"foo" : 3.0}") = object(two("foo", number(3.0), empty, empty))
+from_string("{"foo" : -3e2}") = object(two("foo", number(-300.0), empty, empty))
+from_string("{"foo" : true, "bar" : false}") = object(three("bar", bool(no), "foo", bool(yes), empty, empty, empty))
+
+from_string("Null") <<FALSE>>
+from_string("12.") <<FALSE>>
+from_string("12e") <<FALSE>>
+from_string("12E") <<FALSE>>
+from_string(".12") <<FALSE>>
+from_string("[1.0, 2.0") <<FALSE>>
+from_string("{"foo" : }") <<FALSE>>
