@@ -180,3 +180,19 @@ Result Term: bimap(four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty,
        JSON: [1,2,3,5,6,7]
 Result Term: nonempty_cord(list_node(1, [2, 3, 5, 6, 7]))
 
+ Orig. Term: array([])
+       JSON: []
+Result Term: array([])
+
+ Orig. Term: array([pear, lemon, lemon, orange, apple])
+       JSON: ["pear","lemon","lemon","orange","apple"]
+Result Term: array([pear, lemon, lemon, orange, apple])
+
+ Orig. Term: version_array([])
+       JSON: []
+Result Term: version_array([])
+
+ Orig. Term: version_array([pear, lemon, lemon, orange, apple])
+       JSON: ["pear","lemon","lemon","orange","apple"]
+Result Term: version_array([pear, lemon, lemon, orange, apple])
+

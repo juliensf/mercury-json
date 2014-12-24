@@ -22,7 +22,9 @@
 
 :- implementation.
 
+:- import_module array.
 :- import_module bimap.
+:- import_module bitmap.
 :- import_module calendar.
 :- import_module cord.
 :- import_module integer.
@@ -32,6 +34,7 @@
 :- import_module set_ordlist.
 :- import_module set_tree234.
 :- import_module set_unordlist.
+:- import_module version_array.
 
 %-----------------------------------------------------------------------------%
 
@@ -117,6 +120,23 @@ marshal_from_type(Term) = Result :-
     then
         List = cord.list(Cord),
         Result = marshal_from_type(List)
+    else if
+        % NOTE: dynamic_cast_to_array/2 is *not* in the array module's
+        % documented interface.
+        array.dynamic_cast_to_array(Term, Array)
+    then
+        array.to_list(Array, List),
+        Result = marshal_from_type(List)
+    else if
+        dynamic_cast_to_version_array(Term, VersionArray)
+    then
+        List = version_array.to_list(VersionArray),
+        Result = marshal_from_type(List)
+    else if
+        dynamic_cast(Term, Bitmap)
+    then
+        String = bitmap.to_string(Bitmap),
+        Result = ok(string(String))
     else if
         dynamic_cast_to_set_ordlist(Term, Set)
     then
@@ -233,6 +253,13 @@ dynamic_cast_to_cord(X, L) :-
     [ArgTypeDesc] = type_args(type_of(X)),
     (_ : ArgType) `has_type` ArgTypeDesc,
     dynamic_cast(X, L : cord(ArgType)).
+
+:- some [T2] pred dynamic_cast_to_version_array(T1::in, version_array(T2)::out) is semidet.
+
+dynamic_cast_to_version_array(X, L) :-
+    [ArgTypeDesc] = type_args(type_of(X)),
+    (_ : ArgType) `has_type` ArgTypeDesc,
+    dynamic_cast(X, L : version_array(ArgType)).
 
 :- some [T2] pred dynamic_cast_to_set_ordlist(T1::in, set_ordlist(T2)::out)
     is semidet.

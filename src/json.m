@@ -411,52 +411,80 @@
 
 % The mapping between Mercury types and JSON is:
 %
-%                     Mercury             JSON
-% Primitive types:
-%                     int                  number#
-%                     string               string
-%                     float##              number
-%                     char                 string
+% Builtin Types
+% -------------
 %
-% # cannot have a fractional part.
-% ## only finite floats may be converted to JSON.
+%     Mercury Type      JSON
+%     ------------      ----
+%     int               number (cannot have a fractional part)
+%     string            string
+%     float##           number (only finite floats can be converted to JSON)
+%     char              string (of length 1)
 %
-% Library types:
+% Library Types
+% -------------
 %
-%                     bool/0               Boolean
-%                     maybe/1              null for "no" or
-%                                          arg of yes/1
+% The following standard library types are handled specially, either to reduce
+% the size of their JSON representation or to make it more readable.
 %
-%                     date/0               string
-%                     duration/0           string
-%                     integer/0            string
+%     Mercury Type      JSON
+%     ------------      ----
+%     array/1           array
+%     bool/0            Boolean 
+%     bimap/2           array of objects (pairs -- see below)
+%     bitmap/0          string (as per bitmap.to_string/1)
+%     cord/1            array
+%     date/0            string (as per calendar.date_to_string/1)
+%     duration/0        string (as per calendar.duration_to_string/1)
+%     integer/0         string (decimal representation)
+%     list/1            array
+%     map/2             array of objects (pairs)
+%     maybe/1           null for 'no' or argument of 'yes'
+%     pair/2            object with two members: "fst" and "snd"
+%     set/1             array
+%     set_bbbtree/1     array
+%     set_ctree234/1    array
+%     set_tree234/1     array
+%     set_unordlist/1   array
+%     version_array/1   array
 %
-%                     list/1               array
-%                     cord/1               array
-%                     set/1                array
-%                     set_bbbtree/1        array
-%                     set_ctree234/1       array
-%                     set_tree234/1        array
-%                     set_unordlist/1      array
-%
-% User-defined types:
-%
-%                     enumerations          string
-%                     discriminated unions  objects
-%
-% Cannot be marshaled to JSON:
-%   - foreign types
-%   - univs
-%   - existentially quantified data constructors
-%   - d.u types without field names
-%   - no higher-order types
-%
-% For types that do not have a canonical representation the following may
-% may not be true.
+% Note that for types that lack a canonical representation, the JSON marshaler
+% will not necessarily preserve structural equality.  That is, the following
+% may be false:
 %
 %     ok(J) = json.from_type(T),
 %     ok(TPrime) = json.to_type(J),
 %     T = TPrime
+%
+% Discriminated Union Types
+% -------------------------
+%
+% Enumeration values are converted into strings.
+%
+% Values of non-enumeration discriminated union types are converted into
+% JSON objects of the form:
+%
+%     {
+%        "functor" : <string>,
+%        "args"    : <array>
+%     }
+%
+% where <string> is the name of the functor and <array> is an array containing
+% the JSON representation of its arguments.   Existentially quantified data
+% constructors cannot be converted from JSON to Mercury.
+%
+% Other Types
+% -----------
+%
+% The following types can not be marshaled to and from JSON.
+%
+% - foreign types
+% - the 'univ' type
+% - higher-order types
+% - the I/O state
+% - the 'store' type
+%
+%-----------------------------------------------------------------------------%
 
     % from_type(Type) = MaybeValue:
     % MaybeValue = 'ok(Value)' if Type is a Mercury term corresponding

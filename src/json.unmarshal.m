@@ -1,10 +1,10 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013, Julien Fischer.
+% Copyright (C) 2013-2014 Julien Fischer.
 % All rights reserved.
 %
-% Author: Julien Fischer <jfischer@opturion.com>
+% Author: Julien Fischer <juliens@gmail.com>
 %
 % This module implements unmarshaling of Mercury values from JSON.
 %
@@ -22,6 +22,7 @@
 
 :- implementation.
 
+:- import_module array.
 :- import_module assoc_list.
 :- import_module cord.
 :- import_module bimap.
@@ -35,6 +36,7 @@
 :- import_module set_tree234.
 :- import_module set_unordlist.
 :- import_module type_desc.
+:- import_module version_array.
 
 %-----------------------------------------------------------------------------%
 
@@ -110,6 +112,22 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         TypeArgs = [ElemTypeDesc]
     then
         Result = to_cord_type(ElemTypeDesc, Value)
+    else if
+        % Is this type a Mercury array?
+        ModuleName = "array",
+        TypeName = "array",
+        Arity = 1,
+        TypeArgs = [ElemTypeDesc]
+    then
+        Result = to_array_type(ElemTypeDesc, Value)
+    else if
+        % Is this type a Mercury version array?
+        ModuleName = "version_array",
+        TypeName = "version_array",
+        Arity = 1,
+        TypeArgs = [ElemTypeDesc]
+    then
+        Result = to_version_array_type(ElemTypeDesc, Value)
     else if
         % Is this type a Mercury maybe/1?
         ModuleName = "maybe",
@@ -402,6 +420,70 @@ to_cord_type(ElemTypeDesc, Value) = Result :-
         ),
         Result = error("expected JSON array for cord/1 conversion")
     ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> array/1 types.
+%
+
+:- func to_array_type(type_desc, value) = maybe_error(univ).
+
+to_array_type(ElemTypeDesc, Value) = Result :-
+    (
+        Value = array(Values),
+        (_ : ElemType) `has_type` ElemTypeDesc,
+        unmarshal_list_elems(Values, [] : list(ElemType), ListElemsResult),
+        (
+            ListElemsResult = ok(RevElems),
+            Array = array.from_reverse_list(RevElems),
+            Univ = univ(Array),
+            Result = ok(Univ)
+        ;
+            ListElemsResult = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ),
+        Result = error("expected JSON array for array/1 conversion")
+    ).   
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> version_array/1 types.
+%
+
+:- func to_version_array_type(type_desc, value) = maybe_error(univ).
+
+to_version_array_type(ElemTypeDesc, Value) = Result :-
+    (
+        Value = array(Values),
+        (_ : ElemType) `has_type` ElemTypeDesc,
+        unmarshal_list_elems(Values, [] : list(ElemType), ListElemsResult),
+        (
+            ListElemsResult = ok(RevElems),
+            list.reverse(RevElems, Elems),
+            % XXX the verison_array module does not have from_reverse_list.
+            Array = version_array.from_list(Elems),
+            Univ = univ(Array),
+            Result = ok(Univ)
+        ;
+            ListElemsResult = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ),
+        Result = error("expected JSON array for version_array/1 conversion")
+    ).   
 
 %-----------------------------------------------------------------------------%
 %

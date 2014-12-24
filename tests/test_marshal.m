@@ -23,6 +23,7 @@
 
 :- import_module json.
 
+:- import_module array.
 :- import_module assoc_list.
 :- import_module bimap.
 :- import_module bool.
@@ -43,6 +44,7 @@
 :- import_module stream.
 :- import_module string.
 :- import_module univ.
+:- import_module version_array.
 
 %-----------------------------------------------------------------------------%
 
@@ -176,7 +178,21 @@ test_marshaling(File, !IO) :-
     % Test cords.
     %
     Cord = cord.from_list([1, 2, 3]) ++ cord.from_list([5, 6, 7]),
-    test(File, Cord, !IO).
+    test(File, Cord, !IO),
+
+    % Test arrays.
+    %
+    array.make_empty_array(EmptyArray : array(fruit)),
+    test(File, EmptyArray, !IO),
+    array.from_list([pear, lemon, lemon, orange, apple], Array),
+    test(File, Array, !IO),
+
+    % Test version arrays.
+    %
+    EmptyVersionArray = version_array.empty : version_array(fruit),
+    test(File, EmptyVersionArray, !IO),
+    VersionArray = version_array.from_list([pear, lemon, lemon, orange, apple]),
+    test(File, VersionArray, !IO).
 
 %-----------------------------------------------------------------------------%
 
