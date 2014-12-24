@@ -406,6 +406,16 @@
 
 %-----------------------------------------------------------------------------%
 %
+% String conversion.
+%
+    % Convert a JSON value into a string.
+    % Throws an exception if the JSON value is, or contains, a non-finite
+    % number.
+    %
+:- func to_string(value) = string.
+
+%-----------------------------------------------------------------------------%
+%
 % Marshaling between Mercury types and JSON objects.
 %
 
@@ -523,6 +533,7 @@
 :- import_module float.
 :- import_module mutvar.
 :- import_module string.
+:- import_module string.builder.
 :- import_module require.
 :- import_module type_desc.
 :- import_module univ.
@@ -980,6 +991,16 @@ lookup_array(Object, Member) = Array :-
 lookup_int(Object, Member) = Int :-
     Value = lookup(Object, Member),
     Int = det_get_int(Value).
+
+%-----------------------------------------------------------------------------%
+
+to_string(Value) = String :-
+    some [!State] (
+        !:State = builder.init,
+        Writer = json.init_writer(handle),
+        json.put_json(Writer, Value, !State),
+        String = builder.to_string(!.State)
+    ).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.
