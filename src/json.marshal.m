@@ -125,13 +125,25 @@ marshal_from_type(Term) = Result :-
         % documented interface.
         array.dynamic_cast_to_array(Term, Array)
     then
-        array.to_list(Array, List),
-        Result = marshal_from_type(List)
+        array_to_values(Array, ValuesResult),
+        (
+            ValuesResult = ok(Values),
+            Result = ok(array(Values))
+        ;
+            ValuesResult = error(Msg),
+            Result = error(Msg)
+        )
     else if
         dynamic_cast_to_version_array(Term, VersionArray)
     then
-        List = version_array.to_list(VersionArray),
-        Result = marshal_from_type(List)
+        version_array_to_values(VersionArray, ValuesResult),
+        (
+            ValuesResult = ok(Values),
+            Result = ok(array(Values))
+        ;
+            ValuesResult = error(Msg),
+            Result = error(Msg)
+        )
     else if
         dynamic_cast(Term, Bitmap)
     then
@@ -245,6 +257,55 @@ list_to_values([T | Ts], !.Values, Result) :-
     ;
         ValueResult = error(Msg),
         Result = error(Msg)
+    ).
+
+:- pred array_to_values(array(T)::in, maybe_error(list(value))::out) is det.
+
+array_to_values(Array, Result) :-
+    do_array_to_values(Array, array.min(Array), array.max(Array), [], Result).
+
+:- pred do_array_to_values(array(T)::in, int::in, int::in,
+    list(value)::in, maybe_error(list(value))::out) is det.
+
+do_array_to_values(Array, Min, I, !.Values, Result) :-
+    ( if I < Min then
+        Result = ok(!.Values)
+    else
+        Elem = Array ^ unsafe_elem(I),
+        ValueResult = marshal_from_type(Elem),
+        (
+            ValueResult = ok(Value),
+            !:Values = [Value | !.Values],
+            do_array_to_values(Array, Min, I - 1, !.Values, Result)
+        ;
+            ValueResult = error(Msg),
+            Result = error(Msg)
+        )
+    ).
+
+:- pred version_array_to_values(version_array(T)::in,
+    maybe_error(list(value))::out) is det.
+
+version_array_to_values(Array, Result) :-
+    do_version_array_to_values(Array, 0, version_array.max(Array), [], Result).
+
+:- pred do_version_array_to_values(version_array(T)::in, int::in, int::in,
+    list(value)::in, maybe_error(list(value))::out) is det.
+
+do_version_array_to_values(Array, Min, I, !.Values, Result) :-
+    ( if I < Min then
+        Result = ok(!.Values)
+    else
+        Elem = version_array.lookup(Array, I),
+        ValueResult = marshal_from_type(Elem),
+        (
+            ValueResult = ok(Value),
+            !:Values = [Value | !.Values],
+            do_version_array_to_values(Array, Min, I - 1, !.Values, Result)
+        ;
+            ValueResult = error(Msg),
+            Result = error(Msg)
+        )
     ).
 
 :- some [T2] pred dynamic_cast_to_cord(T1::in, cord(T2)::out) is semidet.
