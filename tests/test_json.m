@@ -173,7 +173,7 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
     json.get_value(Reader, Result, !IO),
     (
         Result = ok(Value),
-        put_json(Writer, Value, !IO),
+        json.put_value(Writer, Value, !IO),
         io.nl(Output, !IO)
     ;
         Result = eof,

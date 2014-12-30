@@ -350,7 +350,7 @@ test(File, Term, !IO) :-
     (
         MaybeJSON = ok(Value),
         Writer = init_writer(File),
-        put_json(Writer, Value, !IO),
+        json.put_value(Writer, Value, !IO),
         io.nl(File, !IO),
         MaybeTermPrime : maybe_error(T) = json.to_type(Value),
         io.write_string(File, "Result Term: ", !IO),

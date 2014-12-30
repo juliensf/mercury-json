@@ -47,7 +47,7 @@ main(!IO) :-
         io.stdout_stream(Stdout, !IO),
         WriterParams = writer_params(pretty),
         Writer = json.init_writer(Stdout, WriterParams),
-        json.put_json(Writer, Value, !IO)
+        json.put_value(Writer, Value, !IO)
     ;
         (
             % The input stream was empty.

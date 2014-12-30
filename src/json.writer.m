@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013, Julien Fischer.
+% Copyright (C) 2013-2014, Julien Fischer.
 % All rights reserved.
 %
 % Author: Julien Fischer <jfischer@opturion.com>
@@ -15,13 +15,13 @@
 
 %-----------------------------------------------------------------------------%
 
-:- pred raw_put_json(Stream::in, json.value::in, State::di, State::uo) is det
+:- pred raw_put_value(Stream::in, json.value::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-:- pred pretty_put_json(Stream::in, json.value::in, State::di, State::uo) is det
+:- pred pretty_put_value(Stream::in, json.value::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
@@ -61,7 +61,7 @@
 % Raw output.
 %
 
-raw_put_json(Stream, Value, !State) :-
+raw_put_value(Stream, Value, !State) :-
     (
         Value = null,
         put(Stream, "null", !State)
@@ -128,7 +128,7 @@ raw_put_member(Stream, Member, !State) :-
     Member = Key - Value,
     put_string_literal(Stream, Key, !State),
     put(Stream, ':', !State),
-    raw_put_json(Stream, Value, !State).
+    raw_put_value(Stream, Value, !State).
 
 %-----------------------------------------------------------------------------%
 
@@ -151,9 +151,9 @@ raw_put_array(Stream, Elements, !State) :-
 
 raw_put_elements(_, [], !State).
 raw_put_elements(Stream, [Element], !State) :-
-    raw_put_json(Stream, Element, !State).
+    raw_put_value(Stream, Element, !State).
 raw_put_elements(Stream, [Element, NextElement | Elements], !State) :-
-    raw_put_json(Stream, Element, !State),
+    raw_put_value(Stream, Element, !State),
     put(Stream, (','), !State),
     raw_put_elements(Stream, [NextElement | Elements], !State).
 
@@ -265,7 +265,7 @@ put_number(Stream, Number, !State) :-
 
 %-----------------------------------------------------------------------------%
 
-pretty_put_json(Stream, Value, !State) :-
+pretty_put_value(Stream, Value, !State) :-
     do_pretty_put_json(Stream, 0, Value, !State),
     put(Stream, "\n", !State).
 

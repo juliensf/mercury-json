@@ -426,11 +426,11 @@
     %
 :- func init_writer(Stream, writer_params) = json.writer(Stream).
 
-    % put_json(Writer, Value, !State):
+    % put_value(Writer, Value, !State):
     % Write the JSON value Value using the given Writer.
     % Throws an exception if the value is, or contains, a non-finite number.
     %
-:- pred put_json(json.writer(Stream)::in, json.value::in,
+:- pred put_value(json.writer(Stream)::in, json.value::in,
     State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -749,14 +749,14 @@ json.init_writer(Stream, Parameters) = Writer :-
 
 %-----------------------------------------------------------------------------%
 
-put_json(Writer, Value, !State) :-
+put_value(Writer, Value, !State) :-
     OutputStyle = Writer ^ json_output_style,
     (
         OutputStyle = compact,
-        writer.raw_put_json(Writer ^ json_writer_stream, Value, !State)
+        writer.raw_put_value(Writer ^ json_writer_stream, Value, !State)
     ;
         OutputStyle = pretty,
-        writer.pretty_put_json(Writer ^ json_writer_stream, Value, !State)
+        writer.pretty_put_value(Writer ^ json_writer_stream, Value, !State)
     ).
 
 put_comment(Writer, Comment, !State) :-
@@ -1094,7 +1094,7 @@ to_string(Value) = String :-
     some [!State] (
         !:State = builder.init,
         Writer = json.init_writer(handle),
-        json.put_json(Writer, Value, !State),
+        json.put_value(Writer, Value, !State),
         String = builder.to_string(!.State)
     ).
 
