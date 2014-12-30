@@ -15,6 +15,7 @@
 
 %-----------------------------------------------------------------------------%
 
+:- import_module assoc_list.
 :- import_module bool.
 :- import_module char.
 :- import_module io.
@@ -133,7 +134,20 @@
 
     % int(I) = number(float(I)).
     %
-:- func json.int(int) = json.value.
+:- func int(int) = json.value.
+
+    % make_object(Members, Value):
+    % Value is the JSON object constructed from the name - value pairs in
+    % the association list Members.
+    % False if a name occurs multiple times in Members.
+    %
+:- pred make_object(assoc_list(string, json.value)::in, json.value::out)
+    is semidet.
+
+    % As above, but throw a software_error/1 exception if a name occurs
+    % multiple times.
+    %
+:- func det_make_object(assoc_list(string, json.value)) = json.value.
 
 %-----------------------------------------------------------------------------%
 %
@@ -246,7 +260,7 @@
     % Use the default reader parameters, with which the reader will
     % conform to the RFC 7159 definition of JSON.
     %
-:- func json.init_reader(Stream) = json.reader(Stream)
+:- func init_reader(Stream) = json.reader(Stream)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -255,7 +269,7 @@
     % init_reader(Stream, Parameters) = Reader:
     % As above, but allow reader parameters to be set by the caller.
     %
-:- func json.init_reader(Stream, reader_params) = json.reader(Stream)
+:- func init_reader(Stream, reader_params) = json.reader(Stream)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -264,7 +278,7 @@
     % get_value(Reader, Result, !State):
     % Get a JSON value from Reader.
     %
-:- pred json.get_value(json.reader(Stream)::in,
+:- pred get_value(json.reader(Stream)::in,
     json.result(json.value, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
@@ -274,7 +288,7 @@
     % get_object(Reader, Result, !State):
     % Get a JSON object from Reader.
     %
-:- pred json.get_object(json.reader(Stream)::in,
+:- pred get_object(json.reader(Stream)::in,
     json.result(json.object, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
@@ -284,7 +298,7 @@
     % get_array(Reader, Result, !State):
     % Get a JSON array from Reader.
     %
-:- pred json.get_array(json.reader(Stream)::in,
+:- pred get_array(json.reader(Stream)::in,
     json.result(json.array, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
@@ -298,31 +312,29 @@
 
     % object_fold(Reader, Pred, InitialAcc, Result, !State):
     %
-:- pred json.object_fold(json.reader(Stream), pred(string, json.value, A, A),
+:- pred object_fold(json.reader(Stream), pred(string, json.value, A, A),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode json.object_fold(in, in(pred(in, in, in, out) is det),
+:- mode object_fold(in, in(pred(in, in, in, out) is det),
     in, out, di, uo) is det.
-:- mode json.object_fold(in, in(pred(in, in, in, out) is cc_multi),
+:- mode object_fold(in, in(pred(in, in, in, out) is cc_multi),
     in, out, di, uo) is cc_multi.
 
     % object_fold_state(Reader, Pred, InitialAcc, Result, !State):
     %
-:- pred json.object_fold_state(json.reader(Stream),
+:- pred object_fold_state(json.reader(Stream),
     pred(string, json.value, A, A, State, State),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode json.object_fold_state(in,
-    in(pred(in, in, in, out, di, uo) is det),
+:- mode object_fold_state(in, in(pred(in, in, in, out, di, uo) is det),
     in, out, di, uo) is det.
-:- mode json.object_fold_state(in,
-    in(pred(in, in, in, out, di, uo) is cc_multi),
+:- mode object_fold_state(in, in(pred(in, in, in, out, di, uo) is cc_multi),
     in, out, di, uo) is cc_multi.
 
 %-----------------------------------------------------------------------------%
@@ -332,31 +344,29 @@
 
     % array_fold(Reader, Pred, InitialAcc, Result, !State):
     %
-:- pred json.array_fold(json.reader(Stream), pred(json.value, A, A),
+:- pred array_fold(json.reader(Stream), pred(json.value, A, A),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode json.array_fold(in, in(pred(in, in, out) is det),
+:- mode array_fold(in, in(pred(in, in, out) is det),
     in, out, di, uo) is det.
-:- mode json.array_fold(in, in(pred(in, in, out) is cc_multi),
+:- mode array_fold(in, in(pred(in, in, out) is cc_multi),
     in, out, di, uo) is cc_multi.
 
     % array_fold(Reader, Pred, InitialAcc, Result, !State):
     %
-:- pred json.array_fold_state(json.reader(Stream),
+:- pred array_fold_state(json.reader(Stream),
     pred(json.value, A, A, State, State),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode json.array_fold_state(in,
-    in(pred(in, in, out, di, uo) is det),
+:- mode array_fold_state(in, in(pred(in, in, out, di, uo) is det),
     in, out, di, uo) is det.
-:- mode json.array_fold_state(in,
-    in(pred(in, in, out, di, uo) is cc_multi),
+:- mode array_fold_state(in, in(pred(in, in, out, di, uo) is cc_multi),
     in, out, di, uo) is cc_multi.
 
 %-----------------------------------------------------------------------------%
@@ -406,7 +416,7 @@
     % init_writer(Stream) = Writer:
     % Writer is a new JSON writer that writes JSON values to Stream.
     %
-:- func json.init_writer(Stream) = json.writer(Stream)
+:- func init_writer(Stream) = json.writer(Stream)
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
@@ -414,13 +424,13 @@
 
     % init_writer(Stream, Parameters) = Writer:
     %
-:- func json.init_writer(Stream, writer_params) = json.writer(Stream).
+:- func init_writer(Stream, writer_params) = json.writer(Stream).
 
     % put_json(Writer, Value, !State):
     % Write the JSON value Value using the given Writer.
     % Throws an exception if the value is, or contains, a non-finite number.
     %
-:- pred json.put_json(json.writer(Stream)::in, json.value::in,
+:- pred put_json(json.writer(Stream)::in, json.value::in,
     State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -433,7 +443,7 @@
 
     % put_comment(Writer, Comment, !State):
     %
-:- pred json.put_comment(json.writer(Stream)::in, json.comment::in,
+:- pred put_comment(json.writer(Stream)::in, json.comment::in,
     State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -540,13 +550,13 @@
     % MaybeValue = 'ok(Value)' if Type is a Mercury term corresponding
     % to the JSON value Value and 'error(...)' otherwise.
     %
-:- func json.from_type(T) = maybe_error(json.value).
+:- func from_type(T) = maybe_error(json.value).
 
     % to_type(Value) = MaybeType:
     % MaybeType is 'ok(Type)' if Value is a JSON object corresponding
     % to the Mercury value Type and 'error(...)' otherwise.
     %
-:- func json.to_type(json.value) = maybe_error(T).
+:- func to_type(json.value) = maybe_error(T).
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
@@ -574,6 +584,7 @@
 :- import_module int.
 :- import_module float.
 :- import_module mutvar.
+:- import_module pair.
 :- import_module string.
 :- import_module string.builder.
 :- import_module require.
@@ -594,7 +605,7 @@
                 json_column_number    :: mutvar(int)
             ).
 
-json.init_reader(Stream) = Reader :-
+init_reader(Stream) = Reader :-
     promise_pure (
         impure new_mutvar(0, ColNumVar),
         Reader = json_reader(
@@ -606,7 +617,7 @@ json.init_reader(Stream) = Reader :-
         )
     ).
 
-json.init_reader(Stream, Params) = Reader :-
+init_reader(Stream, Params) = Reader :-
     Params = reader_params(
         AllowComments,
         AllowTrailingCommas,
@@ -974,6 +985,23 @@ all_functors_have_arity_zero(TypeDesc, I, Limit) :-
 %-----------------------------------------------------------------------------%
 
 int(I) = number(float(I)).
+
+make_object(Members, Value) :-
+    list.foldl(add_member, Members, map.init, Object),
+    Value = object(Object).
+
+:- pred add_member(pair(string, json.value)::in,
+    json.object::in, json.object::out) is semidet.
+
+add_member(Member, !Object) :-
+    Member = Name - Value,
+    map.insert(Name, Value, !Object).
+
+det_make_object(Members) = Value :-
+    ( if make_object(Members, Value0)
+    then Value = Value0
+    else error("json.det_make_object: repeated member name")
+    ).
 
 %-----------------------------------------------------------------------------%
 
