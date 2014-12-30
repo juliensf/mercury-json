@@ -1,1 +1,1 @@
-bad_object3.json:2:0 error: unexpected end-of-file: expected a value after ':'
+bad_object3.json:2:0: error: unexpected end-of-file: expected a value after ':'

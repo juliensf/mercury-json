@@ -479,8 +479,8 @@ get_negative_number(Reader, Buffer, Token, !State) :-
             char_buffer.add(Buffer, Char, !State),
             get_number(Reader, Buffer, Token, !State)
         else
-            Msg = "expected a digit after '-'",
-            make_json_error(Reader, Msg, Error, !State),
+            make_error_context(Reader, Context, !State),
+            Error = json_error(Context, illegal_negation(Char)),
             Token = token_error(Error)
         )
     ;
@@ -780,14 +780,14 @@ consume_comment(Reader, StartCommentContext, Result, !State) :-
         ( if Char = ('/') then
             consume_until_next_nl_or_eof(Reader, Result, !State)
         else if Char = ('*') then
-            % The last char kind must be other here since we don't
-            % want to accept /*/ as multiline comment.
+            % The last char kind must be 'other' here since we do not
+            % want to accept "/*/" as a multiline comment.
             LastCharKind = char_other,
             consume_multiline_comment(Reader, StartCommentContext,
                 LastCharKind, Result, !State)
         else
-            string.format("unexpected character: '%c'", [c(Char)], Msg),
-            make_json_error(Reader, Msg, Error, !State),
+            make_error_context(Reader, Context, !State),
+            Error = json_error(Context, illegal_comment_start(Char)),
             Result = error(Error)
         )
     ;

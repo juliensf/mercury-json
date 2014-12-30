@@ -78,6 +78,14 @@
             % A number was read but after conversion to a float it was of
             % infinite magnitude.
 
+    ;       illegal_negation(char)
+            % In a context where a number is expected, '-' seen but the
+            % following character (given by the argument) was not a digit.
+
+    ;       illegal_comment_start(char)
+            % We have just seen '/' and are expecting to see either '/'
+            % or '*' but instead saw character given in the argument.
+
     ;       other(string).
 
 :- instance stream.error(json.error(Error)) <= stream.error(Error).
@@ -811,79 +819,90 @@ make_error_message(Error) = Msg :-
     ;
         Error = json_error(Context, ErrorDesc),
         Context = context(StreamName, LineNo, ColNo),
+        string.format("%s:%d:%d", [s(StreamName), i(LineNo), i(ColNo)],
+            ContextStr),
         (
             ErrorDesc = unexpected_eof(MaybeExtraMsg),
             (
                 MaybeExtraMsg = no,
-                string.format("%s:%d:%d: error: unexpected end-of-file\n",
-                    [s(StreamName), i(LineNo), i(ColNo)], Msg)
+                string.format("%s: error: unexpected end-of-file\n",
+                    [s(ContextStr)], Msg)
             ;
                 MaybeExtraMsg = yes(ExtraMsg),
-                string.format("%s:%d:%d error: unexpected end-of-file: %s\n",
-                    [s(StreamName), i(LineNo), i(ColNo), s(ExtraMsg)], Msg)
+                string.format("%s: error: unexpected end-of-file: %s\n",
+                    [s(ContextStr), s(ExtraMsg)], Msg)
             )
         ;
             ErrorDesc = syntax_error(Where, MaybeExtraMsg),
             (
                 MaybeExtraMsg = yes(ExtraMsg),
-                string.format("%s:%d:%d: syntax error at '%s': %s\n",
-                    [s(StreamName), i(LineNo), i(ColNo), s(Where), s(ExtraMsg)],
-                    Msg)
+                string.format("%s: syntax error at '%s': %s\n",
+                    [s(ContextStr), s(Where), s(ExtraMsg)], Msg)
             ;
                 MaybeExtraMsg = no,
-                string.format("%s:%d:%d: syntax error at '%s'\n",
-                    [s(StreamName), i(LineNo), i(ColNo), s(Where)], Msg)
+                string.format("%s: syntax error at '%s'\n",
+                    [s(ContextStr), s(Where)], Msg)
             )
         ;
             ErrorDesc = invalid_character_escape(What),
-            string.format("%s:%d:%d: error: invalid character escape: '\\%c'\n",
-                [s(StreamName), i(LineNo), i(ColNo), c(What)], Msg)
+            string.format("%s: error: invalid character escape: '\\%c'\n",
+                [s(ContextStr), c(What)], Msg)
         ;
             ErrorDesc = other(ErrorMsg),
-            string.format("%s:%d:%d: error: %s\n",
-                [s(StreamName), i(LineNo), i(ColNo), s(ErrorMsg)], Msg)
+            string.format("%s: error: %s\n",
+                [s(ContextStr), s(ErrorMsg)], Msg)
         ;
             ErrorDesc = unexpected_value(What, MaybeExtraMsg),
             (
                 MaybeExtraMsg = no,
-                string.format("%s:%d:%d: error: unexpected %s value\n",
-                    [s(StreamName), i(LineNo), i(ColNo), s(What)], Msg)
+                string.format("%s: error: unexpected %s value\n",
+                    [s(ContextStr), s(What)], Msg)
             ;
                 MaybeExtraMsg = yes(ExtraMsg),
-                string.format("%s:%d:%d: error: unexpected %s value: %s\n",
-                    [s(StreamName), i(LineNo), i(ColNo), s(What),
-                     s(ExtraMsg)], Msg)
+                string.format("%s: error: unexpected %s value: %s\n",
+                    [s(ContextStr), s(What), s(ExtraMsg)], Msg)
             )
         ;
             ErrorDesc = duplicate_object_member(Name),
             string.format(
-                "%s:%d:%d: error: object member \"%s\" is not unique\n",
-                [s(StreamName), i(LineNo), i(ColNo), s(Name)], Msg)
+                "%s: error: object member \"%s\" is not unique\n",
+                [s(ContextStr), s(Name)], Msg)
         ;
             ErrorDesc = unterminated_multiline_comment,
-            string.format("%s:%d:%d: error: unterminated multiline comment\n",
-                [s(StreamName), i(LineNo), i(ColNo)], Msg)
+            string.format("%s: error: unterminated multiline comment\n",
+                [s(ContextStr)], Msg)
         ;
             ErrorDesc = invalid_unicode_character(What),
-            string.format("%s:%d:%d: error: invalid Unicode character: \\u%s\n",
-                [s(StreamName), i(LineNo), i(ColNo), s(What)], Msg)
+            string.format("%s: error: invalid Unicode character: \\u%s\n",
+                [s(ContextStr), s(What)], Msg)
         ;
             ErrorDesc = unpaired_utf16_surrogate,
-            string.format("%s:%d:%d: error: unpaired UTF-16 surrogate\n",
-                [s(StreamName), i(LineNo), i(ColNo)], Msg)
+            string.format("%s: error: unpaired UTF-16 surrogate\n",
+                [s(ContextStr)], Msg)
         ;
             ErrorDesc = illegal_start_character(Char),
-            string.format("%s:%d:%d: error: '%c' at start of JSON value\n",
-                [s(StreamName), i(LineNo), i(ColNo), c(Char)], Msg)
+            string.format("%s: error: '%c' at start of JSON value\n",
+                [s(ContextStr), c(Char)], Msg)
         ;
             ErrorDesc = illegal_unicode_escape_character(Char),
-            string.format("%s:%d:%d: error: character" ++
+            string.format("%s: error: character" ++
                 " in Unicode escape is not a hex digit: '%c'\n",
-                [s(StreamName), i(LineNo), i(ColNo), c(Char)], Msg)
+                [s(ContextStr), c(Char)], Msg)
         ;
             ErrorDesc = non_finite_number(NumberStr),
-            string.format("%s:%d:%d: error: non-finite number: %s\n",
-                [s(StreamName), i(LineNo), i(ColNo), s(NumberStr)], Msg)
+            string.format("%s: error: non-finite number: %s\n",
+                [s(ContextStr), s(NumberStr)], Msg)
+
+        ;   ErrorDesc = illegal_negation(Char),
+            string.format(
+                "%s: error: expected a digit after '-', got '%c'\n",
+                [s(ContextStr), c(Char)], Msg)
+        ;
+            ErrorDesc = illegal_comment_start(Char),
+            string.format(
+                "%s: error: expected '/' or '*' after '/' in" ++
+                " comment start, got '%c'\n",
+                [s(ContextStr), c(Char)], Msg)
         )
     ).
 

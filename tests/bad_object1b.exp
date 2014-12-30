@@ -1,1 +1,1 @@
-bad_object1b.json:2:0 error: unexpected end-of-file: expected ':' after object member name
+bad_object1b.json:2:0: error: unexpected end-of-file: expected ':' after object member name

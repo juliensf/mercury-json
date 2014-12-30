@@ -1,1 +1,1 @@
-bad_object1.json:2:0 error: unexpected end-of-file: object missing terminating '}'
+bad_object1.json:2:0: error: unexpected end-of-file: object missing terminating '}'

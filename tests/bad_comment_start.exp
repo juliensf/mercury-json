@@ -1,0 +1,1 @@
+bad_comment_start.json:1:2: error: expected '/' or '*' after '/' in comment start, got '['
