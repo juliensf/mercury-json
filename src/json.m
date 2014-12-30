@@ -388,7 +388,7 @@
     ;       pretty.
 
     % Exceptions of this type are thrown by JSON writers if a number with
-    % infinite magnitude is encountered.
+    % infinite magnitude or not-a-number value is encountered.
     %
 :- type json.non_finite_number_error
     --->    non_finite_number_error.
