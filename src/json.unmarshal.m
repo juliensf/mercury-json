@@ -59,8 +59,8 @@ unmarshal_to_type(Value) = Result :-
 unmarshal_to_type_2(TypeDesc, Value) = Result :-
     type_ctor_and_args(TypeDesc, TypeCtor, TypeArgs),
     type_ctor_name_and_arity(TypeCtor, ModuleName, TypeName, Arity),
-    % XXX TODO: re-order this if-then-else so that commonly used types occur at
-    % the start.
+    % The following if-then-else should be ordered so that common types occur
+    % first.
     ( if
         % The value is a builtin type.
         ModuleName = "builtin",
@@ -75,6 +75,29 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         TypeArgs = []
     then
         Result = to_bool_type(Value)
+    else if
+        % Is this type a Mercury list?
+        ModuleName = "list",
+        TypeName = "list",
+        Arity = 1,
+        TypeArgs = [ElemTypeDesc]
+    then
+        Result = to_list_type(ElemTypeDesc, Value)
+    else if
+        ModuleName = "set_ordlist",
+        TypeName = "set_ordlist",
+        Arity = 1,
+        TypeArgs = [ElemTypeDesc]
+    then
+        Result = to_set_ordlist_type(ElemTypeDesc, Value)
+    else if
+        % Is this type a Mercury array?
+        ModuleName = "array",
+        TypeName = "array",
+        Arity = 1,
+        TypeArgs = [ElemTypeDesc]
+    then
+        Result = to_array_type(ElemTypeDesc, Value)
     else if
         % Is this type a Mercury integer?
         ModuleName = "integer",
@@ -100,14 +123,6 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
     then
         Result = to_duration_type(Value)
     else if
-        % Is this type a Mercury list?
-        ModuleName = "list",
-        TypeName = "list",
-        Arity = 1,
-        TypeArgs = [ElemTypeDesc]
-    then
-        Result = to_list_type(ElemTypeDesc, Value)
-    else if
         % Is this type a Mercury cord?
         ModuleName = "cord",
         TypeName = "cord",
@@ -115,14 +130,6 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         TypeArgs = [ElemTypeDesc]
     then
         Result = to_cord_type(ElemTypeDesc, Value)
-    else if
-        % Is this type a Mercury array?
-        ModuleName = "array",
-        TypeName = "array",
-        Arity = 1,
-        TypeArgs = [ElemTypeDesc]
-    then
-        Result = to_array_type(ElemTypeDesc, Value)
     else if
         % Is this type a Mercury version array?
         ModuleName = "version_array",
@@ -169,13 +176,6 @@ unmarshal_to_type_2(TypeDesc, Value) = Result :-
         TypeArgs = [KeyTypeDesc, ValueTypeDesc]
     then
         Result = to_bimap_type(KeyTypeDesc, ValueTypeDesc, Value)
-    else if
-        ModuleName = "set_ordlist",
-        TypeName = "set_ordlist",
-        Arity = 1,
-        TypeArgs = [ElemTypeDesc]
-    then
-        Result = to_set_ordlist_type(ElemTypeDesc, Value)
     else if
         ModuleName = "set_unordlist",
         TypeName = "set_unordlist",
@@ -502,7 +502,7 @@ to_version_array_type(ElemTypeDesc, Value) = Result :-
         (
             ListElemsResult = ok(RevElems),
             list.reverse(RevElems, Elems),
-            % XXX the verison_array module does not have from_reverse_list.
+            % XXX the version_array module does not have from_reverse_list.
             Array = version_array.from_list(Elems),
             Univ = univ(Array),
             Result = ok(Univ)
