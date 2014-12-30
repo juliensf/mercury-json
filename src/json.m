@@ -86,7 +86,17 @@
             % We have just seen '/' and are expecting to see either '/'
             % or '*' but instead saw character given in the argument.
 
-    ;       other(string).
+    ;       bad_signed_exponent(char, char)
+            % bad_signed_exponent(SignChar, Char):
+            % We have a signed exponent with the sign given by the SignChar,
+            % but the following character, Char, is not a decimal digit.
+
+    ;       bad_exponent(char, char).
+            % bad_exponent(ExpChar, Char):
+            % We have an exponent with the exponent beginning with ExpChar
+            % (either 'e' or 'E'), but the following character, Char, is
+            % not '+', '-' or a decimal digit.
+
 
 :- instance stream.error(json.error(Error)) <= stream.error(Error).
 
@@ -764,17 +774,6 @@ make_unexpected_eof_error(Reader, MaybeMsg, Error, !State) :-
     make_error_context(Reader, Context, !State),
     Error = json_error(Context, unexpected_eof(MaybeMsg)).
 
-:- pred make_json_error(json.reader(Stream)::in, string::in,
-    json.error(Error)::out, State::di, State::uo) is det
-    <= (
-        stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
-    ).
-
-make_json_error(Reader, Msg, Error, !State) :-
-    make_error_context(Reader, Context, !State),
-    Error = json_error(Context, other(Msg)).
-
 :- pred make_syntax_error(json.reader(Stream)::in, string::in,
     maybe(string)::in, json.error(Error)::out, State::di, State::uo)
     is det <= (
@@ -848,10 +847,6 @@ make_error_message(Error) = Msg :-
             string.format("%s: error: invalid character escape: '\\%c'\n",
                 [s(ContextStr), c(What)], Msg)
         ;
-            ErrorDesc = other(ErrorMsg),
-            string.format("%s: error: %s\n",
-                [s(ContextStr), s(ErrorMsg)], Msg)
-        ;
             ErrorDesc = unexpected_value(What, MaybeExtraMsg),
             (
                 MaybeExtraMsg = no,
@@ -886,7 +881,7 @@ make_error_message(Error) = Msg :-
         ;
             ErrorDesc = illegal_unicode_escape_character(Char),
             string.format("%s: error: character" ++
-                " in Unicode escape is not a hex digit: '%c'\n",
+                " in Unicode escape is not a hexadecimal digit: '%c'\n",
                 [s(ContextStr), c(Char)], Msg)
         ;
             ErrorDesc = non_finite_number(NumberStr),
@@ -895,7 +890,7 @@ make_error_message(Error) = Msg :-
 
         ;   ErrorDesc = illegal_negation(Char),
             string.format(
-                "%s: error: expected a digit after '-', got '%c'\n",
+                "%s: error: expected a decimal digit after '-', got '%c'\n",
                 [s(ContextStr), c(Char)], Msg)
         ;
             ErrorDesc = illegal_comment_start(Char),
@@ -903,6 +898,18 @@ make_error_message(Error) = Msg :-
                 "%s: error: expected '/' or '*' after '/' in" ++
                 " comment start, got '%c'\n",
                 [s(ContextStr), c(Char)], Msg)
+        ;
+            ErrorDesc = bad_signed_exponent(SignChar, Char),
+            string.format(
+                "%s: error: expected a decimal digit " ++
+                "after '%c' in exponent, got '%c'\n",
+                [s(ContextStr), c(SignChar), c(Char)], Msg)
+        ;
+            ErrorDesc = bad_exponent(ExpChar, Char),
+            string.format(
+                "%s: error: expected '+', '-' or a decimal digit after " ++
+                "'%c', got '%c'\n",
+                [s(ContextStr), c(ExpChar), c(Char)], Msg)
         )
     ).
 

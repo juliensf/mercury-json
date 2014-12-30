@@ -1,1 +1,1 @@
-zinc_soln_sep.json:1:2: error: expected a digit after '-', got '-'
+zinc_soln_sep.json:1:2: error: expected a decimal digit after '-', got '-'

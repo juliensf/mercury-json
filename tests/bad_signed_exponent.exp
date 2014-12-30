@@ -1,0 +1,1 @@
+bad_signed_exponent.json:1:4: error: expected a decimal digit after '-' in exponent, got 'd'

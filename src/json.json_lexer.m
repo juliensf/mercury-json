@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013 Julien Fischer.
+% Copyright (C) 2013-2014 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -663,9 +663,9 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
                 Where = exp_sign,
                 update_column_number(Reader, Char, !State),
                 ( if char_buffer.last(Buffer, SignChar, !.State) then
-                    string.format("expected digit after '%c' in exponent",
-                        [c(SignChar)], Msg),
-                    make_json_error(Reader, Msg, Error, !State),
+                    make_error_context(Reader, Context, !State),
+                    Error = json_error(Context,
+                        bad_signed_exponent(SignChar, Char)),
                     Result = error(Error)
                 else
                     unexpected($module, $pred, "corrupted buffer (1)")
@@ -674,10 +674,8 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
                 Where = exp_start,
                 update_column_number(Reader, Char, !State),
                 ( if char_buffer.last(Buffer, ExpChar, !.State) then
-                    string.format(
-                        "expected '+', '-' or digit after '%c' in exponent",
-                        [c(ExpChar)], Msg),
-                    make_json_error(Reader, Msg, Error, !State),
+                    make_error_context(Reader, Context, !State),
+                    Error = json_error(Context, bad_exponent(ExpChar, Char)),
                     Result = error(Error)
                 else
                     unexpected($module, $pred, "corrupted buffer (2)")
