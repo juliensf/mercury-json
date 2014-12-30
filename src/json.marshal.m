@@ -47,9 +47,9 @@ marshal_from_type(Term) = Result :-
     else if
         dynamic_cast(Term, Float)
     then
-        ( if is_finite(Float)
-        then Result = ok(number(Float))
-        else Result = error("cannot convert non-finite float to JSON")
+        ( if is_nan_or_inf(Float)
+        then Result = error("cannot convert non-finite float to JSON")
+        else Result = ok(number(Float))
         )
     else if
         dynamic_cast(Term, String)

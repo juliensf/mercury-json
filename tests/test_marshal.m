@@ -68,7 +68,11 @@ test_marshaling(File, !IO) :-
 
     % Test floats.
     test(File, 3.141, !IO),
-    test(File, infinity, !IO),     % Error.
+    
+    % XXX for compatibility with Mercury 14.01.1 we get infinity this way.
+    % With later versions we would just use float.infinity/0.
+    Infinity = float.max + float.max,
+    test(File, Infinity, !IO),     % Error.
 
     % Test chars.
     %
