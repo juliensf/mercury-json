@@ -50,10 +50,10 @@
 :- implementation.
 
 :- import_module assoc_list.
+:- import_module exception.
 :- import_module float.
 :- import_module int.
 :- import_module pair.
-:- import_module require.
 :- import_module stream.string_writer.
 
 %-----------------------------------------------------------------------------%
@@ -245,7 +245,7 @@ put_hex_digits(Stream, Int, !State) :-
 
 put_number(Stream, Number, !State) :-
     ( if is_nan_or_inf(Number) then
-        error("put_number: number is not finite")
+        throw(non_finite_number_error)
     else if
         % Ensure the call to floor_to_int/1 below won't abort in the C#
         % or Java grades.

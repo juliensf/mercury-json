@@ -379,6 +379,12 @@
     --->    compact
     ;       pretty.
 
+    % Exceptions of this type are thrown by JSON writers if a number with
+    % infinite magnitude is encountered.
+    %
+:- type json.non_finite_number_error
+    --->    non_finite_number_error.
+
     % init_writer(Stream) = Writer:
     % Writer is a new JSON writer that writes JSON values to Stream.
     %
