@@ -66,6 +66,18 @@
 
     ;       unpaired_utf16_surrogate
 
+    ;       illegal_start_character(char)
+            % A JSON value begins with an illegal character.
+            % One of: '}', ']', ',' or ':'.
+
+    ;       illegal_unicode_escape_character(char)
+            % A character occurred inside a Unicode escape that is not
+            % a hexadecimal digit.
+
+    ;       non_finite_number(string)
+            % A number was read but after conversion to a float it was of
+            % infinite magnitude.
+
     ;       other(string).
 
 :- instance stream.error(json.error(Error)) <= stream.error(Error).
@@ -853,6 +865,19 @@ make_error_message(Error) = Msg :-
             ErrorDesc = unpaired_utf16_surrogate,
             string.format("%s:%d:%d: error: unpaired UTF-16 surrogate\n",
                 [s(StreamName), i(LineNo), i(ColNo)], Msg)
+        ;
+            ErrorDesc = illegal_start_character(Char),
+            string.format("%s:%d:%d: error: '%c' at start of JSON value\n",
+                [s(StreamName), i(LineNo), i(ColNo), c(Char)], Msg)
+        ;
+            ErrorDesc = illegal_unicode_escape_character(Char),
+            string.format("%s:%d:%d: error: character" ++
+                " in Unicode escape is not a hex digit: '%c'\n",
+                [s(StreamName), i(LineNo), i(ColNo), c(Char)], Msg)
+        ;
+            ErrorDesc = non_finite_number(NumberStr),
+            string.format("%s:%d:%d: error: non-finite number: %s\n",
+                [s(StreamName), i(LineNo), i(ColNo), s(NumberStr)], Msg)
         )
     ).
 

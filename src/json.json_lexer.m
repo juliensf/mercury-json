@@ -326,9 +326,9 @@ get_hex_digits(Reader, !.N, !HexDigits, Result, !State) :-
                 !:N = !.N - 1,
                 get_hex_digits(Reader, !.N, !HexDigits, Result, !State)
             else
-                string.format("invalid hex character in Unicode escape: '%c'",
-                    [c(Char)], Msg),
-                make_json_error(Reader, Msg, Error, !State),
+                make_error_context(Reader, Context, !State),
+                Error = json_error(Context,
+                    illegal_unicode_escape_character(Char)),
                 Result = error(Error)
             )
         ;
@@ -505,10 +505,10 @@ get_number(Reader, Buffer, Token, !State) :-
         NumberStr = char_buffer.to_string(Buffer, !.State),
         Number = string.det_to_float(NumberStr),
         ( if is_inf(Number) then
-            Msg = "number is not finite",
             % XXX the context here is the end of the number.
             % Using the start would probably be better.
-            make_json_error(Reader, Msg, Error, !State),
+            make_error_context(Reader, Context, !State),
+            Error = json_error(Context, non_finite_number(NumberStr)),
             Token = token_error(Error)
         else
             Token = token_number(Number)
@@ -667,7 +667,7 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
                     make_json_error(Reader, Msg, Error, !State),
                     Result = error(Error)
                 else
-                    unexpected($module, $pred, "corrupted buffer")
+                    unexpected($module, $pred, "corrupted buffer (1)")
                 )
             ;
                 Where = exp_start,
@@ -679,7 +679,7 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
                     make_json_error(Reader, Msg, Error, !State),
                     Result = error(Error)
                 else
-                    unexpected($module, $pred, "corrupted buffer")
+                    unexpected($module, $pred, "corrupted buffer (2)")
                 )
             )
         )

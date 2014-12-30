@@ -117,9 +117,8 @@ do_get_value(Reader, Token, Result, !State) :-
             Token = token_colon,
             ErrorChar = (':')
         ),
-        string.format("error: '%c' at start of JSON value",
-            [c(ErrorChar)], Msg),
-        make_json_error(Reader, Msg, Error, !State),
+        make_error_context(Reader, Context, !State),
+        Error = json_error(Context, illegal_start_character(ErrorChar)),
         Result = error(Error)
     ;
         Token = token_eof,
