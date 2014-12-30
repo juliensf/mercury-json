@@ -93,24 +93,27 @@ get_token(Reader, Token, !State) :-
         else if
             Char = ('-')
         then
-            char_buffer.init(Buffer, !State),
+            Buffer = Reader ^ json_char_buffer,
             char_buffer.add(Buffer, Char, !State),
-            get_negative_number(Reader, Buffer, Token, !State)
+            get_negative_number(Reader, Buffer, Token, !State),
+            char_buffer.reset(Buffer, !State)
         else if
             char.is_digit(Char)
         then
-            char_buffer.init(Buffer, !State),
+            Buffer = Reader ^ json_char_buffer,
             char_buffer.add(Buffer, Char, !State),
-            get_number(Reader, Buffer, Token, !State)
+            get_number(Reader, Buffer, Token, !State),
+            char_buffer.reset(Buffer, !State)
         else if
             ( Char = 'n'
             ; Char = 't'
             ; Char = 'f'
             )
         then
-            char_buffer.init(Buffer, !State),
+            Buffer = Reader ^ json_char_buffer,
             char_buffer.add(Buffer, Char, !State),
-            get_keyword(Reader, Buffer, Token, !State)
+            get_keyword(Reader, Buffer, Token, !State),
+            char_buffer.reset(Buffer, !State)
         else
             make_error_context(Reader, Context, !State),
             Error = json_error(Context,
@@ -165,35 +168,37 @@ update_column_number(Reader, Char, !State) :-
     ).
 
 get_string_literal(Reader, Token, !State) :-
-    get_string_chars(Reader, [], RevChars, Result, !State),
+    Buffer = Reader ^ json_char_buffer,
+    get_string_chars(Reader, Buffer, Result, !State),
     (
         Result = ok,
-        String = string.from_rev_char_list(RevChars),
+        String = char_buffer.to_string(Buffer, !.State),
         Token = token_string(String)
     ;
         Result = error(Error),
         Token = token_error(Error)
-    ).
+    ),
+    char_buffer.reset(Buffer, !State).
 
 :- pred get_string_chars(json.reader(Stream)::in,
-    list(char)::in, list(char)::out,
+    char_buffer::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_string_chars(Reader, !Chars, Result, !State) :-
+get_string_chars(Reader, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
         ReadResult = ok(Char),
         update_column_number(Reader, Char, !State),
         ( if Char = ('\\') then
-            get_escaped_char(Reader, !Chars, EscapedCharResult, !State),
+            get_escaped_char(Reader, Buffer, EscapedCharResult, !State),
             (
                 EscapedCharResult = ok,
-                get_string_chars(Reader, !Chars, Result, !State)
+                get_string_chars(Reader, Buffer, Result, !State)
             ;
                 EscapedCharResult = error(Error),
                 Result = error(Error)
@@ -201,8 +206,8 @@ get_string_chars(Reader, !Chars, Result, !State) :-
         else if Char = '"' then
             Result = ok
         else
-            !:Chars = [Char | !.Chars],
-            get_string_chars(Reader, !Chars, Result, !State)
+            char_buffer.add(Buffer, Char, !State),
+            get_string_chars(Reader, Buffer, Result, !State)
         )
     ;
         ReadResult = eof,
@@ -215,24 +220,24 @@ get_string_chars(Reader, !Chars, Result, !State) :-
     ).
 
 :- pred get_escaped_char(json.reader(Stream)::in,
-    list(char)::in, list(char)::out,
+    char_buffer::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_escaped_char(Reader, !Chars, Result, !State) :-
+get_escaped_char(Reader, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
         ReadResult = ok(Char),
         update_column_number(Reader, Char, !State),
         ( if escaped_json_char(Char, EscapedChar) then
-            !:Chars = [EscapedChar | !.Chars],
+            char_buffer.add(Buffer, EscapedChar, !State),
             Result = ok
         else if Char = 'u' then
-            get_escaped_unicode_char(Reader, !Chars, Result, !State)
+            get_escaped_unicode_char(Reader, Buffer, Result, !State)
         else
             make_error_context(Reader, Context, !State),
             ErrorDesc = invalid_character_escape(Char),
@@ -260,14 +265,14 @@ escaped_json_char('r', '\r').
 escaped_json_char('t', '\t').
 
 :- pred get_escaped_unicode_char(json.reader(Stream)::in,
-    list(char)::in, list(char)::out,
+    char_buffer::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_escaped_unicode_char(Reader, !Chars, Result, !State) :-
+get_escaped_unicode_char(Reader, Buffer, Result, !State) :-
     get_hex_digits(Reader, 4, [], HexDigits, HexDigitsResult, !State),
     (
         HexDigitsResult = ok,
@@ -280,12 +285,12 @@ get_escaped_unicode_char(Reader, !Chars, Result, !State) :-
             (
                 CharCodeClass = code_point_valid,
                 UnicodeChar = char.det_from_int(UnicodeCharCode),
-                !:Chars = [UnicodeChar | !.Chars],
+                char_buffer.add(Buffer, UnicodeChar, !State),
                 Result = ok
             ;
                 CharCodeClass = code_point_leading_surrogate,
                 get_trailing_surrogate_and_combine(Reader, UnicodeCharCode,
-                    !Chars, Result, !State)
+                    Buffer, Result, !State)
             ;
                 CharCodeClass = code_point_trailing_surrogate,
                 unexpected($file, $pred, "unpaired trailing surrogate")
@@ -377,7 +382,7 @@ is_trailing_surrogate(Code) :-
     Code =< 0xDFFF.
 
 :- pred get_trailing_surrogate_and_combine(json.reader(Stream)::in,
-    int::in, list(char)::in, list(char)::out,
+    int::in, char_buffer::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
@@ -385,7 +390,7 @@ is_trailing_surrogate(Code) :-
     ).
 
 get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
-        !Chars, Result, !State) :-
+        Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
@@ -410,7 +415,7 @@ get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
                             CharCode = combine_utf16_surrogates(
                                 LeadingSurrogate, TrailingSurrogate),
                             UnicodeChar = char.det_from_int(CharCode),
-                            !:Chars = [UnicodeChar | !.Chars],
+                            char_buffer.add(Buffer, UnicodeChar, !State),
                             Result = ok
                         else
                             unexpected($file, $pred, "not a trailing surrogate")

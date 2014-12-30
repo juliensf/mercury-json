@@ -602,18 +602,21 @@
                 json_comments         :: allow_comments,
                 json_trailing_commas  :: allow_trailing_commas,
                 json_repeated_members :: allow_repeated_members,
-                json_column_number    :: mutvar(int)
+                json_column_number    :: mutvar(int),
+                json_char_buffer      :: char_buffer
             ).
 
 init_reader(Stream) = Reader :-
     promise_pure (
         impure new_mutvar(0, ColNumVar),
+        impure char_buffer.init(CharBuffer),
         Reader = json_reader(
             Stream,
             do_not_allow_comments,
             do_not_allow_trailing_commas,
             do_not_allow_repeated_members,
-            ColNumVar
+            ColNumVar,
+            CharBuffer
         )
     ).
 
@@ -625,12 +628,14 @@ init_reader(Stream, Params) = Reader :-
     ),
     promise_pure (
         impure new_mutvar(0, ColNumVar),
+        impure char_buffer.init(CharBuffer),
         Reader = json_reader(
             Stream,
             AllowComments,
             AllowTrailingCommas,
             RepeatedMembers,
-            ColNumVar
+            ColNumVar,
+            CharBuffer
         )
     ).
 
