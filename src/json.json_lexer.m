@@ -112,8 +112,9 @@ get_token(Reader, Token, !State) :-
             char_buffer.add(Buffer, Char, !State),
             get_keyword(Reader, Buffer, Token, !State)
         else
-            string.format("unexpected character '%c'", [c(Char)], Msg),
-            make_json_error(Reader, Msg, Error, !State),
+            make_error_context(Reader, Context, !State),
+            Error = json_error(Context,
+                syntax_error(string.from_char(Char), no)),
             Token = token_error(Error)
         )
     ;
