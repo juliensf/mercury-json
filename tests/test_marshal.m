@@ -261,7 +261,13 @@ test_marshaling(File, !IO) :-
         "12E",
         ".12",
         "[1.0, 2.0",
-        "{\"foo\" : }"
+        "{\"foo\" : }",
+        "{}{}",
+        "[1, 2, 3][",
+        "[1, 2, 3]]",
+        "nullnull",
+        "true 1.23",
+        "{ \"a\" : 12.3 } true"
     ],
     list.foldl(do_from_string_test(File), InvalidFromStringTests, !IO).
 

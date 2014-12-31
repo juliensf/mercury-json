@@ -92,12 +92,13 @@
             % We have a signed exponent with the sign given by the SignChar,
             % but the following character, Char, is not a decimal digit.
 
-    ;       bad_exponent(char, char).
+    ;       bad_exponent(char, char)
             % bad_exponent(ExpChar, Char):
             % We have an exponent with the exponent beginning with ExpChar
             % (either 'e' or 'E'), but the following character, Char, is
             % not '+', '-' or a decimal digit.
 
+    ;       expected_eof(string).
 
 :- instance stream.error(json.error(Error)) <= stream.error(Error).
 
@@ -274,6 +275,56 @@
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
+
+%-----------------------------------------------------------------------------%
+%
+% Reading JSON values.
+%
+
+% The 'read' operations here read a value from the underlying stream using the
+% reader.  They return an error if there are any non-whitespace characters in
+% the stream after the value that has been read.  (Comments after the value are
+% also allowed if the reader allows comments.)
+
+    % read_value(Reader, Result, !State):
+    % Read a JSON value from Reader.
+    %
+:- pred read_value(json.reader(Stream)::in,
+    json.result(json.value, Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+    % read_object(Reader, Result, !State):
+    % Read a JSON object from Reader.
+    %
+:- pred read_object(json.reader(Stream)::in,
+    json.result(json.object, Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+    % read_array(Reader, Result, !State):
+    % Read a JSON array from Reader.
+    %
+:- pred read_array(json.reader(Stream)::in,
+    json.result(json.array, Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% Getting JSON values.
+%
+
+% The 'get' operations here read a value from the underlying stream using the
+% reader.  In contrast to the 'read' operations above they do not examine the
+% underlying character stream any further once a value has been read.  The
+% 'get' operations can be used read a stream of JSON values.
 
     % get_value(Reader, Result, !State):
     % Get a JSON value from Reader.
@@ -641,6 +692,74 @@ init_reader(Stream, Params) = Reader :-
 
 %-----------------------------------------------------------------------------%
 
+read_value(Reader, Result, !State) :-
+    get_token(Reader, Token, !State),
+    do_read_value(Reader, Token, Result, !State).
+
+read_object(Reader, Result, !State) :-
+    get_token(Reader, Token, !State),
+    % Save the context of the beginning of the value.
+    make_error_context(Reader, Context, !State),
+    do_read_value(Reader, Token, ValueResult, !State),
+    (
+        ValueResult = ok(Value),
+        (
+            Value = object(Members),
+            Result = ok(Members)
+        ;
+            ( Value = null
+            ; Value = bool(_)
+            ; Value = string(_)
+            ; Value = number(_)
+            ; Value = array(_)
+            ),
+            Msg = "value must be an object",
+            ValueDesc = value_desc(Value),
+            ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+            Error = json_error(Context, ErrorDesc),
+            Result = error(Error)
+        )
+    ;
+        ValueResult = eof,
+        Result = eof
+    ;
+        ValueResult = error(Error),
+        Result = error(Error)
+    ).
+
+read_array(Reader, Result, !State) :-
+    get_token(Reader, Token, !State),
+    % Save the context of the beginning of the value.
+    make_error_context(Reader, Context, !State),
+    do_read_value(Reader, Token, ValueResult, !State),
+    (
+        ValueResult = ok(Value),
+        (
+            Value = array(Elements),
+            Result = ok(Elements)
+        ;
+            ( Value = null
+            ; Value = bool(_)
+            ; Value = string(_)
+            ; Value = number(_)
+            ; Value = object(_)
+            ),
+            Msg = "value must be an array",
+            ValueDesc = value_desc(Value),
+            ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+            Error = json_error(Context, ErrorDesc),
+            Result = error(Error)
+        )
+    ;
+        ValueResult = eof,
+        Result = eof
+    ;
+        ValueResult = error(Error),
+        Result = error(Error)
+    ).
+
+%-----------------------------------------------------------------------------%
+
 get_value(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
     do_get_value(Reader, Token, Result, !State).
@@ -926,6 +1045,11 @@ make_error_message(Error) = Msg :-
                 "%s: error: expected '+', '-' or a decimal digit after " ++
                 "'%c', got '%c'\n",
                 [s(ContextStr), c(ExpChar), c(Char)], Msg)
+        ;
+            ErrorDesc = expected_eof(Found),
+            string.format(
+                "%s: error: expected end-of-file, got '%s'\n",
+                [s(ContextStr), s(Found)], Msg)
         )
     ).
 
@@ -1103,7 +1227,7 @@ from_string(String, Value) :-
         init_string_state(!:State),
         init_string_reader(no, String, StringReader, !State),
         Reader = json.init_reader(StringReader),
-        json.get_value(Reader, Result, !.State, _)
+        json.read_value(Reader, Result, !.State, _)
     ),
     require_complete_switch [Result] (
         Result = ok(Value)

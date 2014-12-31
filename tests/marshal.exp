@@ -240,3 +240,9 @@ from_string("12E") <<FALSE>>
 from_string(".12") <<FALSE>>
 from_string("[1.0, 2.0") <<FALSE>>
 from_string("{"foo" : }") <<FALSE>>
+from_string("{}{}") <<FALSE>>
+from_string("[1, 2, 3][") <<FALSE>>
+from_string("[1, 2, 3]]") <<FALSE>>
+from_string("nullnull") <<FALSE>>
+from_string("true 1.23") <<FALSE>>
+from_string("{ "a" : 12.3 } true") <<FALSE>>

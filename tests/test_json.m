@@ -170,7 +170,7 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
     ),
     Reader = json.init_reader(Input, ReaderParams),
     Writer = json.init_writer(Output),
-    json.get_value(Reader, Result, !IO),
+    json.read_value(Reader, Result, !IO),
     (
         Result = ok(Value),
         json.put_value(Writer, Value, !IO),

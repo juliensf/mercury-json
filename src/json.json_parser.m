@@ -10,6 +10,14 @@
 
 %-----------------------------------------------------------------------------%
 
+:- pred do_read_value(json.reader(Stream)::in,
+    token(Error)::in, json.result(json.value, Error)::out,
+    State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+
 :- pred do_get_value(json.reader(Stream)::in,
     token(Error)::in, json.result(json.value, Error)::out,
     State::di, State::uo) is det
@@ -80,6 +88,48 @@
 :- implementation.
 
 %-----------------------------------------------------------------------------%
+
+do_read_value(Reader, Token, Result, !State) :-
+    do_get_value(Reader, Token, ValueResult, !State),
+    %
+    % We now need to check that there is nothing else (except whitespace and
+    % possibly comments) in the stream.
+    %
+    (
+        ValueResult = ok(Value),
+        get_token(Reader, NextToken, !State),
+        (
+            % Nothing left to get.
+            NextToken = token_eof,
+            Result = ok(Value)
+        ;
+            NextToken = token_error(Error),
+            Result = error(Error)
+        ;
+            ( NextToken = token_left_curly_bracket
+            ; NextToken = token_right_curly_bracket
+            ; NextToken = token_left_square_bracket
+            ; NextToken = token_right_square_bracket
+            ; NextToken = token_comma
+            ; NextToken = token_colon
+            ; NextToken = token_string(_)
+            ; NextToken = token_number(_)
+            ; NextToken = token_false
+            ; NextToken = token_true
+            ; NextToken = token_null
+            ),
+            NextTokenDesc = token_to_string(NextToken),
+            make_error_context(Reader, Context, !State),
+            Error = json_error(Context, expected_eof(NextTokenDesc)),
+            Result = error(Error)
+        )
+    ;
+        ValueResult = eof,
+        Result = eof
+    ;
+        ValueResult = error(Error),
+        Result = error(Error)
+    ).
 
 do_get_value(Reader, Token, Result, !State) :-
     (

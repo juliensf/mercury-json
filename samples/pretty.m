@@ -35,7 +35,7 @@ main(!IO) :-
 
     % Ask the reader to get a JSON value from the standard input stream.
     %
-    json.get_value(Reader, ValueResult, !IO),
+    json.read_value(Reader, ValueResult, !IO),
     (
         % The reader has returned a JSON value.
         %
