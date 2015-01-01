@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2014, Julien Fischer.
+% Copyright (C) 2013-2015, Julien Fischer.
 % All rights reserved.
 %
 % Author: Julien Fischer <jfischer@opturion.com>
@@ -224,7 +224,8 @@
     --->    reader_params(
                 allow_comments         :: allow_comments,
                 allow_trailing_commas  :: allow_trailing_commas,
-                allow_repeated_members :: allow_repeated_members
+                allow_repeated_members :: allow_repeated_members,
+                allow_infinities       :: allow_infinities
             ).
 
     % Should the extension that allows comments in the JSON being read be
@@ -240,6 +241,13 @@
 :- type json.allow_trailing_commas
     --->    allow_trailing_commas
     ;       do_not_allow_trailing_commas.
+    
+    % Should the extensiont that allows -Infinity and Infinity as numbers
+    % be enabled?
+    %
+:- type json.allow_infinities
+    --->    allow_infinities
+    ;       do_not_allow_infinities.
 
     % Should we allow repeated object members in JSON objects?
     % (And if so, how should that situation be handled?)
@@ -257,9 +265,9 @@
             % encounter and discard any others.
 
     % init_reader(Stream) = Reader:
-    % Reader is a new JSON reader using Stream as a character stream.
-    % Use the default reader parameters, with which the reader will
-    % conform to the RFC 7159 definition of JSON.
+    % Reader is a new JSON reader using Stream as a character stream and using
+    % the default reader parameters.  With the default parameters teh reader
+    % will conform to the RFC 7159 definition of JSON.
     %
 :- func init_reader(Stream) = json.reader(Stream)
     <= (
@@ -451,7 +459,8 @@
 
 :- type json.writer_params
     --->    writer_params(
-                output_style :: output_style
+                output_style :: output_style,
+                output_allow_infinities :: allow_infinities
             ).
 
 :- type json.output_style
@@ -653,6 +662,7 @@
                 json_comments         :: allow_comments,
                 json_trailing_commas  :: allow_trailing_commas,
                 json_repeated_members :: allow_repeated_members,
+                json_infinities       :: allow_infinities,
                 json_column_number    :: mutvar(int),
                 json_char_buffer      :: char_buffer
             ).
@@ -666,6 +676,7 @@ init_reader(Stream) = Reader :-
             do_not_allow_comments,
             do_not_allow_trailing_commas,
             do_not_allow_repeated_members,
+            do_not_allow_infinities,
             ColNumVar,
             CharBuffer
         )
@@ -675,7 +686,8 @@ init_reader(Stream, Params) = Reader :-
     Params = reader_params(
         AllowComments,
         AllowTrailingCommas,
-        RepeatedMembers
+        RepeatedMembers,
+        AllowInfinities
     ),
     promise_pure (
         impure new_mutvar(0, ColNumVar),
@@ -685,6 +697,7 @@ init_reader(Stream, Params) = Reader :-
             AllowComments,
             AllowTrailingCommas,
             RepeatedMembers,
+            AllowInfinities,
             ColNumVar,
             CharBuffer
         )
@@ -855,27 +868,28 @@ array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
 
 :- type json.writer(Stream)
     --->    json_writer(
-                json_writer_stream :: Stream,
-                json_output_style  :: output_style
+                json_writer_stream     :: Stream,
+                json_output_style      :: output_style,
+                json_output_infinities :: allow_infinities
             ).
 
 json.init_writer(Stream) =
-    json_writer(Stream, compact).
+    json_writer(Stream, compact, do_not_allow_infinities).
 
 json.init_writer(Stream, Parameters) = Writer :-
-    Parameters = writer_params(OutputStyle),
-    Writer = json_writer(Stream, OutputStyle).
+    Parameters = writer_params(OutputStyle, AllowInfinities),
+    Writer = json_writer(Stream, OutputStyle, AllowInfinities).
 
 %-----------------------------------------------------------------------------%
 
 put_value(Writer, Value, !State) :-
-    OutputStyle = Writer ^ json_output_style,
+    Writer = json_writer(Stream, OutputStyle, AllowInfinities),
     (
         OutputStyle = compact,
-        writer.raw_put_value(Writer ^ json_writer_stream, Value, !State)
+        writer.raw_put_value(Stream, AllowInfinities, Value, !State)
     ;
         OutputStyle = pretty,
-        writer.pretty_put_value(Writer ^ json_writer_stream, Value, !State)
+        writer.pretty_put_value(Stream, AllowInfinities, Value, !State)
     ).
 
 put_comment(Writer, Comment, !State) :-

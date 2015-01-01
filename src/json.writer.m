@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2014, Julien Fischer.
+% Copyright (C) 2013-2015, Julien Fischer.
 % All rights reserved.
 %
 % Author: Julien Fischer <jfischer@opturion.com>
@@ -15,13 +15,15 @@
 
 %-----------------------------------------------------------------------------%
 
-:- pred raw_put_value(Stream::in, json.value::in, State::di, State::uo) is det
+:- pred raw_put_value(Stream::in, allow_infinities::in, json.value::in,
+    State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-:- pred pretty_put_value(Stream::in, json.value::in, State::di, State::uo) is det
+:- pred pretty_put_value(Stream::in, allow_infinities::in, json.value::in,
+    State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
@@ -61,7 +63,7 @@
 % Raw output.
 %
 
-raw_put_value(Stream, Value, !State) :-
+raw_put_value(Stream, AllowInfinities, Value, !State) :-
     (
         Value = null,
         put(Stream, "null", !State)
@@ -79,83 +81,89 @@ raw_put_value(Stream, Value, !State) :-
         put_string_literal(Stream, String, !State)
     ;
         Value = number(Number),
-        put_number(Stream, Number, !State)
+        put_number(Stream, AllowInfinities, Number, !State)
     ;
         Value = object(Members),
-        raw_put_object(Stream, Members, !State)
+        raw_put_object(Stream, AllowInfinities, Members, !State)
     ;
         Value = array(Elements),
-        raw_put_array(Stream, Elements, !State)
+        raw_put_array(Stream, AllowInfinities, Elements, !State)
     ).
 
 %-----------------------------------------------------------------------------%
 
-:- pred raw_put_object(Stream::in, json.object::in, State::di, State::uo)
-    is det <= (
+:- pred raw_put_object(Stream::in, allow_infinities::in, json.object::in,
+    State::di, State::uo) is det
+    <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-raw_put_object(Stream, MembersMap, !State) :-
+raw_put_object(Stream, AllowInfinities,  MembersMap, !State) :-
     put(Stream, '{', !State),
     MembersList = map.to_assoc_list(MembersMap),
-    raw_put_members(Stream, MembersList, !State),
+    raw_put_members(Stream, AllowInfinities, MembersList, !State),
     put(Stream, '}', !State).
 
-:- pred raw_put_members(Stream::in, assoc_list(string, json.value)::in,
-    State::di, State::uo) is det
+:- pred raw_put_members(Stream::in, allow_infinities::in,
+    assoc_list(string, json.value)::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-raw_put_members(_, [], !State).
-raw_put_members(Stream, [Member], !State) :-
-    raw_put_member(Stream, Member, !State).
-raw_put_members(Stream, [Member, NextMember | Members], !State) :-
-    raw_put_member(Stream, Member, !State),
+raw_put_members(_, _, [], !State).
+raw_put_members(Stream, AllowInfinities, [Member], !State) :-
+    raw_put_member(Stream, AllowInfinities, Member, !State).
+raw_put_members(Stream, AllowInfinities, [Member, NextMember | Members],
+        !State) :-
+    raw_put_member(Stream, AllowInfinities, Member, !State),
     put(Stream, (','), !State),
-    raw_put_members(Stream, [NextMember | Members], !State).
+    raw_put_members(Stream, AllowInfinities, [NextMember | Members], !State).
 
-:- pred raw_put_member(Stream::in, pair(string, json.value)::in,
-    State::di, State::uo) is det
+:- pred raw_put_member(Stream::in, allow_infinities::in,
+    pair(string, json.value)::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-raw_put_member(Stream, Member, !State) :-
+raw_put_member(Stream, AllowInfinities, Member, !State) :-
     Member = Key - Value,
     put_string_literal(Stream, Key, !State),
     put(Stream, ':', !State),
-    raw_put_value(Stream, Value, !State).
+    raw_put_value(Stream, AllowInfinities, Value, !State).
 
 %-----------------------------------------------------------------------------%
 
-:- pred raw_put_array(Stream::in, json.array::in, State::di, State::uo)
-    is det <= (
+:- pred raw_put_array(Stream::in, allow_infinities::in, json.array::in,
+    State::di, State::uo) is det
+    <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-raw_put_array(Stream, Elements, !State) :-
+raw_put_array(Stream, AllowInfinities, Elements, !State) :-
     put(Stream, '[', !State),
-    raw_put_elements(Stream, Elements, !State),
+    raw_put_elements(Stream, AllowInfinities, Elements, !State),
     put(Stream, ']', !State).
 
-:- pred raw_put_elements(Stream::in, json.array::in, State::di, State::uo)
+:- pred raw_put_elements(Stream::in, allow_infinities::in, json.array::in,
+    State::di, State::uo)
     is det <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-raw_put_elements(_, [], !State).
-raw_put_elements(Stream, [Element], !State) :-
-    raw_put_value(Stream, Element, !State).
-raw_put_elements(Stream, [Element, NextElement | Elements], !State) :-
-    raw_put_value(Stream, Element, !State),
+raw_put_elements(_, _, [], !State).
+raw_put_elements(Stream, AllowInfinities, [Element], !State) :-
+    raw_put_value(Stream, AllowInfinities, Element, !State).
+raw_put_elements(Stream, AllowInfinities, [Element, NextElement | Elements],
+        !State) :-
+    raw_put_value(Stream, AllowInfinities, Element, !State),
     put(Stream, (','), !State),
-    raw_put_elements(Stream, [NextElement | Elements], !State).
+    raw_put_elements(Stream, AllowInfinities, [NextElement | Elements],
+        !State).
 
 %-----------------------------------------------------------------------------%
 
@@ -237,15 +245,24 @@ put_hex_digits(Stream, Int, !State) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred put_number(Stream::in, float::in, State::di, State::uo) is det
+:- pred put_number(Stream::in, allow_infinities::in, float::in,
+    State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-put_number(Stream, Number, !State) :-
-    ( if is_nan_or_inf(Number) then
+put_number(Stream, AllowInfinities, Number, !State) :-
+    ( if is_nan(Number) then
         throw(non_finite_number_error)
+    else if is_inf(Number) then
+        (
+            AllowInfinities = allow_infinities,
+            NumberStr = ( if Number < 0.0 then "-Infinity" else "Infinity" )
+        ;
+            AllowInfinities = do_not_allow_infinities,
+            throw(non_finite_number_error)
+        )
     else if
         % Ensure the call to floor_to_int/1 below won't abort in the C#
         % or Java grades.
@@ -265,18 +282,18 @@ put_number(Stream, Number, !State) :-
 
 %-----------------------------------------------------------------------------%
 
-pretty_put_value(Stream, Value, !State) :-
-    do_pretty_put_json(Stream, 0, Value, !State),
+pretty_put_value(Stream, AllowInfinities, Value, !State) :-
+    do_pretty_put_json(Stream, AllowInfinities, 0, Value, !State),
     put(Stream, "\n", !State).
 
-:- pred do_pretty_put_json(Stream::in, int::in, json.value::in,
-    State::di, State::uo) is det
+:- pred do_pretty_put_json(Stream::in, allow_infinities::in, int::in,
+    json.value::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-do_pretty_put_json(Stream, N, Value, !State) :-
+do_pretty_put_json(Stream, AllowInfinities, N, Value, !State) :-
     (
         Value = null,
         put(Stream, "null", !State)
@@ -294,12 +311,13 @@ do_pretty_put_json(Stream, N, Value, !State) :-
         put_string_literal(Stream, String, !State)
     ;
         Value = number(Number),
-        put_number(Stream, Number, !State)
+        put_number(Stream, AllowInfinities, Number, !State)
     ;
         Value = object(MembersMap),
         put(Stream, "{\n", !State),
         MembersList = map.to_assoc_list(MembersMap),
-        pretty_put_members(Stream, N + 2, MembersList, !State),
+        pretty_put_members(Stream, AllowInfinities, N + 2, MembersList,
+            !State),
         indent(Stream, N, !State),
         put(Stream, "}", !State)
     ;
@@ -310,58 +328,61 @@ do_pretty_put_json(Stream, N, Value, !State) :-
         ;
             Elements = [_ | _],
             put(Stream, "[\n", !State),
-            pretty_put_elements(Stream, N + 2, Elements, !State),
+            pretty_put_elements(Stream, AllowInfinities, N + 2, Elements,
+                !State),
             indent(Stream, N, !State),
             put(Stream, "]", !State)
         )
     ).
 
-:- pred pretty_put_members(Stream::in, int::in,
+:- pred pretty_put_members(Stream::in, allow_infinities::in, int::in,
     assoc_list(string, json.value)::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-pretty_put_members(_, _, [], !State).
-pretty_put_members(Stream, N, [Member], !State) :-
-    pretty_put_member(Stream, N, Member, "\n", !State).
-pretty_put_members(Stream, N, [Member | Members @ [_ | _]], !State) :-
-    pretty_put_member(Stream, N, Member, ",\n", !State),
-    pretty_put_members(Stream, N, Members, !State).
+pretty_put_members(_, _, _, [], !State).
+pretty_put_members(Stream, AllowInfinities, N, [Member], !State) :-
+    pretty_put_member(Stream, AllowInfinities, N, Member, "\n", !State).
+pretty_put_members(Stream, AllowInfinities, N, [Member | Members @ [_ | _]],
+        !State) :-
+    pretty_put_member(Stream, AllowInfinities, N, Member, ",\n", !State),
+    pretty_put_members(Stream, AllowInfinities, N, Members, !State).
 
-:- pred pretty_put_member(Stream::in, int::in,
+:- pred pretty_put_member(Stream::in, allow_infinities::in, int::in,
     pair(string, json.value)::in, string::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-pretty_put_member(Stream, N, KeyAndValue, Suffix, !State) :-
+pretty_put_member(Stream, AllowInfinities, N, KeyAndValue, Suffix, !State) :-
     KeyAndValue = Key - Value,
     indent(Stream, N, !State),
     put_string_literal(Stream, Key, !State),
     put(Stream, " : ", !State),
-    do_pretty_put_json(Stream, N, Value, !State),
+    do_pretty_put_json(Stream, AllowInfinities, N, Value, !State),
     put(Stream, Suffix, !State).
 
-:- pred pretty_put_elements(Stream::in, int::in,
+:- pred pretty_put_elements(Stream::in, allow_infinities::in, int::in,
     list(json.value)::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-pretty_put_elements(_, _, [], !State).
-pretty_put_elements(Stream, N, [Value], !State) :-
+pretty_put_elements(_, _, _, [], !State).
+pretty_put_elements(Stream, AllowInfinities, N, [Value], !State) :-
     indent(Stream, N, !State),
-    do_pretty_put_json(Stream, N, Value, !State),
+    do_pretty_put_json(Stream, AllowInfinities, N, Value, !State),
     put(Stream, "\n", !State).
-pretty_put_elements(Stream, N, [Value | Values @ [_ | _]], !State) :-
+pretty_put_elements(Stream, AllowInfinities, N, [Value | Values @ [_ | _]],
+        !State) :-
     indent(Stream, N, !State),
-    do_pretty_put_json(Stream, N, Value, !State),
+    do_pretty_put_json(Stream, AllowInfinities, N, Value, !State),
     put(Stream, ",\n", !State),
-    pretty_put_elements(Stream, N, Values, !State).
+    pretty_put_elements(Stream, AllowInfinities, N, Values, !State).
 
 :- pred indent(Stream::in, int::in, State::di, State::uo) is det
     <= (

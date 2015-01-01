@@ -45,7 +45,7 @@ main(!IO) :-
         % Set up the writer to pretty print the JSON output.
         %
         io.stdout_stream(Stdout, !IO),
-        WriterParams = writer_params(pretty),
+        WriterParams = writer_params(pretty, do_not_allow_infinities),
         Writer = json.init_writer(Stdout, WriterParams),
         json.put_value(Writer, Value, !IO)
     ;

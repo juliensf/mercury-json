@@ -11,6 +11,7 @@ FEATURES
 - conforms to RFC 7159
 - optionally allows comments in JSON
 - optionally allows trailing commas in JSON objects and arrays
+- optionally allows numbers to be -Infinity / Infinity
 - user-configurable behaviour for handling repeated members in objects
 
 

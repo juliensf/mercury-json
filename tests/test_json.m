@@ -152,24 +152,31 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
     % defined by the override_default_params/4 predicate.
     ( if
         override_default_params(BaseFileName, AllowComments0,
-        AllowTrailingCommas0, AllowRepeatedMembers0)
+        AllowTrailingCommas0, AllowRepeatedMembers0, AllowInfinities0)
     then
         AllowComments = AllowComments0,
         AllowTrailingCommas = AllowTrailingCommas0,
-        AllowRepeatedMembers = AllowRepeatedMembers0
+        AllowRepeatedMembers = AllowRepeatedMembers0,
+        AllowInfinities = AllowInfinities0
     else
         % The default JSON reader parameters for the tests.
         AllowComments = allow_comments,
         AllowTrailingCommas = do_not_allow_trailing_commas,
-        AllowRepeatedMembers = do_not_allow_repeated_members
+        AllowRepeatedMembers = do_not_allow_repeated_members,
+        AllowInfinities = do_not_allow_infinities
     ),
     ReaderParams = reader_params(
         AllowComments,
         AllowTrailingCommas,
-        AllowRepeatedMembers
+        AllowRepeatedMembers,
+        AllowInfinities
     ),
     Reader = json.init_reader(Input, ReaderParams),
-    Writer = json.init_writer(Output),
+    WriterParams = writer_params(
+        compact,
+        AllowInfinities
+    ),
+    Writer = json.init_writer(Output, WriterParams),
     json.read_value(Reader, Result, !IO),
     (
         Result = ok(Value),
@@ -186,12 +193,24 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
 
 :- pred override_default_params(string::in,
     allow_comments::out, allow_trailing_commas::out,
-    allow_repeated_members::out) is semidet.
+    allow_repeated_members::out,
+    allow_infinities::out) is semidet.
 
-override_default_params("repeated_member_first", allow_comments,
-    do_not_allow_trailing_commas, allow_repeated_members_keep_first).
-override_default_params("repeated_member_last", allow_comments,
-    do_not_allow_trailing_commas, allow_repeated_members_keep_last).
+override_default_params("repeated_member_first",
+    allow_comments,
+    do_not_allow_trailing_commas,
+    allow_repeated_members_keep_first,
+    do_not_allow_infinities).
+override_default_params("repeated_member_last",
+    allow_comments,
+    do_not_allow_trailing_commas,
+    allow_repeated_members_keep_last,
+    do_not_allow_infinities).
+override_default_params("infinity",
+    allow_comments,
+    do_not_allow_trailing_commas,
+    allow_repeated_members_keep_last,
+    allow_infinities).
 
 %-----------------------------------------------------------------------------%
 

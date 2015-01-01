@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2014 Julien Fischer.
+% Copyright (C) 2013-2015 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -103,6 +103,14 @@ get_token(Reader, Token, !State) :-
             Buffer = Reader ^ json_char_buffer,
             char_buffer.add(Buffer, Char, !State),
             get_number(Reader, Buffer, Token, !State),
+            char_buffer.reset(Buffer, !State)
+        else if
+            Char = ('I'),
+            Reader ^ json_infinities = allow_infinities
+        then
+            Buffer = Reader ^ json_char_buffer,
+            char_buffer.add(Buffer, Char, !State),
+            get_infinity(Reader, Buffer, Token, !State),
             char_buffer.reset(Buffer, !State)
         else if
             ( Char = 'n'
@@ -483,6 +491,12 @@ get_negative_number(Reader, Buffer, Token, !State) :-
         ( if char.is_digit(Char) then
             char_buffer.add(Buffer, Char, !State),
             get_number(Reader, Buffer, Token, !State)
+        else if
+            Char = ('I'),
+            Reader ^ json_infinities = allow_infinities
+        then
+            char_buffer.add(Buffer, Char, !State),
+            get_infinity(Reader, Buffer, Token, !State)
         else
             make_error_context(Reader, Context, !State),
             Error = json_error(Context, illegal_negation(Char)),
@@ -704,6 +718,41 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
         Error = stream_error(StreamError),
         Result = error(Error)
     ).
+
+%-----------------------------------------------------------------------------%
+
+:- pred get_infinity(json.reader(Stream)::in, char_buffer::in,
+    token(Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+get_infinity(Reader, Buffer, Token, !State) :-
+    get_keyword_chars(Reader, Buffer, Result, !State),
+    (
+        Result = ok,
+        InfinityStr = char_buffer.to_string(Buffer, !.State),
+        ( if InfinityStr = "Infinity" then
+            Token = token_number(positive_infinity)
+        else if InfinityStr = "-Infinity" then
+            Token = token_number(-positive_infinity)
+        else
+            make_syntax_error(Reader, InfinityStr, no, Error, !State),
+            Token = token_error(Error)
+        )
+    ;
+        Result = error(StreamError),
+        Error = stream_error(StreamError),
+        Token = token_error(Error)
+    ).
+
+    % XXX For compatibility with Mercury 14.01.1 we get infinity this way.
+    % With later versions we would just use float.infinity/0.
+    %
+:- func positive_infinity = float.
+
+positive_infinity = float.max + float.max.
 
 %-----------------------------------------------------------------------------%
 
