@@ -1,7 +1,7 @@
 # Mercury-JSON
 
-'mercury_json' is a Mercury library for reading and writing
-[JSON](http://www.json.org) from character streams.
+'mercury_json' is a [Mercury](http://www.mercurylang.org) library for reading
+and writing [JSON](http://www.json.org) from character streams.
 
 
 ## FEATURES
