@@ -6,7 +6,7 @@
 
 ## FEATURES
 
-* conforms to RFC 7159
+* conforms to [RFC 7159](http://www.rfc-editor.org/rfc/rfc7159.txt)
 * optionally allows comments in JSON
 * optionally allows trailing commas in JSON objects and arrays
 * optionally allows numbers to be -Infinity / Infinity
