@@ -242,7 +242,7 @@
     --->    allow_trailing_commas
     ;       do_not_allow_trailing_commas.
     
-    % Should the extensiont that allows -Infinity and Infinity as numbers
+    % Should the extension that allows -Infinity and Infinity as numbers
     % be enabled?
     %
 :- type json.allow_infinities
@@ -266,7 +266,7 @@
 
     % init_reader(Stream) = Reader:
     % Reader is a new JSON reader using Stream as a character stream and using
-    % the default reader parameters.  With the default parameters teh reader
+    % the default reader parameters.  With the default parameters the reader
     % will conform to the RFC 7159 definition of JSON.
     %
 :- func init_reader(Stream) = json.reader(Stream)
@@ -509,6 +509,36 @@
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
+
+%-----------------------------------------------------------------------------%
+%
+% Writing JSON to file streams.
+%
+
+% The following convenience predicate can be used to write JSON values to text
+% output streams.
+
+    % Write a JSON value to the current output stream using the compact output
+    % style.
+    %
+:- pred write_compact(value::in, io::di, io::uo) is det.
+
+    % Write a JSON value to the current output stream using the pretty output
+    % style.
+    %
+:- pred write_pretty(value::in, io::di, io::uo) is det.
+
+    % Write a JSON value to the specified output stream using the compact
+    % output style.
+    %
+:- pred write_compact(io.text_output_stream::in, value::in,
+    io::di, io::uo) is det.
+
+    % Write a JSON value to the specified output stream using the pretty output
+    % style.
+    %
+:- pred write_pretty(io.text_output_stream::in, value::in,
+    io::di, io::uo) is det.
 
 %-----------------------------------------------------------------------------%
 %
@@ -901,6 +931,29 @@ put_comment(Writer, Comment, !State) :-
         Comment = comment_multiline(String),
         writer.put_multiline_comment(Stream, String, !State)
     ).
+
+%-----------------------------------------------------------------------------%
+%
+% Writing JSON values to file streams.
+%
+
+write_compact(Value, !IO) :-
+    io.stdout_stream(Stdout, !IO),
+    write_compact(Stdout, Value, !IO).
+
+write_pretty(Value, !IO) :-
+    io.stdout_stream(Stdout, !IO),
+    write_pretty(Stdout, Value, !IO).
+
+write_compact(File, Value, !IO) :-
+    Params = writer_params(compact, do_not_allow_infinities),
+    Writer = init_writer(File, Params),
+    put_value(Writer, Value, !IO).
+
+write_pretty(File, Value, !IO) :-
+    Params = writer_params(pretty, do_not_allow_infinities),
+    Writer = init_writer(File, Params),
+    put_value(Writer, Value, !IO).
 
 %-----------------------------------------------------------------------------%
 %
