@@ -264,21 +264,23 @@
             % If any object members are repeated, keep the last one that we
             % encounter and discard any others.
 
-    % init_reader(Stream) = Reader:
+    % init_reader(Stream, Reader, !State):
     % Reader is a new JSON reader using Stream as a character stream and using
     % the default reader parameters.  With the default parameters the reader
     % will conform to the RFC 7159 definition of JSON.
     %
-:- func init_reader(Stream) = json.reader(Stream)
+:- pred init_reader(Stream::in, reader(Stream)::out, State::di, State::uo)
+        is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-    % init_reader(Stream, Parameters) = Reader:
+    % init_reader(Stream, Parameters, Reader, !State):
     % As above, but allow reader parameters to be set by the caller.
     %
-:- func init_reader(Stream, reader_params) = json.reader(Stream)
+:- pred init_reader(Stream::in, reader_params::in, reader(Stream)::out,
+        State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -473,18 +475,24 @@
 :- type json.non_finite_number_error
     --->    non_finite_number_error.
 
-    % init_writer(Stream) = Writer:
+    % init_writer(Stream, Writer, !State):
     % Writer is a new JSON writer that writes JSON values to Stream.
     %
-:- func init_writer(Stream) = json.writer(Stream)
+:- pred init_writer(Stream::in, writer(Stream)::out, State::di, State::uo)
+        is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-    % init_writer(Stream, Parameters) = Writer:
+    % init_writer(Stream, Parameters, Writer, !State):
     %
-:- func init_writer(Stream, writer_params) = json.writer(Stream).
+:- pred init_writer(Stream::in, writer_params::in, writer(Stream)::out,
+        State::di, State::uo) is det
+    <= (
+        stream.writer(Stream, char, State),
+        stream.writer(Stream, string, State)
+    ).
 
     % put_value(Writer, Value, !State):
     % Write the JSON value Value using the given Writer.
@@ -697,7 +705,7 @@
                 json_char_buffer      :: char_buffer
             ).
 
-init_reader(Stream) = Reader :-
+init_reader(Stream, Reader, !State) :-
     promise_pure (
         impure new_mutvar(0, ColNumVar),
         impure char_buffer.init(CharBuffer),
@@ -709,10 +717,11 @@ init_reader(Stream) = Reader :-
             do_not_allow_infinities,
             ColNumVar,
             CharBuffer
-        )
+        ),
+        !:State = !.State
     ).
 
-init_reader(Stream, Params) = Reader :-
+init_reader(Stream, Params, Reader, !State) :-
     Params = reader_params(
         AllowComments,
         AllowTrailingCommas,
@@ -730,7 +739,8 @@ init_reader(Stream, Params) = Reader :-
             AllowInfinities,
             ColNumVar,
             CharBuffer
-        )
+        ),
+        !:State = !.State
     ).
 
 %-----------------------------------------------------------------------------%
@@ -903,10 +913,10 @@ array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
                 json_output_infinities :: allow_infinities
             ).
 
-json.init_writer(Stream) =
-    json_writer(Stream, compact, do_not_allow_infinities).
+json.init_writer(Stream, Writer, !State) :-
+    Writer = json_writer(Stream, compact, do_not_allow_infinities).
 
-json.init_writer(Stream, Parameters) = Writer :-
+json.init_writer(Stream, Parameters, Writer, !State) :-
     Parameters = writer_params(OutputStyle, AllowInfinities),
     Writer = json_writer(Stream, OutputStyle, AllowInfinities).
 
@@ -947,12 +957,12 @@ write_pretty(Value, !IO) :-
 
 write_compact(File, Value, !IO) :-
     Params = writer_params(compact, do_not_allow_infinities),
-    Writer = init_writer(File, Params),
+    init_writer(File, Params, Writer, !IO),
     put_value(Writer, Value, !IO).
 
 write_pretty(File, Value, !IO) :-
     Params = writer_params(pretty, do_not_allow_infinities),
-    Writer = init_writer(File, Params),
+    init_writer(File, Params, Writer, !IO),
     put_value(Writer, Value, !IO).
 
 %-----------------------------------------------------------------------------%
@@ -1284,7 +1294,7 @@ lookup_int(Object, Member) = Int :-
 to_string(Value) = String :-
     some [!State] (
         !:State = builder.init,
-        Writer = json.init_writer(handle),
+        json.init_writer(handle, Writer, !State),
         json.put_value(Writer, Value, !State),
         String = builder.to_string(!.State)
     ).
@@ -1293,7 +1303,7 @@ from_string(String, Value) :-
     some [!State] (
         init_string_state(!:State),
         init_string_reader(no, String, StringReader, !State),
-        Reader = json.init_reader(StringReader),
+        json.init_reader(StringReader, Reader, !State),
         json.read_value(Reader, Result, !.State, _)
     ),
     require_complete_switch [Result] (

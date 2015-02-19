@@ -31,7 +31,7 @@ main(!IO) :-
     % Initialise a JSON reader and attach it to the standard input stream.
     %
     io.stdin_stream(Stdin, !IO),
-    Reader = json.init_reader(Stdin),
+    json.init_reader(Stdin, Reader, !IO),
 
     % Ask the reader to get a JSON value from the standard input stream.
     %
@@ -46,7 +46,7 @@ main(!IO) :-
         %
         io.stdout_stream(Stdout, !IO),
         WriterParams = writer_params(pretty, do_not_allow_infinities),
-        Writer = json.init_writer(Stdout, WriterParams),
+        json.init_writer(Stdout, WriterParams, Writer, !IO),
         json.put_value(Writer, Value, !IO)
     ;
         (

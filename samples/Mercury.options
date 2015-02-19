@@ -1,0 +1,1 @@
+MCFLAGS-json.unmarshal = --no-warn-obsolete

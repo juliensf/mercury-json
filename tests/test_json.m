@@ -171,12 +171,12 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
         AllowRepeatedMembers,
         AllowInfinities
     ),
-    Reader = json.init_reader(Input, ReaderParams),
+    json.init_reader(Input, ReaderParams, Reader, !IO),
     WriterParams = writer_params(
         compact,
         AllowInfinities
     ),
-    Writer = json.init_writer(Output, WriterParams),
+    json.init_writer(Output, WriterParams, Writer, !IO),
     json.read_value(Reader, Result, !IO),
     (
         Result = ok(Value),
