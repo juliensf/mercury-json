@@ -211,6 +211,20 @@
 
 :- func lookup_int(object, string) = int.
 
+    % search_<type>(Object, Member, DefaultValue) = Value:
+    % Lookup Member in Object nd return the underlying value if it is a JSON
+    % value of the type specified by the predicate name.  Calls error/1 if the
+    % member value is not a JSON value of the type specified by the predicate
+    % name.  If Member is not a member of object, return DefaultValue.
+    %
+:- func search_bool(object, string, bool) = bool.
+:- func search_string(object, string, string) = string.
+:- func search_number(object, string, float) = float.
+:- func search_object(object, string, object) = object.
+:- func search_array(object, string, array) = array.
+
+:- func search_int(object, string, int) = int.
+
 %-----------------------------------------------------------------------------%
 %
 % JSON reader.
@@ -1288,6 +1302,42 @@ lookup_array(Object, Member) = Array :-
 lookup_int(Object, Member) = Int :-
     Value = lookup(Object, Member),
     Int = det_get_int(Value).
+
+search_bool(Object, Member, Default) = Bool :-
+    ( if map.search(Object, Member, Value)
+    then Bool = det_get_bool(Value)
+    else Bool = Default
+    ).
+
+search_string(Object, Member, Default) = String :-
+    ( if map.search(Object, Member, Value)
+    then String = det_get_string(Value)
+    else String = Default
+    ).
+
+search_number(Object, Member, Default) = Number :-
+    ( if map.search(Object, Member, Value)
+    then Number = det_get_number(Value)
+    else Number = Default
+    ).
+
+search_object(Object, Member, Default) = ObjectPrime :-
+    ( if map.search(Object, Member, Value)
+    then ObjectPrime = det_get_object(Value)
+    else ObjectPrime = Default
+    ).
+
+search_array(Object, Member, Default) = Array :-
+    ( if map.search(Object, Member, Value)
+    then Array = det_get_array(Value)
+    else Array = Default
+    ).
+    
+search_int(Object, Member, Default) = Int :-
+    ( if map.search(Object, Member, Value)
+    then Int = det_get_int(Value)
+    else Int = Default
+    ).
 
 %-----------------------------------------------------------------------------%
 
