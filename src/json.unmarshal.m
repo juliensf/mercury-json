@@ -292,7 +292,7 @@ to_bool_type(Value) = Result :-
 to_integer_type(Value) = Result :-
     (
         Value = string(String),
-        ( if Integer = integer.from_string(String)
+        ( if Integer : integer = integer.from_string(String)
         then Result = ok(univ(Integer))
         else Result = error("string is not an integer/0")
         )
