@@ -15,14 +15,27 @@
 
 %-----------------------------------------------------------------------------%
 
+:- import_module array.
 :- import_module assoc_list.
 :- import_module bool.
+:- import_module bimap.
+:- import_module bitmap.
+:- import_module calendar.
 :- import_module char.
+:- import_module cord.
+:- import_module integer.
 :- import_module io.
 :- import_module list.
 :- import_module map.
 :- import_module maybe.
+:- import_module pair.
+:- import_module set_bbbtree.
+:- import_module set_ctree234.
+:- import_module set_ordlist.
+:- import_module set_tree234.
+:- import_module set_unordlist.
 :- import_module stream.
+:- import_module version_array.
 
 %-----------------------------------------------------------------------------%
 %
@@ -658,17 +671,71 @@
 %
 %-----------------------------------------------------------------------------%
 
-    % from_type(Type) = MaybeValue:
-    % MaybeValue = 'ok(Value)' if Type is a Mercury term corresponding
-    % to the JSON value Value and 'error(...)' otherwise.
+:- typeclass to_json(T) where [
+    func to_json(T) = json.value
+].
+
+:- instance to_json(int).
+:- instance to_json(float).
+:- instance to_json(string).
+:- instance to_json(char).
+:- instance to_json(bool).
+:- instance to_json(integer).
+:- instance to_json(date_time).
+:- instance to_json(duration).
+:- instance to_json(pair(A, B)) <= (to_json(A), to_json(B)).
+:- instance to_json(list(T)) <= to_json(T).
+:- instance to_json(cord(T)) <= to_json(T).
+:- instance to_json(array(T)) <= to_json(T).
+:- instance to_json(version_array(T)) <= to_json(T).
+:- instance to_json(bitmap).
+:- instance to_json(set_ordlist(T)) <= to_json(T).
+:- instance to_json(set_unordlist(T)) <= to_json(T).
+:- instance to_json(set_tree234(T)) <= to_json(T).
+:- instance to_json(set_ctree234(T)) <= to_json(T).
+:- instance to_json(set_bbbtree(T)) <= to_json(T).
+:- instance to_json(maybe(T)) <= to_json(T).
+:- instance to_json(map(K, V)) <= (to_json(K), to_json(V)).
+:- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)).
+
+    % from_type(Type) = Value:
     %
-:- func from_type(T) = maybe_error(json.value).
+:- func from_type(T) = json.value <= to_json(T).
+
+%-----------------------------------------------------------------------------%
+
+:- typeclass from_json(T) where [
+    func from_json(json.value) = maybe_error(T)
+].
+
+:- instance from_json(int).
+:- instance from_json(float).
+:- instance from_json(char).
+:- instance from_json(string).
+:- instance from_json(bool).
+:- instance from_json(integer).
+:- instance from_json(date_time).
+:- instance from_json(duration).
+:- instance from_json(pair(A, B)) <= (from_json(A), from_json(B)).
+:- instance from_json(list(T)) <= from_json(T).
+:- instance from_json(cord(T)) <= from_json(T).
+:- instance from_json(array(T)) <= from_json(T).
+:- instance from_json(version_array(T)) <= from_json(T).
+:- instance from_json(bitmap).
+:- instance from_json(set_ordlist(T)) <= from_json(T).
+:- instance from_json(set_unordlist(T)) <= from_json(T).
+:- instance from_json(set_tree234(T)) <= from_json(T).
+:- instance from_json(set_ctree234(T)) <= from_json(T).
+:- instance from_json(set_bbbtree(T)) <= from_json(T).
+:- instance from_json(maybe(T)) <= from_json(T).
+:- instance from_json(map(K, V)) <= (from_json(K), from_json(V)).
+:- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)).
 
     % to_type(Value) = MaybeType:
     % MaybeType is 'ok(Type)' if Value is a JSON object corresponding
     % to the Mercury value Type and 'error(...)' otherwise.
     %
-:- func to_type(json.value) = maybe_error(T).
+:- func to_type(json.value) = maybe_error(T) <= from_json(T).
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
@@ -984,8 +1051,145 @@ write_pretty(File, Value, !IO) :-
 % Marshaling / Unmarshaling.
 %
 
-from_type(T) = marshal_from_type(T).
-to_type(V) = unmarshal_to_type(V).
+from_type(T) = to_json(T).
+
+:- instance to_json(int) where [
+    func(to_json/1) is json.marshal.int_to_json
+].
+:- instance to_json(float) where [
+    func(to_json/1) is json.marshal.float_to_json
+].
+:- instance to_json(char) where [
+    func(to_json/1) is json.marshal.char_to_json
+].
+:- instance to_json(string) where [
+    func(to_json/1) is json.marshal.string_to_json
+].
+:- instance to_json(bool) where [
+    func(to_json/1) is json.marshal.bool_to_json
+].
+:- instance to_json(integer) where [
+    func(to_json/1) is json.marshal.integer_to_json
+].
+:- instance to_json(date_time) where [
+    func(to_json/1) is json.marshal.date_time_to_json
+].
+:- instance to_json(duration) where [
+    func(to_json/1) is json.marshal.duration_to_json
+].
+:- instance to_json(pair(A, B)) <= (to_json(A), to_json(B)) where [
+    func(to_json/1) is json.marshal.pair_to_json
+].
+:- instance to_json(list(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.list_to_json
+].
+:- instance to_json(cord(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.cord_to_json
+].
+:- instance to_json(array(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.array_to_json
+].
+:- instance to_json(version_array(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.version_array_to_json
+].
+:- instance to_json(bitmap) where [
+    func(to_json/1) is json.marshal.bitmap_to_json
+].
+:- instance to_json(set_ordlist(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.set_ordlist_to_json
+].
+:- instance to_json(set_unordlist(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.set_unordlist_to_json
+].
+:- instance to_json(set_tree234(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.set_tree234_to_json
+].
+:- instance to_json(set_ctree234(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.set_ctree234_to_json
+].
+:- instance to_json(set_bbbtree(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.set_bbbtree_to_json
+].
+:- instance to_json(maybe(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.maybe_to_json
+].
+:- instance to_json(map(K, V)) <= (to_json(K), to_json(V)) where [
+    func(to_json/1) is json.marshal.map_to_json
+].
+:- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)) where [
+    func(to_json/1) is json.marshal.bimap_to_json
+].
+
+%-----------------------------------------------------------------------------%
+
+:- instance from_json(int) where [
+    func(from_json/1) is json.unmarshal.int_from_json
+].
+:- instance from_json(float) where [
+    func(from_json/1) is json.unmarshal.float_from_json
+].
+:- instance from_json(char) where [
+    func(from_json/1) is json.unmarshal.char_from_json
+].
+:- instance from_json(string) where [
+    func(from_json/1) is json.unmarshal.string_from_json
+].
+:- instance from_json(bool) where [
+    func(from_json/1) is json.unmarshal.bool_from_json
+].
+:- instance from_json(integer) where [
+    func(from_json/1) is json.unmarshal.integer_from_json
+].
+:- instance from_json(date_time) where [
+    func(from_json/1) is json.unmarshal.date_time_from_json
+].
+:- instance from_json(duration) where [
+    func(from_json/1) is json.unmarshal.duration_from_json
+].
+:- instance from_json(pair(A, B)) <= (from_json(A), from_json(B)) where [
+    func(from_json/1) is json.unmarshal.pair_from_json
+].
+:- instance from_json(list(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.list_from_json
+].
+:- instance from_json(cord(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.cord_from_json
+].
+:- instance from_json(array(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.array_from_json
+].
+:- instance from_json(version_array(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.version_array_from_json
+].
+:- instance from_json(bitmap) where [
+    func(from_json/1) is json.unmarshal.bitmap_from_json
+].
+:- instance from_json(set_ordlist(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.set_ordlist_from_json
+].
+:- instance from_json(set_unordlist(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.set_unordlist_from_json
+].
+:- instance from_json(set_tree234(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.set_tree234_from_json
+].
+:- instance from_json(set_ctree234(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.set_ctree234_from_json
+].
+:- instance from_json(set_bbbtree(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.set_bbbtree_from_json
+].
+:- instance from_json(maybe(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.maybe_from_json
+].
+:- instance from_json(map(K, V)) <= (from_json(K), from_json(V)) where [
+    func(from_json/1) is json.unmarshal.map_from_json
+].
+:- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)) where [
+    func(from_json/1) is json.unmarshal.bimap_from_json
+].
+
+to_type(V) = from_json(V).
 
 %-----------------------------------------------------------------------------%
 
