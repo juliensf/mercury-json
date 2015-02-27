@@ -42,158 +42,93 @@ marshal_from_type(Term) = Result :-
     ( if
         dynamic_cast(Term, Int)
     then
-        Number = float.float(Int),
-        Result = ok(number(Number))
+        Result = int_to_json(Int)
     else if
         dynamic_cast(Term, Float)
     then
-        ( if is_nan_or_inf(Float)
-        then Result = error("cannot convert non-finite float to JSON")
-        else Result = ok(number(Float))
-        )
+        Result = float_to_json(Float)
     else if
         dynamic_cast(Term, String)
     then
-        Value = string(String),
-        Result = ok(Value)
+        Result = string_to_json(String)
     else if
         dynamic_cast(Term, Char)
     then
-        Value = string(string.from_char(Char)),
-        Result = ok(Value)
+        Result = char_to_json(Char)
     else if
         dynamic_cast(Term, Bool)
     then
-        Value = bool(Bool),
-        Result = ok(Value)
+        Result = bool_to_json(Bool)
     else if
         dynamic_cast(Term, Integer)
     then
-        IntegerString : string = integer.to_string(Integer),
-        Result = ok(string(IntegerString))
+        Result = integer_to_json(Integer)
     else if
         dynamic_cast(Term, DateTime)
     then
-        Value = string(date_to_string(DateTime)),
-        Result = ok(Value)
+        Result = date_time_to_json(DateTime)
     else if
         dynamic_cast(Term, Duration)
     then
-        Value = string(duration_to_string(Duration)),
-        Result = ok(Value)
+        Result = duration_to_json(Duration)
     else if
         dynamic_cast_to_pair(Term, Pair)
     then
-        Pair = Fst - Snd,
-        FstResult = marshal_from_type(Fst),
-        (
-            FstResult = ok(FstValue),
-            SndResult = marshal_from_type(Snd),
-            (
-                SndResult = ok(SndValue),
-                Object = map.from_assoc_list(
-                    ["fst" - FstValue, "snd" - SndValue]),
-                Value = object(Object),
-                Result = ok(Value)
-            ;
-                SndResult = error(Msg),
-                Result = error(Msg)
-            )
-        ;
-            FstResult = error(Msg),
-            Result = error(Msg)
-        )
+        Result = pair_to_json(Pair)
     else if
         dynamic_cast_to_list(Term, List)
     then
-        list_to_values(List, [], ValuesResult),
-        (
-            ValuesResult = ok(RevValues),
-            list.reverse(RevValues, Values),
-            Result = ok(array(Values))
-        ;
-            ValuesResult = error(Msg),
-            Result = error(Msg)
-        )
+        Result = list_to_json(List)
     else if
         dynamic_cast_to_cord(Term, Cord)
     then
-        List = cord.list(Cord),
-        Result = marshal_from_type(List)
+        Result = cord_to_json(Cord)
     else if
         % NOTE: dynamic_cast_to_array/2 is *not* in the array module's
         % documented interface.
         array.dynamic_cast_to_array(Term, Array)
     then
-        array_to_values(Array, ValuesResult),
-        (
-            ValuesResult = ok(Values),
-            Result = ok(array(Values))
-        ;
-            ValuesResult = error(Msg),
-            Result = error(Msg)
-        )
+        Result = array_to_json(Array)
     else if
         dynamic_cast_to_version_array(Term, VersionArray)
     then
-        version_array_to_values(VersionArray, ValuesResult),
-        (
-            ValuesResult = ok(Values),
-            Result = ok(array(Values))
-        ;
-            ValuesResult = error(Msg),
-            Result = error(Msg)
-        )
+        Result = version_array_to_json(VersionArray)
     else if
         dynamic_cast(Term, Bitmap)
     then
-        String = bitmap.to_string(Bitmap),
-        Result = ok(string(String))
+        Result = bitmap_to_json(Bitmap)
     else if
         dynamic_cast_to_set_ordlist(Term, Set)
     then
-        set_ordlist.to_sorted_list(Set, List),
-        Result = marshal_from_type(List)
+        Result = set_ordlist_to_json(Set)
     else if
         dynamic_cast_to_set_unordlist(Term, Set)
     then
-        set_unordlist.to_sorted_list(Set, List),
-        Result = marshal_from_type(List)
+        Result = set_unordlist_to_json(Set)
     else if
         dynamic_cast_to_set_tree234(Term, Set)
     then
-        set_tree234.to_sorted_list(Set, List),
-        Result = marshal_from_type(List)
+        Result = set_tree234_to_json(Set)
     else if
         dynamic_cast_to_set_ctree234(Term, Set)
     then
-        List = set_ctree234.to_sorted_list(Set),
-        Result = marshal_from_type(List)
+        Result = set_ctree234_to_json(Set)
     else if
         dynamic_cast_to_set_bbbtree(Term, Set)
     then
-        set_bbbtree.to_sorted_list(Set, List),
-        Result = marshal_from_type(List)
+        Result = set_bbbtree_to_json(Set)
     else if
         dynamic_cast_to_maybe(Term, Maybe)
     then
-        (
-            Maybe = no,
-            Result = ok(null)
-        ;
-            Maybe = yes(Arg),
-            Result = marshal_from_type(Arg)
-        )
+        Result = maybe_to_json(Maybe)
     else if
         dynamic_cast_to_map(Term, Map)
     then
-        map.to_assoc_list(Map, KVs),
-        Result = marshal_from_type(KVs)
+        Result = map_to_json(Map)
     else if
         dynamic_cast_to_bimap(Term, Bimap)
     then
-        bimap.to_assoc_list(Bimap, KVs),
-        Result = marshal_from_type(KVs)
+        Result = bimap_to_json(Bimap)
     else if
         TypeDesc = type_of(Term),
         NumFunctors = num_functors(TypeDesc),
@@ -411,6 +346,150 @@ dynamic_cast_to_bimap(X, M) :-
     (_ : KeyType) `has_type` KeyTypeDesc,
     (_ : ValueType) `has_type` ValueTypeDesc,
     dynamic_cast(X, M : bimap(KeyType, ValueType)).
+
+%-----------------------------------------------------------------------------%
+
+:- func int_to_json(int) = maybe_error(json.value).
+:- func float_to_json(float) = maybe_error(json.value).
+:- func string_to_json(string) = maybe_error(json.value).
+:- func char_to_json(char) = maybe_error(json.value).
+:- func bool_to_json(bool) = maybe_error(json.value).
+:- func integer_to_json(integer) = maybe_error(json.value).
+:- func date_time_to_json(date_time) = maybe_error(json.value).
+:- func duration_to_json(duration) = maybe_error(json.value).
+:- func pair_to_json(pair(A, B)) = maybe_error(json.value).
+:- func list_to_json(list(T)) = maybe_error(json.value).
+:- func cord_to_json(cord(T)) = maybe_error(json.value).
+:- func array_to_json(array(T)) = maybe_error(json.value).
+:- func version_array_to_json(version_array(T)) = maybe_error(json.value).
+:- func bitmap_to_json(bitmap) = maybe_error(json.value).
+:- func set_ordlist_to_json(set_ordlist(T)) = maybe_error(json.value).
+:- func set_unordlist_to_json(set_unordlist(T)) = maybe_error(json.value).
+:- func set_tree234_to_json(set_tree234(T)) = maybe_error(json.value).
+:- func set_ctree234_to_json(set_ctree234(T)) = maybe_error(json.value).
+:- func set_bbbtree_to_json(set_bbbtree(T)) = maybe_error(json.value).
+:- func maybe_to_json(maybe(T)) = maybe_error(json.value).
+:- func map_to_json(map(K, V)) = maybe_error(json.value).
+:- func bimap_to_json(bimap(K, V)) = maybe_error(json.value).
+
+int_to_json(Int) = ok(number(float(Int))).
+
+float_to_json(Float) =
+    ( if is_nan_or_inf(Float)
+    then error("cannot convert non-finite float to JSON")
+    else ok(number(Float))
+    ).
+
+string_to_json(String) = ok(string(String)).
+
+char_to_json(Char) = ok(string(string.from_char(Char))).
+
+bool_to_json(Bool) = ok(bool(Bool)).
+
+integer_to_json(Integer) = Result :-
+    IntegerString : string = integer.to_string(Integer),
+    Result = ok(string(IntegerString)).
+
+date_time_to_json(DateTime) = ok(string(date_to_string(DateTime))).
+
+duration_to_json(Duration) = ok(string(duration_to_string(Duration))).
+
+pair_to_json(Pair) = Result :-
+    Pair = Fst - Snd,
+    FstResult = marshal_from_type(Fst),
+    (
+        FstResult = ok(FstValue),
+        SndResult = marshal_from_type(Snd),
+        (
+            SndResult = ok(SndValue),
+            Object = map.from_assoc_list(
+                ["fst" - FstValue, "snd" - SndValue]),
+            Value = object(Object),
+            Result = ok(Value)
+        ;
+            SndResult = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        FstResult = error(Msg),
+        Result = error(Msg)
+    ).
+
+list_to_json(List) = Result :-
+    list_to_values(List, [], ValuesResult),
+    (
+        ValuesResult = ok(RevValues),
+        list.reverse(RevValues, Values),
+        Result = ok(array(Values))
+    ;
+        ValuesResult = error(Msg),
+        Result = error(Msg)
+    ).
+
+cord_to_json(Cord) = Result :-
+    List = cord.list(Cord),
+    Result = list_to_json(List).
+
+array_to_json(Array) = Result :-
+    array_to_values(Array, ValuesResult),
+    (
+        ValuesResult = ok(Values),
+        Result = ok(array(Values))
+    ;
+        ValuesResult = error(Msg),
+        Result = error(Msg)
+    ).
+
+version_array_to_json(VersionArray) = Result :-
+    version_array_to_values(VersionArray, ValuesResult),
+    (
+        ValuesResult = ok(Values),
+        Result = ok(array(Values))
+    ;
+        ValuesResult = error(Msg),
+        Result = error(Msg)
+    ).
+
+bitmap_to_json(Bitmap) = Result :-
+    String = bitmap.to_string(Bitmap),
+    Result = ok(string(String)).
+
+set_ordlist_to_json(Set) = Result :-
+    set_ordlist.to_sorted_list(Set, List),
+    Result = list_to_json(List).
+
+set_unordlist_to_json(Set) = Result :-
+    set_unordlist.to_sorted_list(Set, List),
+    Result = list_to_json(List).
+
+set_tree234_to_json(Set) = Result :-
+    set_tree234.to_sorted_list(Set, List),
+    Result = list_to_json(List).
+
+set_ctree234_to_json(Set) = Result :-
+    List = set_ctree234.to_sorted_list(Set),
+    Result = list_to_json(List).
+
+set_bbbtree_to_json(Set) = Result :-
+    set_bbbtree.to_sorted_list(Set, List),
+    Result = list_to_json(List).
+
+maybe_to_json(Maybe) = Result :-
+    (
+        Maybe = no,
+        Result = ok(null)
+    ;
+        Maybe = yes(Arg),
+        Result = marshal_from_type(Arg)
+    ).
+
+map_to_json(Map) = Result :-
+    map.to_assoc_list(Map, KVs),
+    Result = marshal_from_type(KVs).
+
+bimap_to_json(Bimap) = Result :-
+    bimap.to_assoc_list(Bimap, KVs),
+    Result = marshal_from_type(KVs).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.marshal.
