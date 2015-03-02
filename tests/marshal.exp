@@ -73,49 +73,6 @@ Result Term: pear
        JSON: ["apple","orange","lemon","pear"]
 Result Term: [apple, orange, lemon, pear]
 
- Orig. Term: foo(1, 2, 3)
-       JSON: {"args":[1,2,3],"functor":"foo"}
-Result Term: foo(1, 2, 3)
-
- Orig. Term: bar([1, 2, 3], 4)
-       JSON: {"args":[[1,2,3],4],"functor":"bar"}
-Result Term: bar([1, 2, 3], 4)
-
- Orig. Term: baaz
-       JSON: {"functor":"baaz"}
-Result Term: baaz
-
- Orig. Term: poly1
-       JSON: {"functor":"poly1"}
-Result Term: poly1
-
- Orig. Term: poly2(lemon)
-       JSON: {"args":["lemon"],"functor":"poly2"}
-Result Term: poly2(lemon)
-
- Orig. Term: poly3(apple, orange)
-       JSON: {"args":["apple","orange"],"functor":"poly3"}
-Result Term: poly3(apple, orange)
-
- Orig. Term: 561
-       JSON: {"args":[561],"functor":"univ_cons"}
-Result Term: error: univ_cons/1 is not a ground functor
-
- Orig. Term: '<<foreign>>'
-       JSON: error: cannot convert type 'test_marshal.foreign'/0 to JSON
-
- Orig. Term: existq1
-       JSON: {"functor":"existq1"}
-Result Term: existq1
-
- Orig. Term: existq2(561)
-       JSON: {"args":[561],"functor":"existq2"}
-Result Term: existq2(561)
-
- Orig. Term: existq3(561)
-       JSON: {"args":[561],"functor":"existq3"}
-Result Term: error: existq3/1 is not a ground functor
-
  Orig. Term: yes("foo")
        JSON: "foo"
 Result Term: yes("foo")
@@ -131,18 +88,6 @@ Result Term: apple - orange
  Orig. Term: [1, 2, 3] - [apple, orange, pear]
        JSON: {"fst":[1,2,3],"snd":["apple","orange","pear"]}
 Result Term: [1, 2, 3] - [apple, orange, pear]
-
- Orig. Term: ok(pear)
-       JSON: {"args":["pear"],"functor":"ok"}
-Result Term: ok(pear)
-
- Orig. Term: error("not fruit")
-       JSON: {"args":["not fruit"],"functor":"error"}
-Result Term: error("not fruit")
-
- Orig. Term: error(apple)
-       JSON: {"args":["apple"],"functor":"error"}
-Result Term: error(apple)
 
  Orig. Term: sol([1, 2, 3, 4])
        JSON: [1,2,3,4]

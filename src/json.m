@@ -115,6 +115,13 @@
 
 :- instance stream.error(json.error(Error)) <= stream.error(Error).
 
+    % Exceptions of this type are thrown by some procedures in this mdoule if a
+    % number of infinite magnitude or non-a-number value is encountered.
+    % The argument may contain additional information.
+    %
+:- type json.non_finite_number_error
+    --->    non_finite_number_error(string).
+
 %----------------------------------------------------------------------------%
 %
 % Wrappers for the standard stream result types.
@@ -495,12 +502,6 @@
 :- type json.output_style
     --->    compact
     ;       pretty.
-
-    % Exceptions of this type are thrown by JSON writers if a number with
-    % infinite magnitude or not-a-number value is encountered.
-    %
-:- type json.non_finite_number_error
-    --->    non_finite_number_error.
 
     % init_writer(Stream, Writer, !State):
     % Writer is a new JSON writer that writes JSON values to Stream.

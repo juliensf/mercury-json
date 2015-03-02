@@ -53,7 +53,7 @@ int_to_json(Int) = number(float(Int)).
 
 float_to_json(Float) =
     ( if is_nan_or_inf(Float)
-    then throw(software_error("cannot convert non-finite float to JSON"))
+    then throw(non_finite_number_error("to_json/1"))
     else number(Float)
     ).
 

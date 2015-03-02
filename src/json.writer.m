@@ -254,14 +254,14 @@ put_hex_digits(Stream, Int, !State) :-
 
 put_number(Stream, AllowInfinities, Number, !State) :-
     ( if is_nan(Number) then
-        throw(non_finite_number_error)
+        throw(non_finite_number_error("put_number: nan"))
     else if is_inf(Number) then
         (
             AllowInfinities = allow_infinities,
             NumberStr = ( if Number < 0.0 then "-Infinity" else "Infinity" )
         ;
             AllowInfinities = do_not_allow_infinities,
-            throw(non_finite_number_error)
+            throw(non_finite_number_error("put_number: inf or -inf"))
         )
     else if
         % Ensure the call to floor_to_int/1 below won't abort in the C#

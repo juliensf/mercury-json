@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2014 Julien Fischer.
+% Copyright (C) 2013-2015 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -14,7 +14,7 @@
 
 :- import_module io.
 
-:- pred main(io::di, io::uo) is det.
+:- pred main(io::di, io::uo) is cc_multi.
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
@@ -214,7 +214,7 @@ override_default_params("infinity",
 
 %-----------------------------------------------------------------------------%
 
-:- pred run_marshaling_tests(option_table(option)::in, io::di, io::uo) is det.
+:- pred run_marshaling_tests(option_table(option)::in, io::di, io::uo) is cc_multi.
 
 run_marshaling_tests(OptionTable, !IO) :-
     BaseFileName = "marshal",
