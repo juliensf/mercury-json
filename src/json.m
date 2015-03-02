@@ -115,7 +115,7 @@
 
 :- instance stream.error(json.error(Error)) <= stream.error(Error).
 
-    % Exceptions of this type are thrown by some procedures in this mdoule if a
+    % Exceptions of this type are thrown by some procedures in this module if a
     % number of infinite magnitude or non-a-number value is encountered.
     % The argument may contain additional information.
     %
@@ -595,7 +595,12 @@
 % Marshaling between Mercury types and JSON objects.
 %
 
-% The mapping between Mercury types and JSON is:
+% Marshaling to and from Mercury types and JSON values is handled by making
+% the Mercury types instances of the to_json/1 and from_json/1 type classes.
+%
+% This module provides such instances for Mercury's primitive types and many
+% of the types defined by the standard library.  The mapping between Mercury
+% typs and JSON provided by these instances:
 %
 % Builtin Types
 % -------------
@@ -638,37 +643,9 @@
 % will not necessarily preserve structural equality.  That is, the following
 % may be false:
 %
-%     ok(J) = json.from_type(T),
+%     J = json.from_type(T),
 %     ok(TPrime) = json.to_type(J),
 %     T = TPrime
-%
-% Discriminated Union Types
-% -------------------------
-%
-% Enumeration values are converted into strings.
-%
-% Values of non-enumeration discriminated union types are converted into
-% JSON objects of the form:
-%
-%     {
-%        "functor" : <string>,
-%        "args"    : <array>
-%     }
-%
-% where <string> is the name of the functor and <array> is an array containing
-% the JSON representation of its arguments.   Existentially quantified data
-% constructors cannot be converted from JSON to Mercury.
-%
-% Other Types
-% -----------
-%
-% The following types can not be marshaled to and from JSON.
-%
-% - foreign types
-% - the 'univ' type
-% - higher-order types
-% - the I/O state
-% - the 'store' type
 %
 %-----------------------------------------------------------------------------%
 
