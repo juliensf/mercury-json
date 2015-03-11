@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2014 Julien Fischer.
+% Copyright (C) 2013-2015 Julien Fischer.
 % All rights reserved.
 %
 % Author: Julien Fischer <jfischer@opturion.com>
@@ -21,7 +21,7 @@
 :- func char_to_json(char) = json.value.
 :- func bool_to_json(bool) = json.value.
 :- func integer_to_json(integer) = json.value.
-:- func date_time_to_json(date_time) = json.value.
+:- func date_time_to_json(date) = json.value.
 :- func duration_to_json(duration) = json.value.
 :- func pair_to_json(pair(A, B)) = json.value <= (to_json(A), to_json(B)).
 :- func list_to_json(list(T)) = json.value <= to_json(T).

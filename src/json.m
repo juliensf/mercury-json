@@ -659,7 +659,7 @@
 :- instance to_json(char).
 :- instance to_json(bool).
 :- instance to_json(integer).
-:- instance to_json(date_time).
+:- instance to_json(date).
 :- instance to_json(duration).
 :- instance to_json(pair(A, B)) <= (to_json(A), to_json(B)).
 :- instance to_json(list(T)) <= to_json(T).
@@ -692,7 +692,7 @@
 :- instance from_json(string).
 :- instance from_json(bool).
 :- instance from_json(integer).
-:- instance from_json(date_time).
+:- instance from_json(date).
 :- instance from_json(duration).
 :- instance from_json(pair(A, B)) <= (from_json(A), from_json(B)).
 :- instance from_json(list(T)) <= from_json(T).
@@ -1049,7 +1049,7 @@ from_type(T) = to_json(T).
 :- instance to_json(integer) where [
     func(to_json/1) is json.marshal.integer_to_json
 ].
-:- instance to_json(date_time) where [
+:- instance to_json(date) where [
     func(to_json/1) is json.marshal.date_time_to_json
 ].
 :- instance to_json(duration) where [
@@ -1118,7 +1118,7 @@ from_type(T) = to_json(T).
 :- instance from_json(integer) where [
     func(from_json/1) is json.unmarshal.integer_from_json
 ].
-:- instance from_json(date_time) where [
+:- instance from_json(date) where [
     func(from_json/1) is json.unmarshal.date_time_from_json
 ].
 :- instance from_json(duration) where [
