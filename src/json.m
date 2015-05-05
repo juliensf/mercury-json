@@ -232,10 +232,10 @@
 :- func lookup_int(object, string) = int.
 
     % search_<type>(Object, Member, DefaultValue) = Value:
-    % Lookup Member in Object nd return the underlying value if it is a JSON
+    % Lookup Member in Object and return the underlying value if it is a JSON
     % value of the type specified by the predicate name.  Calls error/1 if the
     % member value is not a JSON value of the type specified by the predicate
-    % name.  If Member is not a member of object, return DefaultValue.
+    % name.  If Member is not a member of Object, return DefaultValue.
     %
 :- func search_bool(object, string, bool) = bool.
 :- func search_string(object, string, string) = string.
