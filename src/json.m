@@ -275,7 +275,7 @@
 :- type json.allow_trailing_commas
     --->    allow_trailing_commas
     ;       do_not_allow_trailing_commas.
-    
+
     % Should the extension that allows -Infinity and Infinity as numbers
     % be enabled?
     %
@@ -598,9 +598,9 @@
 % Marshaling to and from Mercury types and JSON values is handled by making
 % the Mercury types instances of the to_json/1 and from_json/1 type classes.
 %
-% This module provides such instances for Mercury's primitive types and many
-% of the types defined by the standard library.  The mapping between Mercury
-% typs and JSON provided by these instances:
+% This module provides instances of these type classes for Mercury's primitive
+% types and many of the types defined by the standard library.  The mapping
+% between these types and JSON is as follows:
 %
 % Builtin Types
 % -------------
@@ -621,7 +621,7 @@
 %     Mercury Type      JSON
 %     ------------      ----
 %     array/1           array
-%     bool/0            Boolean 
+%     bool/0            Boolean
 %     bimap/2           array of objects (pairs -- see below)
 %     bitmap/0          string (as per bitmap.to_string/1)
 %     cord/1            array
@@ -1429,25 +1429,25 @@ det_get_bool(Value) =
     else func_error("json.det_get_bool: not a JSON Boolean")
     ).
 
-det_get_string(Value) = 
+det_get_string(Value) =
     ( if get_string(Value, String)
     then String
     else func_error("json.det_get_string: not a JSON string")
     ).
 
-det_get_number(Value) = 
+det_get_number(Value) =
     ( if get_number(Value, Number)
     then Number
     else func_error("json.det_get_number: not a JSON number")
     ).
 
-det_get_object(Value) = 
+det_get_object(Value) =
     ( if get_object(Value, Object)
     then Object
     else func_error("json.det_get_object: not a JSON object")
     ).
 
-det_get_array(Value) = 
+det_get_array(Value) =
     ( if get_array(Value, Array)
     then Array
     else func_error("json.get_array: not a JSON array")
@@ -1479,7 +1479,7 @@ lookup_object(Object, Member) = ObjectPrime :-
 
 lookup_array(Object, Member) = Array :-
     Value = lookup(Object, Member),
-    Array = det_get_array(Value). 
+    Array = det_get_array(Value).
 
 lookup_int(Object, Member) = Int :-
     Value = lookup(Object, Member),
@@ -1514,7 +1514,7 @@ search_array(Object, Member, Default) = Array :-
     then Array = det_get_array(Value)
     else Array = Default
     ).
-    
+
 search_int(Object, Member, Default) = Int :-
     ( if map.search(Object, Member, Value)
     then Int = det_get_int(Value)
