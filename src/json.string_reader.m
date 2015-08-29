@@ -2,7 +2,7 @@
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
 % Copyright (C) 2013-2014 Julien Fischer.
-% See the file LICENSE for license details.
+% See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 %
 % This module provides string reader streams, which allow Mercury strings to be
@@ -97,11 +97,11 @@
                 reader_src_length   :: int,
                 reader_mutable_info
                 :: generic_mutvar(reader_mutable_info, string_reader_state)
-            ). 
+            ).
 
 :- type reader_mutable_info
     --->    reader_mutable_info(
-                rmi_line_number :: int,   
+                rmi_line_number :: int,
                 % The current line number.
 
                 rmi_last_index  :: int
@@ -118,7 +118,7 @@ init_string_state(string_reader_state).
 init_string_reader(MaybeName, Src, Reader, !State) :-
     string.length(Src, SrcLen),
     InitLineNum = 1,
-    MutableInfo = reader_mutable_info(InitLineNum, -1),    
+    MutableInfo = reader_mutable_info(InitLineNum, -1),
     store.new_mutvar(MutableInfo, MutableInfoVar, !State),
     Reader = string_reader(MaybeName, Src, SrcLen, MutableInfoVar).
 
@@ -131,7 +131,7 @@ init_string_reader(MaybeName, Src, Reader, !State) :-
 :- instance stream(string_reader, string_reader_state) where [
     ( name(Reader, Name, !State) :-
         MaybeName = Reader ^ reader_maybe_name,
-        ( 
+        (
             MaybeName = yes(Name)
         ;
             MaybeName = no,
@@ -181,7 +181,7 @@ where [
             )
         else
             unexpected($file, $pred, "unget for different character")
-        ), 
+        ),
         LineNumPrime = ( if Char = '\n' then LineNum - 1 else LineNum ),
         MutableInfo = reader_mutable_info(LineNumPrime, LastIndexPrime),
         store.set_mutvar(MutableInfoVar, MutableInfo, !State)

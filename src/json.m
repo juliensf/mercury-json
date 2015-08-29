@@ -1,10 +1,10 @@
-%-----------------------------------------------------------------------------%
+%----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
 % Copyright (C) 2013-2015, Julien Fischer.
-% All rights reserved.
+% See the file COPYING for license details.
 %
-% Author: Julien Fischer <jfischer@opturion.com>
+% Author: Julien Fischer <juliensf@gmail.com>
 %
 % A Mercury library for reading and writing JSON.
 %

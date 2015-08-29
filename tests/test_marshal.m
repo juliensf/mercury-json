@@ -68,7 +68,7 @@ test_marshaling(File, !IO) :-
 
     % Test floats.
     test(File, 3.141, !IO),
-    
+
     % XXX for compatibility with Mercury 14.01.1 we get infinity this way.
     % With later versions we would just use float.infinity/0.
     Infinity = float.max + float.max,
@@ -86,7 +86,7 @@ test_marshaling(File, !IO) :-
     %
     Integer = integer.det_from_string("2365712637126347861237846728356712647827834723847812937812734871293478127"),
     test(File, Integer, !IO),
-   
+
     % Test dates.
     %
     DateA = det_init_date(2000, february, 18, 19, 30, 0, 0),
@@ -97,7 +97,7 @@ test_marshaling(File, !IO) :-
     % Test durations.
     %
     test(File, zero_duration, !IO),
-    
+
     % Test lists.
     test(File, [1, 2, 3], !IO),
 
@@ -171,7 +171,7 @@ test_marshaling(File, !IO) :-
     % Test bitmaps.
     %
     % XXX the bitmap module should provide det_from_string.
-    % 
+    %
     ( if Bitmap = bitmap.from_string("<24:10AFBD>") then
         test(File, Bitmap, !IO)
     else
@@ -180,7 +180,7 @@ test_marshaling(File, !IO) :-
 
     % Test conversion to strings.
     %
-    ToStringTests = [ 
+    ToStringTests = [
         null,
         bool(no),
         bool(yes),

@@ -2,7 +2,7 @@
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
 % Copyright (C) 2013-2015 Julien Fischer.
-% All rights reserved.
+% See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliens@gmail.com>
 %
@@ -287,7 +287,7 @@ array_from_json(Value) = Result :-
         ; Value = object(_)
         ),
         Result = error("expected JSON array for array/1 conversion")
-    ).   
+    ).
 
 %-----------------------------------------------------------------------------%
 %
@@ -316,7 +316,7 @@ version_array_from_json(Value) = Result :-
         ; Value = object(_)
         ),
         Result = error("expected JSON array for version_array/1 conversion")
-    ).   
+    ).
 
 %-----------------------------------------------------------------------------%
 %

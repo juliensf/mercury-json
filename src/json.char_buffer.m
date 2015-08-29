@@ -104,23 +104,23 @@ typedef struct {
     ** Check whether we need to resize the buffer.
     */
     if (Buffer->num_bytes >= Buffer->max_bytes - 5) {
-    
+
         MR_String   new_contents;
         size_t      new_size;
-        
+
         new_size = Buffer->max_bytes * 2;
         new_contents = MR_GC_realloc(Buffer->contents,
             sizeof(char) * new_size);
-        
+
         Buffer->contents = new_contents;
         Buffer->max_bytes = new_size;
 
         #if defined(MJSON_DEBUG_BUFFER)
-            fprintf(stderr, 
+            fprintf(stderr,
                 \"Extending char buffer to %d bytes\\n\", new_size);
         #endif
     }
-     
+
     if (MR_is_ascii(Char)) {
         Buffer->contents[Buffer->num_bytes] = Char;
         Buffer->num_bytes++;

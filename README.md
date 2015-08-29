@@ -46,3 +46,7 @@ To run the regression test suite, do:
 
 The [samples](samples) directory contains some example programs that
 demonstrate different features of the library.
+
+## AUTHOR
+
+Julien Fischer <juliensf@gmail.com>
