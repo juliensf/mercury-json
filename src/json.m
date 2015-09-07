@@ -758,16 +758,12 @@
 :- import_module json.unmarshal.
 :- import_module json.writer.
 
-:- import_module construct.
-:- import_module deconstruct.
 :- import_module int.
 :- import_module float.
 :- import_module mutvar.
-:- import_module pair.
 :- import_module string.
 :- import_module string.builder.
 :- import_module require.
-:- import_module type_desc.
 :- import_module univ.
 
 %-----------------------------------------------------------------------------%
@@ -1429,22 +1425,6 @@ value_desc(array(_)) = "array".
         json.get_value(Reader, Result, !State)
     )
 ].
-
-%-----------------------------------------------------------------------------%
-%
-% Utility predicate for (un)marshaling.
-%
-
-:- pred all_functors_have_arity_zero(type_desc::in, functor_number_lex::in,
-    functor_number_lex::in) is semidet.
-
-all_functors_have_arity_zero(TypeDesc, I, Limit) :-
-    ( if I < Limit then
-        get_functor(TypeDesc, I, _Name, 0, []),
-        all_functors_have_arity_zero(TypeDesc, I + 1, Limit)
-    else
-        true
-    ).
 
 %-----------------------------------------------------------------------------%
 
