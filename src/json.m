@@ -1060,7 +1060,7 @@ put_comment(Writer, Comment, !State) :-
     cast_member_filter_to_pred(A::in, B::out(member_filter)),
     [promise_pure, will_not_call_mercury, thread_safe],
 "
-    B = A;
+    B = A
 ").
 
 %-----------------------------------------------------------------------------%
