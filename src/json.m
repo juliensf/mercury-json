@@ -245,6 +245,17 @@
 
 :- func search_int(object, string, int) = int.
 
+    % search_<type>_or_null(Object, Member, DefaultValue) = Value:
+    % Lookup Member in Object and return the underlying value if it is a JSON
+    % value of the type specified by the predicate name.  If Member is not a
+    % member of Object or if it is null the return DefaultValue.
+    % Calls error/1 if the member value is not a JSON value of the type specified
+    % by the predicate name or null.
+    %
+:- func search_string_or_null(object, string, string) = string.
+:- func search_object_or_null(object, string, object) = object.
+:- func search_array_or_null(object, string, array) = array.
+
 %-----------------------------------------------------------------------------%
 %
 % JSON reader.
@@ -1561,6 +1572,36 @@ search_int(Object, Member, Default) = Int :-
     ( if map.search(Object, Member, Value)
     then Int = det_get_int(Value)
     else Int = Default
+    ).
+
+search_string_or_null(Object, Member, Default) = String :-
+    ( if
+        map.search(Object, Member, Value),
+        Value \= null
+    then
+        String = det_get_string(Value)
+    else
+        String = Default
+    ).
+
+search_object_or_null(Object, Member, Default) = ObjectPrime :-
+    ( if
+        map.search(Object, Member, Value),
+        Value \= null
+    then
+        ObjectPrime = det_get_object(Value)
+    else
+        ObjectPrime = Default
+    ).
+
+search_array_or_null(Object, Member, Default) = Array :-
+    ( if
+        map.search(Object, Member, Value),
+        Value \= null
+    then
+        Array = det_get_array(Value)
+    else
+        Array = Default
     ).
 
 %-----------------------------------------------------------------------------%
