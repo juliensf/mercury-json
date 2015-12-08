@@ -134,12 +134,14 @@ run_test(OptionTable, InputFileName, !IO) :-
             io.close_output(OutputFile, !IO),
             check_result(OptionTable, BaseFileName, !IO)
         ;
-            OpenOutputResult = error(_),
-            unexpected($module, $pred, "cannot open output")
+            OpenOutputResult = error(IO_Error),
+            Msg = io.error_message(IO_Error),
+            unexpected($file, $pred, "cannot open output: " ++ Msg)
         )
     ;
-        OpenInputResult = error(_),
-        unexpected($module, $pred, "cannot open input")
+        OpenInputResult = error(IO_Error),
+        Msg = io.error_message(IO_Error),
+        unexpected($file, $pred, "cannot open input: " ++ Msg)
     ).
 
 :- pred parse_and_output(string::in,
