@@ -522,12 +522,12 @@ get_number(Reader, Buffer, Token, !State) :-
     get_number_chars(Reader, Buffer, DigitsResult, !State),
     (
         DigitsResult = ok,
-        NumberStr = char_buffer.to_string(Buffer, !.State),
-        Number = string.det_to_float(NumberStr),
+        Number = char_buffer.det_to_float(Buffer, !.State),
         ( if is_inf(Number) then
             % XXX the context here is the end of the number.
             % Using the start would probably be better.
             make_error_context(Reader, Context, !State),
+            NumberStr = char_buffer.to_string(Buffer, !.State),
             Error = json_error(Context, non_finite_number(NumberStr)),
             Token = token_error(Error)
         else

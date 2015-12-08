@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2014 Julien Fischer.
+% Copyright (C) 2013-2015 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -18,6 +18,8 @@
 
 :- func char_buffer.to_string(char_buffer::in, S::ui) = (string::out) is det.
 
+:- func char_buffer.det_to_float(char_buffer::in, S::ui) = (float::out) is det.
+
 :- pred char_buffer.last(char_buffer::in, char::out, S::ui) is semidet.
 
 :- pred char_buffer.reset(char_buffer::in, S::di, S::uo) is det.
@@ -30,6 +32,20 @@
 :- import_module mutvar.
 
 %-----------------------------------------------------------------------------%
+
+det_to_float(Buffer, State) = Float :-
+    ( if char_buffer.to_float(Buffer, State, Float0) then
+        Float = Float0
+    else
+        What = char_buffer.to_string(Buffer, State),
+        string.format("buffer does not contain a float: \"%s\"",
+            [s(What)], BadBufferMsg),
+        unexpected($file, $pred, BadBufferMsg)
+    ).
+
+:- pred to_float(char_buffer::in, S::ui, float::out) is semidet.
+
+%-----------------------------------------------------------------------------%
 %
 % C implementation of character buffers.
 %
@@ -39,16 +55,16 @@
 
 :- pragma foreign_decl("C", "
 
+#include ""mercury_float.h""    /* For MR_FLT_FMT. */
 #include ""mercury_memory.h""
 #include ""mercury_string.h""
+
+#include <stdio.h>  /* For sscanf. */
 
 /*
 ** Defining the macro MJSON_DEBUG_BUFFER will cause some debugging traces
 ** to be printed to the standard error.
 */
-#if defined(MJSON_DEBUG_BUFFER)
-    #include <stdio.h>
-#endif
 
 /*
 ** The initial size of the character buffer in bytes.
@@ -140,6 +156,22 @@ typedef struct {
 ").
 
 :- pragma foreign_proc("C",
+    to_float(Buffer::in, _State::ui, Float::out),
+    [promise_pure, will_not_call_mercury, thread_safe, will_not_modify_trail],
+"
+    /*
+    ** NOTE: this code should be kept in sync with the C foreign_proc pragma
+    ** for string.to_float/2.
+    */
+    char    tmpc;
+    Buffer->contents[Buffer->num_bytes] = '\\0';
+    SUCCESS_INDICATOR =
+        (!MR_isspace(Buffer->contents[0])) &&
+        (sscanf(Buffer->contents, MR_FLT_FMT ""%c"", &Float, &tmpc) == 1);
+        /* MR_TRUE if sscanf succeeds, MR_FALSE otherwise */
+").
+
+:- pragma foreign_proc("C",
     last(Buffer::in, Char::out, _State::ui),
     [promise_pure, will_not_call_mercury, thread_safe, will_not_modify_trail],
 "
@@ -193,6 +225,10 @@ to_string(char_buffer(Buffer), _State) = String :-
         BufferRep = char_buffer_rep(RevChars, _),
         String = string.from_rev_char_list(RevChars)
     ).
+
+to_float(Buffer, State, Float) :-
+    FloatStr = char_buffer.to_string(Buffer, State),
+    string.to_float(FloatStr, Float).
 
 last(char_buffer(Buffer), LastChar, _State) :-
     promise_pure (
