@@ -122,6 +122,10 @@ get_token(Reader, Token, !State) :-
             char_buffer.add(Buffer, Char, !State),
             get_keyword(Reader, Buffer, Token, !State),
             char_buffer.reset(Buffer, !State)
+        else if char.to_int(Char, 0) then
+            make_error_context(Reader, Context, !State),
+            Error = json_error(Context, null_character),
+            Token = token_error(Error)
         else
             make_error_context(Reader, Context, !State),
             Error = json_error(Context,
@@ -213,6 +217,11 @@ get_string_chars(Reader, Buffer, Result, !State) :-
             )
         else if Char = '"' then
             Result = ok
+        else if char.to_int(Char, 0) then
+            make_error_context(Reader, Context, !State),
+            ErrorDesc = null_character,
+            Error = json_error(Context, ErrorDesc),
+            Result = error(Error)
         else
             char_buffer.add(Buffer, Char, !State),
             get_string_chars(Reader, Buffer, Result, !State)

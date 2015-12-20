@@ -80,6 +80,8 @@
 
     ;       unpaired_utf16_surrogate
 
+    ;       null_character
+
     ;       illegal_start_character(char)
             % A JSON value begins with an illegal character.
             % One of: '}', ']', ',' or ':'.
@@ -1378,6 +1380,10 @@ make_error_message(Error) = Msg :-
         ;
             ErrorDesc = unpaired_utf16_surrogate,
             string.format("%s: error: unpaired UTF-16 surrogate\n",
+                [s(ContextStr)], Msg)
+        ;
+            ErrorDesc = null_character,
+            string.format("%s: error: null character\n",
                 [s(ContextStr)], Msg)
         ;
             ErrorDesc = illegal_start_character(Char),
