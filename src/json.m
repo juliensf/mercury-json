@@ -258,6 +258,32 @@
 
 %-----------------------------------------------------------------------------%
 %
+% JSON pointers.
+%
+
+:- type json.pointer == string.
+
+:- type json.pointer_result
+    --->    ok(json.value)
+    ;       cannot_resolve_pointer
+    ;       error(pointer_error_desc).
+
+:- type json.pointer_error_desc
+    --->    invalid_first_char(char)
+            % The first character in a non-empty JSON pointer was not '/'.
+            % The argument is the character that was in the first position.
+
+    ;       invalid_array_index(string).
+            % An invalid array index was encountered.
+            % The argument gives the invalid index.
+
+    % resolve(Pointer, Value) = Result:
+    % Return the value in 'Value' that is pointed to by 'Pointer'.
+    %
+:- func json.resolve(pointer, value) = pointer_result.
+
+%-----------------------------------------------------------------------------%
+%
 % JSON reader.
 %
 
@@ -757,6 +783,7 @@
 :- include_module json.json_lexer.
 :- include_module json.json_parser.
 :- include_module json.marshal.
+:- include_module json.pointer.
 :- include_module json.string_reader.
 :- include_module json.unmarshal.
 :- include_module json.writer.
@@ -765,6 +792,7 @@
 :- import_module json.json_lexer.
 :- import_module json.json_parser.
 :- import_module json.marshal.
+:- import_module json.pointer.
 :- import_module json.string_reader.
 :- import_module json.unmarshal.
 :- import_module json.writer.
@@ -1603,6 +1631,11 @@ search_array_or_null(Object, Member, Default) = Array :-
     else
         Array = Default
     ).
+
+%-----------------------------------------------------------------------------%
+
+resolve(Pointer, Value) =
+    pointer.do_resolve(Pointer, Value).
 
 %-----------------------------------------------------------------------------%
 

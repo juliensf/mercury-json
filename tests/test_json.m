@@ -23,6 +23,7 @@
 
 :- import_module json.
 :- import_module test_marshal.
+:- import_module test_pointer.
 
 :- import_module bool.
 :- import_module char.
@@ -56,16 +57,25 @@ main(!IO) :-
                 NonOptionArgs = [],
                 dir.foldl2(gather_json_file, this_directory, [],
                     MaybeGatherResult, !IO),
-                RunMarshalingTests = yes
+                RunMarshalingTests = yes,
+                RunPointerTests = yes
             ;
                 NonOptionArgs = [_ | _],
-                ( if list.member("marshal", NonOptionArgs) then
-                    list.delete_all(NonOptionArgs, "marshal", NonMarshalTests),
-                    MaybeGatherResult = ok(NonMarshalTests),
-                    RunMarshalingTests = yes
-                else
-                    MaybeGatherResult = ok(NonOptionArgs),
-                    RunMarshalingTests = no
+                some [!FilteredArgs] (
+                    !:FilteredArgs = NonOptionArgs,
+                    ( if list.member("marshal", !.FilteredArgs) then
+                        list.delete_all(!.FilteredArgs, "marshal", !:FilteredArgs),
+                        RunMarshalingTests = yes
+                    else
+                        RunMarshalingTests = no
+                    ),
+                    ( if list.member("pointer", !.FilteredArgs) then
+                        list.delete_all(!.FilteredArgs, "pointer", !:FilteredArgs),
+                        RunPointerTests = yes
+                    else
+                        RunPointerTests = no
+                    ),
+                    MaybeGatherResult = ok(!.FilteredArgs)
                 )
             ),
             (
@@ -77,6 +87,12 @@ main(!IO) :-
                     run_marshaling_tests(OptionTable, !IO)
                 ;
                     RunMarshalingTests = no
+                ),
+                (
+                    RunPointerTests = yes,
+                    run_pointer_tests(OptionTable, !IO)
+                ;
+                    RunPointerTests = no
                 )
             ;
                 MaybeGatherResult = error(_, IO_Error),
@@ -225,6 +241,24 @@ run_marshaling_tests(OptionTable, !IO) :-
     (
         MaybeOpenResult = ok(OutputFile),
         test_marshaling(OutputFile, !IO),
+        io.close_output(OutputFile, !IO),
+        check_result(OptionTable, BaseFileName, !IO)
+    ;
+        MaybeOpenResult = error(_),
+        unexpected($file, $pred, "cannot open output")
+    ).
+
+%-----------------------------------------------------------------------------%
+
+:- pred run_pointer_tests(option_table(option)::in, io::di, io::uo) is det.
+
+run_pointer_tests(OptionTable, !IO) :-
+    BaseFileName = "pointer",
+    OutputFileName = BaseFileName ++ ".out",
+    io.open_output(OutputFileName, MaybeOpenResult, !IO),
+    (
+        MaybeOpenResult = ok(OutputFile),
+        test_pointer(OutputFile, !IO),
         io.close_output(OutputFile, !IO),
         check_result(OptionTable, BaseFileName, !IO)
     ;

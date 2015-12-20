@@ -1,0 +1,33 @@
+Testing JSON pointer resolution:
+TEST POINTER: ""
+RESULT: {"":0," ":7,"a\/b":1,"c%d":2,"e^f":3,"foo":["bar","baz"],"g|h":4,"i\\j":5,"k\"l":6,"m~n":8}
+TEST POINTER: "/foo"
+RESULT: ["bar","baz"]
+TEST POINTER: "/foo/0"
+RESULT: "bar"
+TEST POINTER: "/"
+RESULT: 0
+TEST POINTER: "/a~1b"
+RESULT: 1
+TEST POINTER: "/c%d"
+RESULT: 2
+TEST POINTER: "/e^f"
+RESULT: 3
+TEST POINTER: "/g|h"
+RESULT: 4
+TEST POINTER: "/i\j"
+RESULT: 5
+TEST POINTER: "/k"l"
+RESULT: 6
+TEST POINTER: "/ "
+RESULT: 7
+TEST POINTER: "/m~0n"
+RESULT: 8
+TEST POINTER: "/foo/-"
+RESULT: <<cannot resolve pointer>>
+TEST POINTER: "/foo/10"
+RESULT: <<cannot resolve pointer>>
+TEST POINTER: "/bar"
+RESULT: <<cannot resolve pointer>>
+TEST POINTER: "/foo/bar"
+RESULT: <<error: invalid_array_index("bar")>>
