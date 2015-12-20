@@ -751,8 +751,7 @@ get_infinity(Reader, Buffer, Token, !State) :-
             Token = token_error(Error)
         )
     ;
-        Result = error(StreamError),
-        Error = stream_error(StreamError),
+        Result = error(Error),
         Token = token_error(Error)
     ).
 
@@ -784,13 +783,12 @@ get_keyword(Reader, Buffer, Token, !State) :-
             Token = token_error(Error)
         )
     ;
-        Result = error(StreamError),
-        Error = stream_error(StreamError),
+        Result = error(Error),
         Token = token_error(Error)
     ).
 
 :- pred get_keyword_chars(json.reader(Stream)::in, char_buffer::in,
-    stream.res(Error)::out, State::di, State::uo) is det
+    stream.res(json.error(Error))::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
@@ -805,6 +803,11 @@ get_keyword_chars(Reader, Buffer, Result, !State) :-
             update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
             get_keyword_chars(Reader, Buffer, Result, !State)
+        else if char.to_int(Char, 0) then
+            update_column_number(Reader, Char, !State),
+            make_error_context(Reader, Context, !State),
+            Error = json_error(Context, null_character),
+            Result = error(Error)
         else
             stream.unget(Stream, Char, !State),
             Result = ok
@@ -814,7 +817,7 @@ get_keyword_chars(Reader, Buffer, Result, !State) :-
         Result = ok
     ;
         ReadResult = error(Error),
-        Result = error(Error)
+        Result = error(stream_error(Error))
     ).
 
 :- pred is_keyword(string::in, token(Error)::out) is semidet.
