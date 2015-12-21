@@ -1,1 +1,1 @@
-overflow.json:1:5: error: non-finite number: 1e500
+overflow.json:1:4: error: non-finite number: 1e500

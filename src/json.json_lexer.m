@@ -545,10 +545,13 @@ get_number(Reader, Buffer, Token, !State) :-
         DigitsResult = ok,
         Number = char_buffer.det_to_float(Buffer, !.State),
         ( if is_inf(Number) then
-            % XXX the context here is the end of the number.
-            % Using the start would probably be better.
-            make_error_context(Reader, Context, !State),
             NumberStr = char_buffer.to_string(Buffer, !.State),
+            string.count_codepoints(NumberStr, NumCodePoints),
+            make_error_context(Reader, Context0, !State),
+            % Adjust the column number so we are pointing to the beginning
+            % of the number.
+            Context = Context0 ^ column_number :=
+                Context0 ^ column_number - NumCodePoints,
             Error = json_error(Context, non_finite_number(NumberStr)),
             Token = token_error(Error)
         else
