@@ -295,8 +295,7 @@ get_escaped_unicode_char(Reader, Buffer, Result, !State) :-
         HexDigitsResult = ok,
         HexString = string.from_char_list(HexDigits),
         ( if
-            string.base_string_to_int(16, HexString, UnicodeCharCode),
-            UnicodeCharCode \= 0    % Do not allow the null character.
+            string.base_string_to_int(16, HexString, UnicodeCharCode)
         then
             CharCodeClass = classify_code_point(UnicodeCharCode),
             (
@@ -311,6 +310,16 @@ get_escaped_unicode_char(Reader, Buffer, Result, !State) :-
             ;
                 CharCodeClass = code_point_trailing_surrogate,
                 unexpected($file, $pred, "unpaired trailing surrogate")
+            ;
+                CharCodeClass = code_point_null_char,
+                make_error_context(Reader, Context0, !State),
+                % Report the column number for the start of the
+                % Unicode escape, not the end.
+                Context = Context0 ^ column_number :=
+                    Context0 ^ column_number - 5,
+                ErrorDesc = null_character,
+                Error = json_error(Context, ErrorDesc),
+                Result = error(Error)
             ;
                 CharCodeClass = code_point_invalid,
                 make_error_context(Reader, Context, !State),
@@ -371,7 +380,8 @@ get_hex_digits(Reader, !.N, !HexDigits, Result, !State) :-
     --->    code_point_valid
     ;       code_point_invalid
     ;       code_point_leading_surrogate
-    ;       code_point_trailing_surrogate.
+    ;       code_point_trailing_surrogate
+    ;       code_point_null_char.
 
 :- func classify_code_point(int) = code_point_class.
 
@@ -380,8 +390,10 @@ classify_code_point(Code) =
         code_point_leading_surrogate
     else if is_trailing_surrogate(Code) then
         code_point_trailing_surrogate
-    else if  Code > 0, Code =< 0x10FFFF then
+    else if Code > 0, Code =< 0x10FFFF then
         code_point_valid
+    else if Code = 0 then
+        code_point_null_char
     else
         code_point_invalid
     ).

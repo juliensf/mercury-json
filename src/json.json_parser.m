@@ -450,7 +450,7 @@ do_get_array_items(Reader, Where, !.Items, Result, !State) :-
             )
         then
             Result = ok(!.Items)
-        else 
+        else
             TokenDesc = token_to_string(Token),
             Msg = "expected a value",
             make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
