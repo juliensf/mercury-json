@@ -213,9 +213,15 @@ put_string_literal(Stream, String, !State) :-
     ).
 
 escape_and_put_char(Stream, Char, !State) :-
-    ( if escape_char(Char, EscapedCharStr) then
+    ( if
+        escape_char(Char, EscapedCharStr)
+    then
         put(Stream, EscapedCharStr, !State)
-    else if char_is_ascii(Char) then
+    else if
+        char.to_int(Char, CodePoint),
+        CodePoint > 0x001F,
+        CodePoint =< 0x007F
+    then
         put(Stream, Char, !State)
     else
         put_unicode_escape(Stream, Char, !State)
@@ -231,13 +237,6 @@ escape_char('\f', "\\f").
 escape_char('\n', "\\n").
 escape_char('\r', "\\r").
 escape_char('\t', "\\t").
-
-:- pred char_is_ascii(char::in) is semidet.
-
-char_is_ascii(Char) :-
-    Code = char.to_int(Char),
-    Code >= 0x00,
-    Code =< 0x7f.
 
 :- pred put_unicode_escape(Stream::in, char::in, State::di, State::uo)
     is det <= (
