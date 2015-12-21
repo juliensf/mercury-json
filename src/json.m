@@ -82,6 +82,8 @@
 
     ;       null_character
 
+    ;       unescaped_control_character(int)
+
     ;       illegal_start_character(char)
             % A JSON value begins with an illegal character.
             % One of: '}', ']', ',' or ':'.
@@ -1385,6 +1387,10 @@ make_error_message(Error) = Msg :-
             ErrorDesc = null_character,
             string.format("%s: error: null character\n",
                 [s(ContextStr)], Msg)
+        ;
+            ErrorDesc = unescaped_control_character(CodePoint),
+            string.format("%s: error: unescaped control character: U+%04d\n",
+                [s(ContextStr), i(CodePoint)], Msg)
         ;
             ErrorDesc = illegal_start_character(Char),
             string.format("%s: error: '%c' at start of JSON value\n",

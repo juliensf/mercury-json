@@ -206,7 +206,9 @@ get_string_chars(Reader, Buffer, Result, !State) :-
     (
         ReadResult = ok(Char),
         update_column_number(Reader, Char, !State),
-        ( if Char = ('\\') then
+        ( if
+            Char = ('\\')
+        then
             get_escaped_char(Reader, Buffer, EscapedCharResult, !State),
             (
                 EscapedCharResult = ok,
@@ -217,9 +219,15 @@ get_string_chars(Reader, Buffer, Result, !State) :-
             )
         else if Char = '"' then
             Result = ok
-        else if char.to_int(Char, 0) then
+        else if
+            char.to_int(Char, CodePoint),
+            CodePoint >= 0x0000, CodePoint =< 0x001F
+        then
             make_error_context(Reader, Context, !State),
-            ErrorDesc = null_character,
+            ( if CodePoint = 0
+            then ErrorDesc = null_character
+            else ErrorDesc = unescaped_control_character(CodePoint)
+            ),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
         else
