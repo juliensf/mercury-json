@@ -28,6 +28,7 @@
 :- import_module bool.
 :- import_module char.
 :- import_module dir.
+:- import_module int.
 :- import_module getopt_io.
 :- import_module list.
 :- import_module require.
@@ -80,19 +81,31 @@ main(!IO) :-
             ),
             (
                 MaybeGatherResult = ok(TestCases0),
-                list.sort(TestCases0, TestCases),
-                list.foldl(run_test(OptionTable), TestCases, !IO),
-                (
-                    RunMarshalingTests = yes,
-                    run_marshaling_tests(OptionTable, !IO)
-                ;
-                    RunMarshalingTests = no
-                ),
-                (
-                    RunPointerTests = yes,
-                    run_pointer_tests(OptionTable, !IO)
-                ;
-                    RunPointerTests = no
+                list.sort_and_remove_dups(TestCases0, TestCases),
+                some [!NumFailures, !TotalTests] (
+                    list.length(TestCases, !:TotalTests),
+                    list.foldl2(run_test(OptionTable), TestCases,
+                        0, !:NumFailures, !IO),
+                    (
+                        RunMarshalingTests = yes,
+                        run_marshaling_tests(OptionTable, !NumFailures, !IO),
+                        !:TotalTests = !.TotalTests + 1
+                    ;
+                        RunMarshalingTests = no
+                    ),
+                    (
+                        RunPointerTests = yes,
+                        run_pointer_tests(OptionTable, !NumFailures, !IO),
+                        !:TotalTests = !.TotalTests + 1
+                    ;
+                        RunPointerTests = no
+                    ),
+                    ( if !.NumFailures = 0 then
+                        io.write_string("ALL TESTS PASSED\n", !IO)
+                    else
+                        io.format("%d / %d TESTS FAILED\n",
+                            [i(!.NumFailures), i(!.TotalTests)], !IO)
+                    )
                 )
             ;
                 MaybeGatherResult = error(_, IO_Error),
@@ -134,9 +147,10 @@ gather_json_file(_Dir, File, Type, Continue, !Files, !IO) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred run_test(option_table(option)::in, string::in, io::di, io::uo) is det.
+:- pred run_test(option_table(option)::in, string::in, int::in, int::out,
+    io::di, io::uo) is det.
 
-run_test(OptionTable, InputFileName, !IO) :-
+run_test(OptionTable, InputFileName, !NumFailures, !IO) :-
     io.open_input(InputFileName, OpenInputResult, !IO),
     (
         OpenInputResult = ok(InputFile),
@@ -148,7 +162,7 @@ run_test(OptionTable, InputFileName, !IO) :-
             parse_and_output(BaseFileName, InputFile, OutputFile, !IO),
             io.close_input(InputFile, !IO),
             io.close_output(OutputFile, !IO),
-            check_result(OptionTable, BaseFileName, !IO)
+            check_result(OptionTable, BaseFileName, !NumFailures, !IO)
         ;
             OpenOutputResult = error(IO_Error),
             Msg = io.error_message(IO_Error),
@@ -232,9 +246,10 @@ override_default_params("infinity",
 
 %-----------------------------------------------------------------------------%
 
-:- pred run_marshaling_tests(option_table(option)::in, io::di, io::uo) is cc_multi.
+:- pred run_marshaling_tests(option_table(option)::in, int::in, int::out,
+    io::di, io::uo) is cc_multi.
 
-run_marshaling_tests(OptionTable, !IO) :-
+run_marshaling_tests(OptionTable, !NumFailures, !IO) :-
     BaseFileName = "marshal",
     OutputFileName = BaseFileName ++ ".out",
     io.open_output(OutputFileName, MaybeOpenResult, !IO),
@@ -242,7 +257,7 @@ run_marshaling_tests(OptionTable, !IO) :-
         MaybeOpenResult = ok(OutputFile),
         test_marshaling(OutputFile, !IO),
         io.close_output(OutputFile, !IO),
-        check_result(OptionTable, BaseFileName, !IO)
+        check_result(OptionTable, BaseFileName, !NumFailures, !IO)
     ;
         MaybeOpenResult = error(_),
         unexpected($file, $pred, "cannot open output")
@@ -250,9 +265,10 @@ run_marshaling_tests(OptionTable, !IO) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred run_pointer_tests(option_table(option)::in, io::di, io::uo) is det.
+:- pred run_pointer_tests(option_table(option)::in, int::in, int::out,
+    io::di, io::uo) is det.
 
-run_pointer_tests(OptionTable, !IO) :-
+run_pointer_tests(OptionTable, !NumFailures, !IO) :-
     BaseFileName = "pointer",
     OutputFileName = BaseFileName ++ ".out",
     io.open_output(OutputFileName, MaybeOpenResult, !IO),
@@ -260,7 +276,7 @@ run_pointer_tests(OptionTable, !IO) :-
         MaybeOpenResult = ok(OutputFile),
         test_pointer(OutputFile, !IO),
         io.close_output(OutputFile, !IO),
-        check_result(OptionTable, BaseFileName, !IO)
+        check_result(OptionTable, BaseFileName, !NumFailures, !IO)
     ;
         MaybeOpenResult = error(_),
         unexpected($file, $pred, "cannot open output")
@@ -268,9 +284,10 @@ run_pointer_tests(OptionTable, !IO) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred check_result(option_table(option)::in, string::in, io::di, io::uo) is det.
+:- pred check_result(option_table(option)::in, string::in, int::in, int::out,
+    io::di, io::uo) is det.
 
-check_result(OptionTable, BaseFileName, !IO) :-
+check_result(OptionTable, BaseFileName, !NumFailures, !IO) :-
     OutputFileName = BaseFileName ++ ".out",
     ExpFileName = BaseFileName ++ ".exp",
     ResFileName = BaseFileName ++ ".res",
@@ -287,12 +304,14 @@ check_result(OptionTable, BaseFileName, !IO) :-
             io.remove_file(ResFileName, _, !IO),
             io.remove_file(OutputFileName, _, !IO)
         else
-            io.format("FAILED: %s\n", [s(BaseFileName)], !IO)
+            io.format("FAILED: %s\n", [s(BaseFileName)], !IO),
+            !:NumFailures = !.NumFailures + 1
         )
     ;
         DiffCmdRes = error(DiffError),
         io.error_message(DiffError, Msg),
-        io.format("ABORTED: %s (%s)\n", [s(BaseFileName), s(Msg)], !IO)
+        io.format("ABORTED: %s (%s)\n", [s(BaseFileName), s(Msg)], !IO),
+        !:NumFailures = !.NumFailures + 1
     ).
 
 %-----------------------------------------------------------------------------%
