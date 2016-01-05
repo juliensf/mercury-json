@@ -178,6 +178,15 @@ test_marshaling(File, !IO) :-
         true
     ),
 
+    % Test JSON.
+    %
+    test(File, [bool(yes), bool(no), null, number(5.61)], !IO),
+
+    % Test JSON pointer.
+    %
+    Pointer = json.det_string_to_pointer("/foo/~1bar/12/-/~~~~1"),
+    test(File, Pointer, !IO),
+
     % Test conversion to strings.
     %
     ToStringTests = [

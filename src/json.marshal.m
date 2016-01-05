@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2015 Julien Fischer.
+% Copyright (C) 2013-2016 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -37,6 +37,7 @@
 :- func maybe_to_json(maybe(T)) = json.value <= to_json(T).
 :- func map_to_json(map(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func bimap_to_json(bimap(K, V)) = json.value <= (to_json(K), to_json(V)).
+:- func json_pointer_to_json(json.pointer) = json.value.
 
 %:- func marshal_from_type(T) = maybe_error(json.value).
 
@@ -173,6 +174,10 @@ map_to_json(Map) = Value :-
 bimap_to_json(Bimap) = Value :-
     bimap.to_assoc_list(Bimap, KVs),
     Value = to_json(KVs).
+
+json_pointer_to_json(Pointer) = Value :-
+    PointerStr = json.pointer_to_string(Pointer),
+    Value = string(PointerStr).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.marshal.

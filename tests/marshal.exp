@@ -145,6 +145,14 @@ Result Term: version_array([pear, lemon, lemon, orange, apple])
        JSON: "<24:10AFBD>"
 Result Term: "<24:10AFBD>"
 
+ Orig. Term: [bool(yes), bool(no), null, number(5.61)]
+       JSON: [true,false,null,5.61]
+Result Term: [bool(yes), bool(no), null, number(5.61)]
+
+ Orig. Term: pointer(["foo", "/bar", "12", "-", "~~~/"])
+       JSON: "\/foo\/~1bar\/12\/-\/~0~0~0~1"
+Result Term: pointer(["foo", "/bar", "12", "-", "~~~/"])
+
 to_string(null) = "null"
 to_string(bool(no)) = "false"
 to_string(bool(yes)) = "true"

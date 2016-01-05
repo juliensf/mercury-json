@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2015 Julien Fischer.
+% Copyright (C) 2013-2016 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliens@gmail.com>
@@ -46,6 +46,7 @@
     <= (from_json(K), from_json(V)).
 :- func bimap_from_json(value) = maybe_error(bimap(K, V))
     <= (from_json(K), from_json(V)).
+:- func json_pointer_from_json(value) = maybe_error(json.pointer).
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
@@ -555,6 +556,28 @@ bimap_from_json(Value) = Result :-
         ; Value = object(_)
         ),
         Result = error("expected JSON object for bimap/2")
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> JSON pointer.
+%
+
+json_pointer_from_json(Value) = Result :-
+    (
+        Value = string(PointerStr),
+        ( if json.string_to_pointer(PointerStr, Pointer)
+        then Result = ok(Pointer)
+        else Result = error("string is not a JSON pointer")
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = array(_)
+        ; Value = object(_)
+        ),
+        Result = error("expected JSON string for json.pointer/0")
     ).
 
 %-----------------------------------------------------------------------------%

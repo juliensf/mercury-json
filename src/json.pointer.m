@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2015, Julien Fischer.
+% Copyright (C) 2015-2016, Julien Fischer.
 % See the file COPYING for license details.
 %
 % This sub-module implements JSON pointer operations.
@@ -13,6 +13,8 @@
 
 :- pred string_to_reference_tokens(string::in, list(string)::out) is semidet.
 
+:- func reference_tokens_to_string(list(string)) = string.
+
 :- pred do_resolve(pointer::in, value::in, value::out) is semidet.
 
 %-----------------------------------------------------------------------------%
@@ -21,6 +23,9 @@
 :- implementation.
 
 %-----------------------------------------------------------------------------%
+%
+% String -> pointer conversion.
+%
 
 string_to_reference_tokens(PointerStr, RefTokens) :-
     string.to_char_list(PointerStr, PointerChars),
@@ -54,6 +59,21 @@ next_reference_token(PointerChars, !.NextTokenChars, !RevRefTokens) :-
             !:NextTokenChars = [NextPointerChar | !.NextTokenChars],
             next_reference_token(PointerCharsPrime, !.NextTokenChars, !RevRefTokens)
         )
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% Pointer -> string conversion.
+%
+
+reference_tokens_to_string(Tokens) = String :-
+    (
+        Tokens = [],
+        String = ""
+    ;
+        Tokens = [_ | _],
+        EscapedTokens = list.map(escape_string, Tokens),
+        String = "/" ++ string.join_list("/", EscapedTokens)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -99,6 +119,12 @@ do_resolve_token(RefTokens, Value0, Result) :-
 unescape_string(!.S) = !:S :-
     string.replace_all(!.S, "~1", "/", !:S),
     string.replace_all(!.S, "~0", "~", !:S).
+
+:- func escape_string(string) = string.
+
+escape_string(!.S) = !:S :-
+    string.replace_all(!.S, "~", "~0", !:S),
+    string.replace_all(!.S, "/", "~1", !:S).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.pointer.

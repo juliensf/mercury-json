@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2015, Julien Fischer.
+% Copyright (C) 2013-2016, Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -278,6 +278,8 @@
     % valid JSON pointer.
     %
 :- func det_string_to_pointer(string) = pointer.
+
+:- func pointer_to_string(pointer) = string.
 
     % resolve(Pointer, Value, Result):
     % Result is the value in Value that is pointed to by Pointer.
@@ -744,6 +746,9 @@
 :- instance to_json(map(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)).
 
+:- instance to_json(json.value).
+:- instance to_json(json.pointer).
+
     % from_type(Type) = Value:
     %
 :- func from_type(T) = json.value <= to_json(T).
@@ -776,6 +781,8 @@
 :- instance from_json(maybe(T)) <= from_json(T).
 :- instance from_json(map(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)).
+:- instance from_json(json.value).
+:- instance from_json(json.pointer).
 
     % to_type(Value) = MaybeType:
     % MaybeType is 'ok(Type)' if Value is a JSON object corresponding
@@ -1203,6 +1210,12 @@ from_type(T) = to_json(T).
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)) where [
     func(to_json/1) is json.marshal.bimap_to_json
 ].
+:- instance to_json(json.value) where [
+    to_json(V) = V
+].
+:- instance to_json(json.pointer) where [
+    func(to_json/1) is json.marshal.json_pointer_to_json
+].
 
 %-----------------------------------------------------------------------------%
 
@@ -1271,6 +1284,12 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)) where [
     func(from_json/1) is json.unmarshal.bimap_from_json
+].
+:- instance from_json(json.value) where [
+    from_json(V) = ok(V)
+].
+:- instance from_json(json.pointer) where [
+    func(from_json/1) is json.unmarshal.json_pointer_from_json
 ].
 
 to_type(V) = from_json(V).
@@ -1655,7 +1674,7 @@ search_array_or_null(Object, Member, Default) = Array :-
     --->    pointer(list(string)).
 
 string_to_pointer(String, Pointer) :-
-    string_to_reference_tokens(String, RefComps),
+    pointer.string_to_reference_tokens(String, RefComps),
     Pointer = pointer(RefComps).
 
 det_string_to_pointer(String) =
@@ -1663,6 +1682,10 @@ det_string_to_pointer(String) =
     then Pointer
     else func_error("json.det_string_to_pointer: string_to_pointer failed")
     ).
+
+pointer_to_string(Pointer) = String :-
+    Pointer = pointer(RefTokens),
+    String = pointer.reference_tokens_to_string(RefTokens).
 
 resolve(Pointer, Doc, Value) :-
     pointer.do_resolve(Pointer, Doc, Value).
