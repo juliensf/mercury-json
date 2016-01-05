@@ -11,7 +11,9 @@
 :- module json.pointer.
 :- interface.
 
-:- func do_resolve(pointer, value) = pointer_result.
+:- pred string_to_reference_tokens(string::in, list(string)::out) is semidet.
+
+:- pred do_resolve(pointer::in, value::in, value::out) is semidet.
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
@@ -20,80 +22,74 @@
 
 %-----------------------------------------------------------------------------%
 
-do_resolve(Pointer, Value) = Result :-
-    string.to_char_list(Pointer, PointerChars),
+string_to_reference_tokens(PointerStr, RefTokens) :-
+    string.to_char_list(PointerStr, PointerChars),
     (
         PointerChars = [],
-        Result = ok(Value)
+        RefTokens = []
     ;
         PointerChars = [FirstChar | PointerCharsPrime],
-        ( if FirstChar = ('/')
-        then next_reference_token(PointerCharsPrime, [], Value, Result)
-        else Result = error(invalid_first_char(FirstChar))
-        )
+        FirstChar = ('/'),  % semidet.
+        next_reference_token(PointerCharsPrime, [], [], RevRefTokens),
+        list.reverse(RevRefTokens, RefTokens)
     ).
 
-:- pred next_reference_token(list(char)::in, list(char)::in, value::in,
-     pointer_result::out) is det.
+:- pred next_reference_token(list(char)::in, list(char)::in,
+    list(string)::in, list(string)::out) is semidet.
 
-next_reference_token(PointerChars, NextTokenChars, !.Value, Result) :-
+next_reference_token(PointerChars, !.NextTokenChars, !RevRefTokens) :-
     (
         PointerChars = [],
-        resolve_token(NextTokenChars, !.Value, Result)
+        NextTokenStr = string.from_rev_char_list(!.NextTokenChars),
+        UnescapedNextTokenStr = unescape_string(NextTokenStr),
+        !:RevRefTokens = [UnescapedNextTokenStr | !.RevRefTokens]
     ;
         PointerChars = [NextPointerChar | PointerCharsPrime],
         ( if NextPointerChar = ('/') then
-            resolve_token(NextTokenChars, !.Value, NextTokenResult),
-            (
-                NextTokenResult = ok(!:Value),
-                next_reference_token(PointerCharsPrime, [], !.Value, Result)
-            ;
-                NextTokenResult = cannot_resolve_pointer,
-                Result = NextTokenResult
-            ;
-                NextTokenResult = error(_),
-                Result = NextTokenResult
-            )
+            NextTokenStr = string.from_rev_char_list(!.NextTokenChars),
+            UnescapedNextTokenStr = unescape_string(NextTokenStr),
+            !:RevRefTokens = [UnescapedNextTokenStr | !.RevRefTokens],
+            next_reference_token(PointerCharsPrime, [], !RevRefTokens)
         else
-            NextTokenCharsPrime = [NextPointerChar | NextTokenChars],
-            next_reference_token(PointerCharsPrime, NextTokenCharsPrime, !.Value, Result)
+            !:NextTokenChars = [NextPointerChar | !.NextTokenChars],
+            next_reference_token(PointerCharsPrime, !.NextTokenChars, !RevRefTokens)
         )
     ).
 
-:- pred resolve_token(list(char)::in, json.value::in, pointer_result::out) is det.
+%-----------------------------------------------------------------------------%
 
-resolve_token(RevTokenChars, !.Value, Result) :-
+do_resolve(Pointer, Value, Result) :-
+    Pointer = pointer(RefTokens),
+    do_resolve_token(RefTokens, Value, Result).
+
+:- pred do_resolve_token(list(string)::in, value::in, value::out) is semidet.
+
+do_resolve_token(RefTokens, Value0, Result) :-
     (
-        !.Value = array(Elements),
-        ( if RevTokenChars = ['-'] then
-            Result = cannot_resolve_pointer
-        else if
-            TokenStr = string.from_rev_char_list(RevTokenChars),
-            string.to_int(TokenStr, Index)
-        then
-            ( if list.index0(Elements, Index, !:Value)
-            then Result = ok(!.Value)
-            else Result = cannot_resolve_pointer
-            )
-        else
-            TokenStr = string.from_rev_char_list(RevTokenChars),
-            Result = error(invalid_array_index(TokenStr))
-        )
+        RefTokens = [],
+        Result = Value0
     ;
-        !.Value = object(Members),
-        TokenStr = string.from_rev_char_list(RevTokenChars),
-        UnescapedTokenStr = unescape_string(TokenStr),
-        ( if map.search(Members, UnescapedTokenStr, !:Value)
-        then Result = ok(!.Value)
-        else Result = cannot_resolve_pointer
+        RefTokens = [RefToken | RefTokensPrime],
+        % XXX Mercury 14.01 doesn't support state variables in
+        % require_complete_switch scope heads -- for compatiblity
+        % we avoid using state variables for Value here.
+        require_complete_switch [Value0] (
+            Value0 = array(Elements),
+            string.to_int(RefToken, Index),       % semidet.
+            list.index0(Elements, Index, Value),  % semidet.
+            do_resolve_token(RefTokensPrime, Value, Result)
+        ;
+            Value0 = object(Members),
+            map.search(Members, RefToken, Value), % semidet.
+            do_resolve_token(RefTokensPrime, Value, Result)
+        ;
+            ( Value0 = null
+            ; Value0 = bool(_)
+            ; Value0 = number(_)
+            ; Value0 = string(_)
+            ),
+            false
         )
-    ;
-        ( !.Value = null
-        ; !.Value = bool(_)
-        ; !.Value = number(_)
-        ; !.Value = string(_)
-        ),
-        Result = cannot_resolve_pointer
     ).
 
 %-----------------------------------------------------------------------------%

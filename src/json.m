@@ -265,26 +265,31 @@
 % JSON pointers.
 %
 
-:- type json.pointer == string.
+:- type json.pointer.
 
-:- type json.pointer_result
-    --->    ok(json.value)
-    ;       cannot_resolve_pointer
-    ;       error(pointer_error_desc).
-
-:- type json.pointer_error_desc
-    --->    invalid_first_char(char)
-            % The first character in a non-empty JSON pointer was not '/'.
-            % The argument is the character that was in the first position.
-
-    ;       invalid_array_index(string).
-            % An invalid array index was encountered.
-            % The argument gives the invalid index.
-
-    % resolve(Pointer, Value) = Result:
-    % Return the value in 'Value' that is pointed to by 'Pointer'.
+    % string_to_pointer(String, Pointer):
+    % Convert a string to a JSON pointer.
+    % Fails if String is not a valid JSON pointer.
     %
-:- func json.resolve(pointer, value) = pointer_result.
+:- pred string_to_pointer(string::in, pointer::out) is semidet.
+
+    % det_string_to_pointer(String) = Pointer:
+    % As above, but throws a software_error/1 exception if String is not a
+    % valid JSON pointer.
+    %
+:- func det_string_to_pointer(string) = pointer.
+
+    % resolve(Pointer, Value, Result):
+    % Result is the value in Value that is pointed to by Pointer.
+    % Fails if the pointer cannot be resolved.
+    %
+:- pred resolve(pointer::in, value::in, value::out) is semidet.
+
+    % det_resolve(Pointer, Value) = Result:
+    % As above, but throws a software_error/1 exception if the pointer cannot
+    % be resolved.
+    %
+:- func det_resolve(pointer, value) = value.
 
 %-----------------------------------------------------------------------------%
 %
@@ -1646,8 +1651,27 @@ search_array_or_null(Object, Member, Default) = Array :-
 
 %-----------------------------------------------------------------------------%
 
-resolve(Pointer, Value) =
-    pointer.do_resolve(Pointer, Value).
+:- type json.pointer
+    --->    pointer(list(string)).
+
+string_to_pointer(String, Pointer) :-
+    string_to_reference_tokens(String, RefComps),
+    Pointer = pointer(RefComps).
+
+det_string_to_pointer(String) =
+    ( if string_to_pointer(String, Pointer)
+    then Pointer
+    else func_error("json.det_string_to_pointer: string_to_pointer failed")
+    ).
+
+resolve(Pointer, Doc, Value) :-
+    pointer.do_resolve(Pointer, Doc, Value).
+
+det_resolve(Pointer, Doc) =
+    ( if pointer.do_resolve(Pointer, Doc, Value)
+    then Value
+    else func_error("json.det_resolve: resolve failed")
+    ).
 
 %-----------------------------------------------------------------------------%
 

@@ -54,20 +54,18 @@ test_pointer(File, !IO) :-
 %-----------------------------------------------------------------------------%
 
 :- pred do_resolve_test(io.text_output_stream::in, json.value::in,
-    json.pointer::in, io::di, io::uo) is det.
+    string::in, io::di, io::uo) is det.
 
-do_resolve_test(File, Document, Pointer, !IO) :-
-    io.format(File, "TEST POINTER: \"%s\"\n", [s(Pointer)], !IO),
-    Result = json.resolve(Pointer, Document),
-    (
-        Result = ok(Value),
-        io.format(File, "RESULT: %s\n", [s(to_string(Value))], !IO)
-    ;
-        Result = cannot_resolve_pointer,
-        io.write_string(File, "RESULT: <<cannot resolve pointer>>\n", !IO)
-    ;
-        Result = error(ErrorDesc),
-        io.format(File, "RESULT: <<error: %s>>\n", [s(string(ErrorDesc))], !IO)
+do_resolve_test(File, Document, PointerStr, !IO) :-
+    io.format(File, "TEST POINTER: \"%s\"\n", [s(PointerStr)], !IO),
+    ( if string_to_pointer(PointerStr, Pointer) then
+        ( if json.resolve(Pointer, Document, Value) then
+            io.format(File, "RESULT: %s\n", [s(to_string(Value))], !IO)
+        else
+            io.write_string(File, "RESULT: <<cannot resolve pointer>>\n", !IO)
+        )
+    else
+        io.write_string(File, "RESULT: invalid pointer\n", !IO)
     ).
 
 :- func rfc6901_example = json.value.

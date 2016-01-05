@@ -30,4 +30,4 @@ RESULT: <<cannot resolve pointer>>
 TEST POINTER: "/bar"
 RESULT: <<cannot resolve pointer>>
 TEST POINTER: "/foo/bar"
-RESULT: <<error: invalid_array_index("bar")>>
+RESULT: <<cannot resolve pointer>>
