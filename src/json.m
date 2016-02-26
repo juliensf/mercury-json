@@ -1543,38 +1543,46 @@ get_int(number(Number), Int) :-
 det_get_bool(Value) =
     ( if get_bool(Value, Bool)
     then Bool
-    else func_error("json.det_get_bool: not a JSON Boolean")
+    else unexpected_type_error("json.det_get_bool", "Boolean", Value)
     ).
 
 det_get_string(Value) =
     ( if get_string(Value, String)
     then String
-    else func_error("json.det_get_string: not a JSON string")
+    else unexpected_type_error("json.det_get_string", "string", Value)
     ).
 
 det_get_number(Value) =
     ( if get_number(Value, Number)
     then Number
-    else func_error("json.det_get_number: not a JSON number")
+    else unexpected_type_error("json.det_get_number", "number", Value)
     ).
 
 det_get_object(Value) =
     ( if get_object(Value, Object)
     then Object
-    else func_error("json.det_get_object: not a JSON object")
+    else unexpected_type_error("json.det_get_object", "object", Value)
     ).
 
 det_get_array(Value) =
     ( if get_array(Value, Array)
     then Array
-    else func_error("json.get_array: not a JSON array")
+    else unexpected_type_error("json.get_array", "array", Value)
     ).
 
 det_get_int(Value) =
     ( if get_int(Value, Int)
     then Int
-    else func_error("json.get_int: not a JSON number")
+    else unexpected_type_error("json.get_int", "number", Value)
     ).
+
+:- func unexpected_type_error(string, string, json.value) = _ is erroneous.
+
+unexpected_type_error(FuncName, ExpectedType, Value) = _ :-
+    ValueDesc = value_desc(Value),
+    string.format("%s: expected %s value: have %s value",
+        [s(FuncName), s(ExpectedType), s(ValueDesc)], Msg),
+    error(Msg).
 
 %-----------------------------------------------------------------------------%
 
