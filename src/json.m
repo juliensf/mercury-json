@@ -1506,20 +1506,32 @@ value_desc(array(_)) = "array".
 int(I) = number(float(I)).
 
 make_object(Members, Value) :-
-    list.foldl(add_member, Members, map.init, Object),
+    list.foldl(semidet_add_member, Members, map.init, Object),
     Value = object(Object).
 
-:- pred add_member(pair(string, json.value)::in,
+:- pred semidet_add_member(pair(string, json.value)::in,
     json.object::in, json.object::out) is semidet.
 
-add_member(Member, !Object) :-
+semidet_add_member(Member, !Object) :-
     Member = Name - Value,
     map.insert(Name, Value, !Object).
 
 det_make_object(Members) = Value :-
-    ( if make_object(Members, Value0)
-    then Value = Value0
-    else error("json.det_make_object: repeated member name")
+    list.foldl(det_add_member, Members, map.init, Object),
+    Value = object(Object).
+
+:- pred det_add_member(pair(string, json.value)::in,
+    json.object::in, json.object::out) is det.
+
+det_add_member(Member, !Object) :-
+    Member = Name - Value,
+    ( if map.insert(Name, Value, !Object) then
+        true
+    else
+        string.format(
+            "json.det_make_object: member name \"%s\" repeated",
+            [s(Name)], Msg),
+        error(Msg)
     ).
 
 %-----------------------------------------------------------------------------%
