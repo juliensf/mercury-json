@@ -24,6 +24,7 @@
 :- import_module json.
 
 :- import_module array.
+:- import_module array2d.
 :- import_module assoc_list.
 :- import_module bimap.
 :- import_module bitmap.
@@ -160,6 +161,16 @@ test_marshaling(File, !IO) :-
     test(File, EmptyArray, !IO),
     array.from_list([pear, lemon, lemon, orange, apple], Array),
     test(File, Array, !IO),
+
+    % Test array2ds.
+    EmptyArray2d : array2d(fruit) = array2d.from_lists([]),
+    test(File, EmptyArray2d, !IO),
+    Array2d : array2d(fruit) = array2d.from_lists([
+        [apple, pear, apple],
+        [orange, apple, pear],
+        [pear, apple, orange]
+    ]),
+    test(File, Array2d, !IO),
 
     % Test version arrays.
     %

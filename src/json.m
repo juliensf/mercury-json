@@ -16,6 +16,7 @@
 %-----------------------------------------------------------------------------%
 
 :- import_module array.
+:- import_module array2d.
 :- import_module assoc_list.
 :- import_module bool.
 :- import_module bimap.
@@ -691,6 +692,7 @@
 %     Mercury Type      JSON
 %     ------------      ----
 %     array/1           array
+%     array2d/1         array of arrays
 %     bool/0            Boolean
 %     bimap/2           array of objects (pairs -- see below)
 %     bitmap/0          string (as per bitmap.to_string/1)
@@ -735,6 +737,7 @@
 :- instance to_json(list(T)) <= to_json(T).
 :- instance to_json(cord(T)) <= to_json(T).
 :- instance to_json(array(T)) <= to_json(T).
+:- instance to_json(array2d(T)) <= to_json(T).
 :- instance to_json(version_array(T)) <= to_json(T).
 :- instance to_json(bitmap).
 :- instance to_json(set_ordlist(T)) <= to_json(T).
@@ -771,6 +774,7 @@
 :- instance from_json(list(T)) <= from_json(T).
 :- instance from_json(cord(T)) <= from_json(T).
 :- instance from_json(array(T)) <= from_json(T).
+:- instance from_json(array2d(T)) <= from_json(T).
 :- instance from_json(version_array(T)) <= from_json(T).
 :- instance from_json(bitmap).
 :- instance from_json(set_ordlist(T)) <= from_json(T).
@@ -1180,6 +1184,9 @@ from_type(T) = to_json(T).
 :- instance to_json(array(T)) <= to_json(T) where [
     func(to_json/1) is json.marshal.array_to_json
 ].
+:- instance to_json(array2d(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.array2d_to_json
+].
 :- instance to_json(version_array(T)) <= to_json(T) where [
     func(to_json/1) is json.marshal.version_array_to_json
 ].
@@ -1254,6 +1261,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(array(T)) <= from_json(T) where [
     func(from_json/1) is json.unmarshal.array_from_json
+].
+:- instance from_json(array2d(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.array2d_from_json
 ].
 :- instance from_json(version_array(T)) <= from_json(T) where [
     func(from_json/1) is json.unmarshal.version_array_from_json

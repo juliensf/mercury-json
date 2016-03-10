@@ -27,6 +27,7 @@
 :- func list_to_json(list(T)) = json.value <= to_json(T).
 :- func cord_to_json(cord(T)) = json.value <= to_json(T).
 :- func array_to_json(array(T)) = json.value <= to_json(T).
+:- func array2d_to_json(array2d(T)) = json.value <= to_json(T).
 :- func version_array_to_json(version_array(T)) = json.value <= to_json(T).
 :- func bitmap_to_json(bitmap) = json.value.
 :- func set_ordlist_to_json(set_ordlist(T)) = json.value <= to_json(T).
@@ -114,6 +115,38 @@ array_to_values(Array, Min, I, !Values) :-
         Value = to_json(Elem),
         !:Values = [Value | !.Values],
         array_to_values(Array, Min, I - 1, !Values)
+    ).
+
+array2d_to_json(Array2d) = Value :-
+    array2d.bounds(Array2d, NumRows, NumCols),
+    array2d_to_rows(Array2d, NumCols, NumRows - 1, [], Rows),
+    Value = array(Rows).
+
+:- pred array2d_to_rows(array2d(T)::in, int::in, int::in,
+    list(value)::in, list(value)::out) is det <= to_json(T).
+
+array2d_to_rows(Array2d, NumCols, R, !RowValues) :-
+    ( if R < 0 then
+        true
+    else
+        row_elems_to_values(Array2d, R, NumCols - 1, [], RowElems),
+        RowValue = array(RowElems),
+        !:RowValues = [RowValue | !.RowValues],
+        array2d_to_rows(Array2d, NumCols, R - 1, !RowValues)
+    ).
+
+:- pred row_elems_to_values(array2d(T)::in, int::in, int::in,
+    list(value)::in, list(value)::out) is det <= to_json(T).
+
+row_elems_to_values(Array2d, R, C, !Values) :-
+    ( if C < 0 then
+        true
+    else
+        % Safe since our callers have checked the bounds.
+        Elem = Array2d ^ unsafe_elem(R, C),
+        Value = to_json(Elem),
+        !:Values = [Value | !.Values],
+        row_elems_to_values(Array2d, R, C - 1, !Values)
     ).
 
 version_array_to_json(VersionArray) = Value :-

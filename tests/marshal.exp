@@ -133,6 +133,14 @@ Result Term: array([])
        JSON: ["pear","lemon","lemon","orange","apple"]
 Result Term: array([pear, lemon, lemon, orange, apple])
 
+ Orig. Term: array2d(0, 0, array([]))
+       JSON: []
+Result Term: array2d(0, 0, array([]))
+
+ Orig. Term: array2d(3, 3, array([apple, pear, apple, orange, apple, pear, pear, apple, orange]))
+       JSON: [["apple","pear","apple"],["orange","apple","pear"],["pear","apple","orange"]]
+Result Term: array2d(3, 3, array([apple, pear, apple, orange, apple, pear, pear, apple, orange]))
+
  Orig. Term: version_array([])
        JSON: []
 Result Term: version_array([])

@@ -27,6 +27,7 @@
 :- func list_from_json(value) = maybe_error(list(T)) <= from_json(T).
 :- func cord_from_json(value) = maybe_error(cord(T)) <= from_json(T).
 :- func array_from_json(value) = maybe_error(array(T)) <= from_json(T).
+:- func array2d_from_json(value) = maybe_error(array2d(T)) <= from_json(T).
 :- func version_array_from_json(value) = maybe_error(version_array(T))
     <= from_json(T).
 :- func set_ordlist_from_json(value) = maybe_error(set_ordlist(T))
@@ -288,6 +289,64 @@ array_from_json(Value) = Result :-
         ; Value = object(_)
         ),
         Result = error("expected JSON array for array/1 conversion")
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> array2d/1 types.
+
+array2d_from_json(Value) = Result :-
+    (
+        Value = array(RowValues),
+        % XXX do this in a way that doesn't involve all this list
+        % creation.
+        list.foldl(array2d_row_from_json, RowValues, [], RevRows),
+        list.reverse(RevRows, Rows),
+        Array2d = array2d.from_lists(Rows),
+        Result = ok(Array2d)
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ),
+        Result = error("expected JSON array for array2d/1 conversion")
+    ).
+
+:- pred array2d_row_from_json(value::in, list(list(T))::in, list(list(T))::out)
+    is det <= from_json(T).
+
+array2d_row_from_json(RowValue, !Rows) :-
+    (
+        RowValue = array(ElemValues),
+        list.foldl(array2d_elem_from_json, ElemValues, [], RevRow),
+        list.reverse(RevRow, Row),
+        !:Rows = [Row | !.Rows]
+    ;
+        ( RowValue = null
+        ; RowValue = bool(_)
+        ; RowValue = string(_)
+        ; RowValue = number(_)
+        ; RowValue = object(_)
+        ),
+        % XXX FIXME error propagation.
+        unexpected($file, $pred, "expected JSON array for array2d/1 row conversion")
+        %Result = error("expected JSON array for array2d/1 row conversion")
+    ).
+
+:- pred array2d_elem_from_json(value::in, list(T)::in, list(T)::out)
+    is det <= from_json(T).
+
+array2d_elem_from_json(Value, !Elems) :-
+    ElemResult = from_json(Value),
+    (
+        ElemResult = ok(Elem),
+        !:Elems = [Elem | !.Elems]
+    ;
+        ElemResult = error(Msg),
+        % XXX FIXME error propgation.
+        unexpected($file, $pred, Msg)
     ).
 
 %-----------------------------------------------------------------------------%
