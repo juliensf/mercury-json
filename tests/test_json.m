@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2015 Julien Fischer.
+% Copyright (C) 2013-2016 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -24,6 +24,7 @@
 :- import_module json.
 :- import_module test_marshal.
 :- import_module test_pointer.
+:- import_module test_unmarshal.
 
 :- import_module bool.
 :- import_module char.
@@ -59,7 +60,8 @@ main(!IO) :-
                 dir.foldl2(gather_json_file, this_directory, [],
                     MaybeGatherResult, !IO),
                 RunMarshalingTests = yes,
-                RunPointerTests = yes
+                RunPointerTests = yes,
+                RunUnmarshalingTests = yes
             ;
                 NonOptionArgs = [_ | _],
                 some [!FilteredArgs] (
@@ -75,6 +77,12 @@ main(!IO) :-
                         RunPointerTests = yes
                     else
                         RunPointerTests = no
+                    ),
+                    ( if list.member("unmarshal", !.FilteredArgs) then
+                        list.delete_all(!.FilteredArgs, "unmarshal", !:FilteredArgs),
+                        RunUnmarshalingTests = yes
+                    else
+                        RunUnmarshalingTests = no
                     ),
                     MaybeGatherResult = ok(!.FilteredArgs)
                 )
@@ -99,6 +107,13 @@ main(!IO) :-
                         !:TotalTests = !.TotalTests + 1
                     ;
                         RunPointerTests = no
+                    ),
+                    (
+                        RunUnmarshalingTests = yes,
+                        run_unmarshaling_tests(OptionTable, !NumFailures, !IO),
+                        !:TotalTests = !.TotalTests + 1
+                    ;
+                        RunUnmarshalingTests = no
                     ),
                     ( if !.NumFailures = 0 then
                         io.write_string("ALL TESTS PASSED\n", !IO)
@@ -275,6 +290,25 @@ run_pointer_tests(OptionTable, !NumFailures, !IO) :-
     (
         MaybeOpenResult = ok(OutputFile),
         test_pointer(OutputFile, !IO),
+        io.close_output(OutputFile, !IO),
+        check_result(OptionTable, BaseFileName, !NumFailures, !IO)
+    ;
+        MaybeOpenResult = error(_),
+        unexpected($file, $pred, "cannot open output")
+    ).
+
+%-----------------------------------------------------------------------------%
+
+:- pred run_unmarshaling_tests(option_table(option)::in, int::in, int::out,
+    io::di, io::uo) is det.
+
+run_unmarshaling_tests(OptionTable, !NumFailures, !IO) :-
+    BaseFileName = "unmarshal",
+    OutputFileName = BaseFileName ++ ".out",
+    io.open_output(OutputFileName, MaybeOpenResult, !IO),
+    (
+        MaybeOpenResult = ok(OutputFile),
+        test_unmarshaling(OutputFile, !IO),
         io.close_output(OutputFile, !IO),
         check_result(OptionTable, BaseFileName, !NumFailures, !IO)
     ;

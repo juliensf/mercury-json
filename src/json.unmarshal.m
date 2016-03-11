@@ -54,6 +54,8 @@
 
 :- implementation.
 
+:- import_module type_desc.
+
 %-----------------------------------------------------------------------------%
 
 int_from_json(Value) = Result :-
@@ -61,30 +63,47 @@ int_from_json(Value) = Result :-
         % XXX check that Number does not have a fractional part.
         Result = ok(round_to_int(Number))
     else
-        Result = error("cannot convert builtin type 'int' from JSON")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "number"),
+        Result = error(ErrorMsg)
     ).
 
 float_from_json(Value) = Result :-
-    ( if Value = number(Number)
-    then Result = ok(Number)
-    else Result = error("cannot convert builtin type 'float' from JSON")
+    ( if Value = number(Number) then
+        Result = ok(Number)
+    else
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "number"),
+        Result = error(ErrorMsg)
     ).
 
 char_from_json(Value) = Result :-
-    ( if
-        Value = string(String),
-        string.length(String, 1),
-        Char = String ^ elem(0)
-    then
-        Result = ok(Char)
+    ( if Value = string(String) then
+        string.length(String, Length),
+        ( if
+            Length = 1,
+            Char = String ^ elem(0)
+        then
+            Result = ok(Char)
+        else
+            TypeDesc = type_desc_from_result(Result),
+            string.format("has length %d", [i(Length)], ArgDesc),
+            ErrorMsg = make_structure_error_msg(TypeDesc, ArgDesc, "length 1"),
+            Result = error(ErrorMsg)
+        )
     else
-        Result = error("cannot convert builtin type 'char' from JSON")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
     ).
 
 string_from_json(Value) = Result :-
-    ( if Value = string(String)
-    then Result = ok(String)
-    else Result = error("cannot convert builtin type 'string' from JSON")
+    ( if Value = string(String) then
+        Result = ok(String)
+    else
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -103,7 +122,9 @@ bool_from_json(Value) = Result :-
         ; Value = object(_)
         ; Value = array(_)
         ),
-        Result = error("expected JSON Boolean for bool/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "Boolean"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -114,9 +135,12 @@ bool_from_json(Value) = Result :-
 integer_from_json(Value) = Result :-
     (
         Value = string(String),
-        ( if Integer : integer = integer.from_string(String)
-        then Result = ok(Integer)
-        else Result = error("string is not an integer/0")
+        ( if Integer : integer = integer.from_string(String) then
+            Result = ok(Integer)
+        else
+            TypeDesc = type_desc_from_result(Result),
+            ErrorMsg = make_string_conv_error_msg(TypeDesc, "integer"),
+            Result = error(ErrorMsg)
         )
     ;
         ( Value = null
@@ -125,7 +149,9 @@ integer_from_json(Value) = Result :-
         ; Value = object(_)
         ; Value = array(_)
         ),
-        Result = error("expected JSON string for integer/0 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -136,9 +162,12 @@ integer_from_json(Value) = Result :-
 date_time_from_json(Value) = Result :-
     (
         Value = string(String),
-        ( if calendar.date_from_string(String, Date)
-        then Result = ok(Date)
-        else Result = error("string is not a date/0")
+        ( if calendar.date_from_string(String, Date) then
+            Result = ok(Date)
+        else
+            TypeDesc = type_desc_from_result(Result),
+            ErrorMsg = make_string_conv_error_msg(TypeDesc, "date"),
+            Result = error(ErrorMsg)
         )
     ;
         ( Value = null
@@ -147,7 +176,9 @@ date_time_from_json(Value) = Result :-
         ; Value = object(_)
         ; Value = array(_)
         ),
-        Result = error("expected JSON string for date/0 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -158,9 +189,12 @@ date_time_from_json(Value) = Result :-
 duration_from_json(Value) = Result :-
     (
         Value = string(String),
-        ( if calendar.duration_from_string(String, Duration)
-        then Result = ok(Duration)
-        else Result = error("string is not a duration/0")
+        ( if calendar.duration_from_string(String, Duration) then
+            Result = ok(Duration)
+        else
+            TypeDesc = type_desc_from_result(Result),
+            ErrorMsg = make_string_conv_error_msg(TypeDesc, "duration"),
+            Result = error(ErrorMsg)
         )
     ;
         ( Value = null
@@ -169,7 +203,9 @@ duration_from_json(Value) = Result :-
         ; Value = object(_)
         ; Value = array(_)
         ),
-        Result = error("expected JSON string for duration/0 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -180,9 +216,12 @@ duration_from_json(Value) = Result :-
 bitmap_from_json(Value) = Result :-
     (
         Value = string(String),
-        ( if Bitmap = bitmap.from_string(String)
-        then Result = ok(Bitmap)
-        else Result = error("string is not a bitmap/0")
+        ( if Bitmap = bitmap.from_string(String) then
+            Result = ok(Bitmap)
+        else
+            TypeDesc = type_desc_from_result(Result),
+            ErrorMsg = make_string_conv_error_msg(TypeDesc, "bitmap"),
+            Result = error(ErrorMsg)
         )
     ;
         ( Value = null
@@ -191,7 +230,9 @@ bitmap_from_json(Value) = Result :-
         ; Value = object(_)
         ; Value = array(_)
         ),
-        Result = error("expected JSON string for bitmap/0 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -218,7 +259,9 @@ list_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for list/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
 :- pred unmarshal_list_elems(list(value)::in, list(T)::in,
@@ -261,7 +304,9 @@ cord_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for cord/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -288,22 +333,107 @@ array_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for array/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
 %
 % JSON -> array2d/1 types.
+%
 
 array2d_from_json(Value) = Result :-
     (
         Value = array(RowValues),
-        % XXX do this in a way that doesn't involve all this list
-        % creation.
-        list.foldl(array2d_row_from_json, RowValues, [], RevRows),
-        list.reverse(RevRows, Rows),
-        Array2d = array2d.from_lists(Rows),
-        Result = ok(Array2d)
+        (
+            RowValues = [],
+            Array2d = array2d.from_lists([]),
+            Result = ok(Array2d)
+        ;
+            RowValues = [FirstRowValue | RestRowValues],
+            list.length(RowValues, ExpectedNumRows),
+            (
+                FirstRowValue = array(FirstRowValues),
+                (
+                    FirstRowValues = [],
+                    check_array2d_rows_are_empty(1, RestRowValues, RowsAreEmptyResult),
+                    (
+                        RowsAreEmptyResult = crr_all_empty,
+                        % NOTE: the bounds of array2d.from_lists([]) differ
+                        % from those of array2d.from_lists([[],[])) etc.  I'm
+                        % not sure if this behaviour was intentional, but until
+                        % it is clarified we reproduce it here as well, hence
+                        % the following.
+                        list.duplicate(ExpectedNumRows, [], NestedEmptyLists),
+                        Array2d = array2d.from_lists(NestedEmptyLists),
+                        Result = ok(Array2d)
+                    ;
+                        RowsAreEmptyResult = crr_non_empty(FirstNonEmptyRowNo,
+                            FirstNonEmptyRowLength),
+                        TypeDesc = type_desc_from_result(Result),
+                        TypeName = type_name(TypeDesc),
+                        string.format(
+                            "conversion to %s: row 0 has length 0, row %d has length %d",
+                            [s(TypeName), i(FirstNonEmptyRowNo), i(FirstNonEmptyRowLength)], Msg),
+                        Result = error(Msg)
+                    ;
+                        RowsAreEmptyResult = crr_bad_type(RowNo, RowValue),
+                        TypeDesc = type_desc_from_result(Result),
+                        TypeName = type_name(TypeDesc),
+                        RowValueDesc = value_desc(RowValue),
+                        string.format(
+                            "conversion to %s: row %d is %s, expected array",
+                            [s(TypeName), i(RowNo), s(RowValueDesc)], Msg),
+                        Result = error(Msg)
+                    )
+                ;
+                    FirstRowValues = [FirstElemValue | OtherElemValues],
+                    list.length(FirstRowValues, ExpectedNumCols),
+                    FirstElemResult = from_json(FirstElemValue),
+                    (
+                        FirstElemResult = ok(FirstElem),
+                        some [!Array2d] (
+                            !:Array2d = array2d.init(ExpectedNumRows,
+                                ExpectedNumCols, FirstElem),
+                            array2d_unmarshal_elems(0/*Row*/, 1/*Col*/,
+                                ExpectedNumCols, OtherElemValues, !Array2d, FirstRowResult),
+                            (
+                                FirstRowResult = ok,
+                                array2d_unmarshal_rows(1, ExpectedNumRows, ExpectedNumCols,
+                                    RestRowValues, !Array2d, RestRowsResult),
+                                (
+                                    RestRowsResult = ok,
+                                    Result = ok(!.Array2d)
+                                ;
+                                    RestRowsResult = error(RestRowsError),
+                                    Result = error(RestRowsError)
+                                )
+                            ;
+                                FirstRowResult = error(Msg),
+                                Result = error(Msg)
+                            )
+                        )
+                    ;
+                        FirstElemResult = error(FirstElemError),
+                        Result = error(FirstElemError)
+                    )
+                )
+            ;
+                ( FirstRowValue = null
+                ; FirstRowValue = bool(_)
+                ; FirstRowValue = string(_)
+                ; FirstRowValue = number(_)
+                ; FirstRowValue = object(_)
+                ),
+                TypeDesc = type_desc_from_result(Result),
+                TypeName = type_name(TypeDesc),
+                FirstRowValueDesc = value_desc(FirstRowValue),
+                string.format("conversion to %s: row 0 is %s, expected array",
+                    [s(TypeName), s(FirstRowValueDesc)], ErrorMsg),
+                Result = error(ErrorMsg)
+            )
+        )
     ;
         ( Value = null
         ; Value = bool(_)
@@ -311,42 +441,141 @@ array2d_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for array2d/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
-:- pred array2d_row_from_json(value::in, list(list(T))::in, list(list(T))::out)
-    is det <= from_json(T).
+:- type check_row_result
+    --->    crr_all_empty
+    ;       crr_non_empty(
+                crr_ne_row_no :: int,
+                crr_ne_length :: int
+            )
+    ;       crr_bad_type(
+                crr_bt_row_no :: int,
+                crr_bd_value  :: json.value
+            ).
 
-array2d_row_from_json(RowValue, !Rows) :-
+:- pred check_array2d_rows_are_empty(int::in, list(value)::in,
+    check_row_result::out) is det.
+
+check_array2d_rows_are_empty(_, [], crr_all_empty).
+check_array2d_rows_are_empty(RowNo, [Value | Values], Result) :-
     (
-        RowValue = array(ElemValues),
-        list.foldl(array2d_elem_from_json, ElemValues, [], RevRow),
-        list.reverse(RevRow, Row),
-        !:Rows = [Row | !.Rows]
+        Value = array(Elems),
+        (
+            Elems = [],
+            check_array2d_rows_are_empty(RowNo + 1, Values, Result)
+        ;
+            Elems = [_ | _],
+            list.length(Elems, NumElems),
+            Result = crr_non_empty(RowNo, NumElems)
+        )
     ;
-        ( RowValue = null
-        ; RowValue = bool(_)
-        ; RowValue = string(_)
-        ; RowValue = number(_)
-        ; RowValue = object(_)
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = object(_)
         ),
-        % XXX FIXME error propagation.
-        unexpected($file, $pred, "expected JSON array for array2d/1 row conversion")
-        %Result = error("expected JSON array for array2d/1 row conversion")
+        Result = crr_bad_type(RowNo, Value)
     ).
 
-:- pred array2d_elem_from_json(value::in, list(T)::in, list(T)::out)
+:- pred array2d_unmarshal_rows(int::in, int::in, int::in, list(value)::in,
+    array2d(T)::array_di, array2d(T)::array_uo, maybe_error::out)
     is det <= from_json(T).
 
-array2d_elem_from_json(Value, !Elems) :-
-    ElemResult = from_json(Value),
-    (
-        ElemResult = ok(Elem),
-        !:Elems = [Elem | !.Elems]
-    ;
-        ElemResult = error(Msg),
-        % XXX FIXME error propgation.
-        unexpected($file, $pred, Msg)
+array2d_unmarshal_rows(R, NumRows, NumCols, RowValues, !Array2d, Result) :-
+    ( if R < NumRows then
+        (
+            RowValues = [],
+            % This shouldn't occur since our caller checked the number of rows.
+            unexpected($file, $pred, "too few rows")
+        ;
+            RowValues = [RowValue | RowValuesPrime],
+            (
+                RowValue = array(ElemValues),
+                array2d_unmarshal_elems(R, 0, NumCols, ElemValues, !Array2d,
+                    RowResult),
+                (
+                    RowResult = ok,
+                    array2d_unmarshal_rows(R + 1, NumRows, NumCols, RowValuesPrime,
+                        !Array2d, Result)
+                ;
+                    RowResult = error(_),
+                    Result = RowResult
+                )
+            ;
+                ( RowValue = null
+                ; RowValue = bool(_)
+                ; RowValue = string(_)
+                ; RowValue = number(_)
+                ; RowValue = object(_)
+                ),
+                TypeDesc = type_of(!.Array2d),
+                TypeName = type_name(TypeDesc),
+                RowValueDesc = value_desc(RowValue),
+                string.format("conversion to %s: row %d is %s, expected array",
+                    [s(TypeName), i(R), s(RowValueDesc)], BadRowValueErrorMsg),
+                Result = error(BadRowValueErrorMsg)
+            )
+        )
+    else
+        (
+            RowValues = [],
+            Result = ok
+        ;
+            RowValues = [_ | _],
+            % This shouldn't occur since our caller checked the number of rows.
+            unexpected($file, $pred, "too many rows")
+        )
+    ).
+
+:- pred array2d_unmarshal_elems(int::in, int::in, int::in, list(value)::in,
+    array2d(T)::array2d_di, array2d(T)::array2d_uo, maybe_error::out)
+    is det <= from_json(T).
+
+array2d_unmarshal_elems(R, C, NumCols, RowValues, !Array2d, Result) :-
+    ( if C < NumCols then
+        (
+            RowValues = [],
+            TypeDesc = type_of(!.Array2d),
+            TypeName = type_name(TypeDesc),
+            string.format(
+                "conversion to %s: row %d has length %d, expected length %d",
+                [s(TypeName), i(R), i(C), i(NumCols)], ErrorMsg),
+            Result = error(ErrorMsg)
+        ;
+            RowValues = [RowValue | RowValuesPrime],
+            ElemResult = from_json(RowValue),
+            (
+                ElemResult = ok(Elem),
+                % Safe since to reach this point we must be within the bounds
+                % set when the array was created.
+                array2d.unsafe_set(R, C, Elem, !Array2d),
+                array2d_unmarshal_elems(R, C + 1, NumCols, RowValuesPrime,
+                    !Array2d, Result)
+            ;
+                ElemResult = error(ElemError),
+                Result = error(ElemError)
+            )
+        )
+    else
+        (
+            RowValues = [],
+            Result = ok
+        ;
+            RowValues = [_ | _],
+            TypeDesc = type_of(!.Array2d),
+            TypeName = type_name(TypeDesc),
+            list.length(RowValues, NumRemainingCols),
+            string.format(
+                "conversion to %s: row %d has length %d, expected length %d",
+                [s(TypeName), i(R), i(C + NumRemainingCols), i(NumCols)],
+                ErrorMsg),
+            Result = error(ErrorMsg)
+        )
     ).
 
 %-----------------------------------------------------------------------------%
@@ -375,7 +604,9 @@ version_array_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for version_array/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -402,7 +633,9 @@ set_ordlist_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for set_ordlist/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
 set_unordlist_from_json(Value) = Result :-
@@ -424,7 +657,9 @@ set_unordlist_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for set_unordlist/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
 set_tree234_from_json(Value) = Result :-
@@ -446,7 +681,9 @@ set_tree234_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for set_tree234/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
 set_ctree234_from_json(Value) = Result :-
@@ -468,7 +705,9 @@ set_ctree234_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for set_ctree234/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
 set_bbbtree_from_json(Value) = Result :-
@@ -490,7 +729,9 @@ set_bbbtree_from_json(Value) = Result :-
         ; Value = number(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON array for set_bbbtree/1 conversion")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -558,7 +799,9 @@ pair_from_json(Value) = Result :-
         ; Value = string(_)
         ; Value = array(_)
         ),
-        Result = error("expected JSON object for pair/2")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -585,7 +828,9 @@ map_from_json(Value) = Result :-
         ; Value = string(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON object for map/2")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -614,7 +859,9 @@ bimap_from_json(Value) = Result :-
         ; Value = string(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON object for bimap/2")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -636,7 +883,56 @@ json_pointer_from_json(Value) = Result :-
         ; Value = array(_)
         ; Value = object(_)
         ),
-        Result = error("expected JSON string for json.pointer/0")
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% Extra error handling code.
+%
+
+:- func make_conv_error_msg(type_desc, json.value, string) = string.
+
+make_conv_error_msg(TypeDesc, Value, Expected) = Msg :-
+    TypeName = type_name(TypeDesc),
+    ValueDesc = value_desc(Value),
+    string.format(
+        "conversion to %s: argument is %s, expected %s",
+        [s(TypeName), s(ValueDesc), s(Expected)], Msg).
+
+:- func make_string_conv_error_msg(type_desc, string) = string.
+
+make_string_conv_error_msg(TypeDesc, TargetType) = Msg :-
+    TypeName = type_name(TypeDesc),
+    string.format(
+        "conversion to %s: cannot convert string to %s",
+        [s(TypeName), s(TargetType)], Msg).
+
+:- func make_structure_error_msg(type_desc, string, string) = string.
+
+make_structure_error_msg(TypeDesc, ArgDesc, ExpectedDesc) = Msg :-
+    TypeName = type_name(TypeDesc),
+    string.format("conversion to %s: argument %s, expected %s",
+        [s(TypeName), s(ArgDesc), s(ExpectedDesc)], Msg).
+
+:- func type_desc_from_result(maybe_error(T)::unused) = (type_desc::out).
+
+type_desc_from_result(Result) = TypeDesc :-
+    ResultTypeDesc = type_of(Result),
+    type_ctor_and_args(ResultTypeDesc, _, Args),
+    (
+        Args = [],
+        unexpected($file, $pred, "no argument type_descs")
+    ;
+        Args = [_],
+        unexpected($file, $pred, "one argument type_desc")
+    ;
+        Args = [TypeDesc, _ErrorTypeDesc]
+    ;
+        Args = [_, _, _| _],
+        unexpected($file, $pred, "> 2 argument type_descs")
     ).
 
 %-----------------------------------------------------------------------------%

@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2014 Julien Fischer.
+% Copyright (C) 2014-2016 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
