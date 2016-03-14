@@ -1,0 +1,148 @@
+JSON: null
+TYPE: int
+RESULT: ERROR: conversion to int: argument is null, expected number
+
+JSON: "Hello"
+TYPE: int
+RESULT: ERROR: conversion to int: argument is string, expected number
+
+JSON: null
+TYPE: float
+RESULT: ERROR: conversion to float: argument is null, expected number
+
+JSON: "5.61"
+TYPE: float
+RESULT: ERROR: conversion to float: argument is string, expected number
+
+JSON: null
+TYPE: character
+RESULT: ERROR: conversion to character: argument is null, expected string
+
+JSON: "AA"
+TYPE: character
+RESULT: ERROR: conversion to character: argument has length 2, expected length 1
+
+JSON: ""
+TYPE: character
+RESULT: ERROR: conversion to character: argument has length 0, expected length 1
+
+JSON: null
+TYPE: string
+RESULT: ERROR: conversion to string: argument is null, expected string
+
+JSON: 5.61
+TYPE: string
+RESULT: ERROR: conversion to string: argument is number, expected string
+
+JSON: []
+TYPE: string
+RESULT: ERROR: conversion to string: argument is array, expected string
+
+JSON: ""
+TYPE: string
+RESULT: OK: 
+
+JSON: "Hello"
+TYPE: string
+RESULT: OK: Hello
+
+JSON: null
+TYPE: bool.bool
+RESULT: ERROR: conversion to bool.bool: argument is null, expected Boolean
+
+JSON: "Hello"
+TYPE: bool.bool
+RESULT: ERROR: conversion to bool.bool: argument is string, expected Boolean
+
+JSON: 5.61
+TYPE: bool.bool
+RESULT: ERROR: conversion to bool.bool: argument is number, expected Boolean
+
+JSON: null
+TYPE: integer.integer
+RESULT: ERROR: conversion to integer.integer: argument is null, expected string
+
+JSON: "Hello"
+TYPE: integer.integer
+RESULT: ERROR: conversion to integer.integer: cannot convert string to integer
+
+JSON: "12345678912345678912346"
+TYPE: integer.integer
+RESULT: OK: 12345678912345678912346
+
+JSON: "-123456789123456789123456"
+TYPE: integer.integer
+RESULT: OK: -123456789123456789123456
+
+JSON: null
+TYPE: bitmap.bitmap
+RESULT: ERROR: conversion to bitmap.bitmap: argument is null, expected string
+
+JSON: ""
+TYPE: bitmap.bitmap
+RESULT: ERROR: conversion to bitmap.bitmap: cannot convert string to bitmap
+
+JSON: "---"
+TYPE: bitmap.bitmap
+RESULT: ERROR: conversion to bitmap.bitmap: cannot convert string to bitmap
+
+JSON: "<24:10AFBD>"
+TYPE: bitmap.bitmap
+RESULT: OK: "<24:10AFBD>"
+
+JSON: null
+TYPE: list.list(int)
+RESULT: ERROR: conversion to list.list(int): argument is null, expected array
+
+JSON: []
+TYPE: list.list(int)
+RESULT: OK: []
+
+JSON: [1]
+TYPE: list.list(int)
+RESULT: OK: [1]
+
+JSON: [1,2]
+TYPE: list.list(int)
+RESULT: OK: [1, 2]
+
+JSON: [10,null]
+TYPE: list.list(int)
+RESULT: ERROR: conversion to int: argument is null, expected number
+
+JSON: null
+TYPE: array.array(int)
+RESULT: ERROR: conversion to array.array(int): argument is null, expected array
+
+JSON: null
+TYPE: array2d.array2d(int)
+RESULT: ERROR: conversion to array2d.array2d(int): argument is null, expected array
+
+JSON: []
+TYPE: array2d.array2d(int)
+RESULT: OK: array2d(0, 0, array([]))
+
+JSON: [[],[]]
+TYPE: array2d.array2d(int)
+RESULT: OK: array2d(2, 0, array([]))
+
+JSON: [[],null]
+TYPE: array2d.array2d(int)
+RESULT: ERROR: conversion to array2d.array2d(int): row 1 is null, expected array
+
+JSON: [[],[3]]
+TYPE: array2d.array2d(int)
+RESULT: ERROR: conversion to array2d.array2d(int): row 0 has length 0, row 1 has length 1
+
+JSON: [false,[3]]
+TYPE: array2d.array2d(int)
+RESULT: ERROR: conversion to array2d.array2d(int): row 0 is Boolean, expected array
+
+JSON: [[1,2,3],[4,5,6],[7,8,9]]
+TYPE: array2d.array2d(int)
+RESULT: OK: array2d(3, 3, array([1, 2, 3, 4, 5, 6, 7, 8, 9]))
+
+JSON: [[1],[2,3]]
+TYPE: array2d.array2d(int)
+RESULT: ERROR: conversion to array2d.array2d(int): row 1 has length 2, expected length 1
+
