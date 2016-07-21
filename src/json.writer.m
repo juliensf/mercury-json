@@ -269,7 +269,7 @@ code_point_to_utf16_surrogates(CodePoint, LS, TS) :-
     ).
 
 put_hex_digits(Stream, Int, !State) :-
-    string_writer.format(Stream, "\\u%04x", [i(Int)], !State).
+    string_writer.format(Stream, "\\u%04X", [i(Int)], !State).
 
 %-----------------------------------------------------------------------------%
 

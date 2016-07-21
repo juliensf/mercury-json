@@ -1423,7 +1423,7 @@ make_error_message(Error) = Msg :-
                 [s(ContextStr)], Msg)
         ;
             ErrorDesc = unescaped_control_character(CodePoint),
-            string.format("%s: error: unescaped control character: U+%04d\n",
+            string.format("%s: error: unescaped control character: U+%04X\n",
                 [s(ContextStr), i(CodePoint)], Msg)
         ;
             ErrorDesc = illegal_start_character(Char),

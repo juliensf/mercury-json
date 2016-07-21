@@ -19,7 +19,7 @@ Result Term:
 Result Term: aaabbbccc
 
  Orig. Term: ûń
-       JSON: "\u00fb\u0144"
+       JSON: "\u00FB\u0144"
 Result Term: ûń
 
  Orig. Term: 3.141
