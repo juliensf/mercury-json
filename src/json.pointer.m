@@ -91,7 +91,7 @@ do_resolve_token(RefTokens, Value0, Result) :-
     ;
         RefTokens = [RefToken | RefTokensPrime],
         % XXX Mercury 14.01 doesn't support state variables in
-        % require_complete_switch scope heads -- for compatiblity
+        % require_complete_switch scope heads -- for compatibility
         % we avoid using state variables for Value here.
         require_complete_switch [Value0] (
             Value0 = array(Elements),

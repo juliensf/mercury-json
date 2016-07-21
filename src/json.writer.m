@@ -6,7 +6,8 @@
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
-% This module implements writing json.value/0 values to output streams.
+% This module implements writing json.value/0 values to string and character
+% output streams.
 %
 %-----------------------------------------------------------------------------%
 

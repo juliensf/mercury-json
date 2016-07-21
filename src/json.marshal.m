@@ -40,8 +40,6 @@
 :- func bimap_to_json(bimap(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func json_pointer_to_json(json.pointer) = json.value.
 
-%:- func marshal_from_type(T) = maybe_error(json.value).
-
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
 

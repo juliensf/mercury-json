@@ -34,6 +34,8 @@
 
 :- func token_to_string(token(Error)) = string.
 
+:- func escape_json_string(string) = string.
+
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
 
@@ -278,7 +280,9 @@ get_escaped_char(Reader, Buffer, Result, !State) :-
         Result = error(stream_error(StreamError))
     ).
 
-:- pred escaped_json_char(char::in, char::out) is semidet.
+:- pred escaped_json_char(char, char).
+:- mode escaped_json_char(in, out) is semidet.
+:- mode escaped_json_char(out, in) is semidet.
 
 escaped_json_char('"', '"').
 escaped_json_char('\\', '\\').
@@ -958,7 +962,7 @@ token_to_string(token_right_square_bracket) = "]".
 token_to_string(token_comma) = ",".
 token_to_string(token_colon) = ":".
 token_to_string(token_string(String)) =
-    "\"" ++ String ++ "\"". % XXX Should escape special chars.
+    "\"" ++ escape_json_string(String) ++ "\"".
 token_to_string(token_number(Float)) =
     string.from_float(Float).
 token_to_string(token_false) = "false".
@@ -967,6 +971,41 @@ token_to_string(token_null) = "null".
 token_to_string(token_eof) = "end-of-file".
 token_to_string(token_error(_)) = _ :-
     unexpected($module, $pred, "error token encountered").
+
+%-----------------------------------------------------------------------------%
+
+escape_json_string(String) = EscapedString :-
+    string.foldl(do_char_escape, String, [], RevChars),
+    EscapedString = string.from_rev_char_list(RevChars).
+
+:- pred do_char_escape(char::in, list(char)::in, list(char)::out) is det.
+
+do_char_escape(Char, !RevChars) :-
+    ( if escaped_json_char(Escape, Char) then   % Reverse mode.
+        !:RevChars = [Escape, '\\'| !.RevChars]
+    else if
+        char.to_int(Char, CodePoint),
+        CodePoint >= 0x0000, CodePoint =< 0x001F
+    then
+       ( if CodePoint < 0x0010 then
+            SecondLastDigit = '0',
+            CodePointPrime = CodePoint
+        else
+            SecondLastDigit = '1',
+            CodePointPrime = CodePoint - 16
+        ),
+        ( if char.int_to_hex_char(CodePointPrime, LastDigit) then
+            !:RevChars =
+                [LastDigit, SecondLastDigit, '0', '0', 'u', '\\' | !.RevChars]
+        else
+            % This should not happen as we have checked that the digit is
+            % in range above.
+            unexpected($file, $pred,
+                "cannot escape code point: " ++ int_to_string(CodePoint))
+        )
+    else
+        !:RevChars = [Char | !.RevChars]
+    ).
 
 %-----------------------------------------------------------------------------%
 :- end_module json.json_lexer.

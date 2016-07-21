@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013 Julien Fischer.
+% Copyright (C) 2013-2016 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -320,9 +320,9 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                 )
             ;
                 NextToken = token_right_curly_bracket,
-                % XXX character escapes in field name.
+                EscapedFieldName = escape_json_string(FieldName),
                 string.format("missing value for object member \"%s\"",
-                    [s(FieldName)], Msg),
+                    [s(EscapedFieldName)], Msg),
                 NextTokenDesc = token_to_string(NextToken),
                 make_syntax_error(Reader, NextTokenDesc, yes(Msg), Error,
                     !State),
