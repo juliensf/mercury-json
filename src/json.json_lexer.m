@@ -317,11 +317,16 @@ get_escaped_unicode_char(Reader, Buffer, Result, !State) :-
                 Result = ok
             ;
                 CharCodeClass = code_point_leading_surrogate,
-                get_trailing_surrogate_and_combine(Reader, UnicodeCharCode,
-                    Buffer, Result, !State)
+                get_trailing_surrogate_and_combine(Reader, HexString,
+                    UnicodeCharCode, Buffer, Result, !State)
             ;
                 CharCodeClass = code_point_trailing_surrogate,
-                unexpected($file, $pred, "unpaired trailing surrogate")
+                make_error_context(Reader, Context0, !State),
+                Context = Context0 ^ column_number :=
+                    Context0 ^ column_number - 5,
+                ErrorDesc = unpaired_trailing_utf16_surrogate(HexString),
+                Error = json_error(Context, ErrorDesc),
+                Result = error(Error)
             ;
                 CharCodeClass = code_point_null_char,
                 make_error_context(Reader, Context0, !State),
@@ -423,15 +428,15 @@ is_trailing_surrogate(Code) :-
     Code =< 0xDFFF.
 
 :- pred get_trailing_surrogate_and_combine(json.reader(Stream)::in,
-    int::in, char_buffer::in,
+    string::in, int::in, char_buffer::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
-        Buffer, Result, !State) :-
+get_trailing_surrogate_and_combine(Reader, LeadingSurrogateStr,
+        LeadingSurrogate, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
@@ -462,7 +467,7 @@ get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
                             make_error_context(Reader, Context0, !State),
                             Context = Context0 ^ column_number :=
                                 Context0 ^ column_number - 5,
-                            ErrorDesc = invalid_trailing_surrogate(HexString),
+                            ErrorDesc = invalid_trailing_utf16_surrogate(HexString),
                             Error = json_error(Context, ErrorDesc),
                             Result = error(Error)
                         )
@@ -487,15 +492,16 @@ get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
                 Result = error(stream_error(StreamError))
             )
         else
-            make_error_context(Reader, Context, !State),
-            ErrorDesc = unpaired_utf16_surrogate,
+            make_error_context(Reader, Context0, !State),
+            Context = Context0 ^ column_number := Context0 ^ column_number - 6,
+            ErrorDesc = unpaired_leading_utf16_surrogate(LeadingSurrogateStr),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
         )
     ;
         ReadResult = eof,
         make_error_context(Reader, Context, !State),
-        ErrorDesc = unpaired_utf16_surrogate,
+        ErrorDesc = unpaired_leading_utf16_surrogate(LeadingSurrogateStr),
         Error = json_error(Context, ErrorDesc),
         Result = error(Error)
     ;

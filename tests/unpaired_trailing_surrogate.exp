@@ -1,0 +1,1 @@
+unpaired_trailing_surrogate.json:1:4: error: unpaired trailing UTF-16 surrogate: \uDD1E

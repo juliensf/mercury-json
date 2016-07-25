@@ -83,11 +83,19 @@
             % EOF has been reached but we are inside a multiline comment.
 
     ;       invalid_unicode_character(string)
+            % We have encountered an invalid Unicode escape, a code point
+            % that lies outside [0x0001, 0x10FFFF].
+            % The argument gives the hexadecimal digits of the code point
+            % involved.
 
-    ;       unpaired_utf16_surrogate
+    ;       unpaired_leading_utf16_surrogate(string)
+    ;       unpaired_trailing_utf16_surrogate(string)
+            % An unpaired leading or trailing UTF-16 surrogate was encountered.
+            % The argument gives the hexadecimal eigits of the code point
+            % involved.
 
-    ;       invalid_trailing_surrogate(string)
-            % A UTF-16 trailing surrogate was expected, but the code point
+    ;       invalid_trailing_utf16_surrogate(string)
+            % A trailing UTF-16 surrogate was expected, but the code point
             % encountered was outside the expected range for trailing
             % surrogates: [0xDC00, 0XDFFF].
             % The argument gives the hexadecimal digits of the code point
@@ -1430,12 +1438,16 @@ make_error_message(Error) = Msg :-
             string.format("%s: error: invalid Unicode character: \\u%s\n",
                 [s(ContextStr), s(What)], Msg)
         ;
-            ErrorDesc = unpaired_utf16_surrogate,
-            string.format("%s: error: unpaired UTF-16 surrogate\n",
-                [s(ContextStr)], Msg)
+            ErrorDesc = unpaired_leading_utf16_surrogate(What),
+            string.format("%s: error: unpaired leading UTF-16 surrogate: \\u%s\n",
+                [s(ContextStr), s(What)], Msg)
         ;
-            ErrorDesc = invalid_trailing_surrogate(What),
-            string.format("%s: error: invalid trailing surrogate: \\u%s\n",
+            ErrorDesc = unpaired_trailing_utf16_surrogate(What),
+            string.format("%s: error: unpaired trailing UTF-16 surrogate: \\u%s\n",
+                [s(ContextStr), s(What)], Msg)
+        ;
+            ErrorDesc = invalid_trailing_utf16_surrogate(What),
+            string.format("%s: error: invalid trailing UTF-16 surrogate: \\u%s\n",
                 [s(ContextStr), s(What)], Msg)
         ;
             ErrorDesc = null_character,
