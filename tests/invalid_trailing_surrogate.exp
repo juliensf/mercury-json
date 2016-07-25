@@ -1,0 +1,1 @@
+invalid_trailing_surrogate.json:1:10: error: invalid trailing surrogate: \uFFFF

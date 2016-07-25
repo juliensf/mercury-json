@@ -448,9 +448,9 @@ get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
                     (
                         HexDigitsResult = ok,
                         HexString = string.from_char_list(HexDigits),
+                        TrailingSurrogate = string.det_base_string_to_int(16,
+                            HexString),
                         ( if
-                            string.base_string_to_int(16, HexString,
-                                TrailingSurrogate),
                             is_trailing_surrogate(TrailingSurrogate)
                         then
                             CharCode = combine_utf16_surrogates(
@@ -459,7 +459,12 @@ get_trailing_surrogate_and_combine(Reader, LeadingSurrogate,
                             char_buffer.add(Buffer, UnicodeChar, !State),
                             Result = ok
                         else
-                            unexpected($file, $pred, "not a trailing surrogate")
+                            make_error_context(Reader, Context0, !State),
+                            Context = Context0 ^ column_number :=
+                                Context0 ^ column_number - 5,
+                            ErrorDesc = invalid_trailing_surrogate(HexString),
+                            Error = json_error(Context, ErrorDesc),
+                            Result = error(Error)
                         )
                     ;
                         HexDigitsResult = error(Error),

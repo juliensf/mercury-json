@@ -70,28 +70,44 @@
             % syntax error at 'Where': MaybeMsg
 
     ;       invalid_character_escape(char)
+            % A character escape has been encountered for a charater
+            % that does not require escaping.
 
     ;       unexpected_value(string, maybe(string))
 
     ;       duplicate_object_member(string)
+            % duplicate_object_member(MemberName):
+            % An object has multiple members named MemberName.
 
     ;       unterminated_multiline_comment
+            % EOF has been reached but we are inside a multiline comment.
 
     ;       invalid_unicode_character(string)
 
     ;       unpaired_utf16_surrogate
 
+    ;       invalid_trailing_surrogate(string)
+            % A UTF-16 trailing surrogate was expected, but the code point
+            % encountered was outside the expected range for trailing
+            % surrogates: [0xDC00, 0XDFFF].
+            % The argument gives the hexadecimal digits of the code point
+            % encountered.
+
     ;       null_character
+            % The null character (0x0000) was encountered.
 
     ;       unescaped_control_character(int)
+            % unescaped_control_character(CodePoint):
+            % An unescaped control character in the range [0x0001, 0x001F]
+            % was encountered.
 
     ;       illegal_start_character(char)
-            % A JSON value begins with an illegal character.
-            % One of: '}', ']', ',' or ':'.
+            % A JSON value begins with an illegal character.  One of: '}', ']',
+            % ',' or ':'.
 
     ;       illegal_unicode_escape_character(char)
-            % A character occurred inside a Unicode escape that is not
-            % a hexadecimal digit.
+            % A character occurred inside a Unicode escape that is not a
+            % hexadecimal digit.
 
     ;       non_finite_number(string)
             % A number was read but after conversion to a float it was of
@@ -1417,6 +1433,10 @@ make_error_message(Error) = Msg :-
             ErrorDesc = unpaired_utf16_surrogate,
             string.format("%s: error: unpaired UTF-16 surrogate\n",
                 [s(ContextStr)], Msg)
+        ;
+            ErrorDesc = invalid_trailing_surrogate(What),
+            string.format("%s: error: invalid trailing surrogate: \\u%s\n",
+                [s(ContextStr), s(What)], Msg)
         ;
             ErrorDesc = null_character,
             string.format("%s: error: null character\n",
