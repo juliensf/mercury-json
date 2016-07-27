@@ -1463,9 +1463,17 @@ make_error_message(Error) = Msg :-
                 [s(ContextStr), c(Char)], Msg)
         ;
             ErrorDesc = illegal_unicode_escape_character(Char),
+            ( if
+                char.to_int(Char, CodePoint),
+                CodePoint >= 0x0000, CodePoint =< 0x001F
+            then
+                string.format("U+%04X", [i(CodePoint)], CharStr)
+            else
+                CharStr = "'" ++ string.from_char(Char) ++ "'"
+            ),
             string.format("%s: error: character" ++
-                " in Unicode escape is not a hexadecimal digit: '%c'\n",
-                [s(ContextStr), c(Char)], Msg)
+                " in Unicode escape is not a hexadecimal digit: %s\n",
+                [s(ContextStr), s(CharStr)], Msg)
         ;
             ErrorDesc = non_finite_number(NumberStr),
             string.format("%s: error: non-finite number: %s\n",
