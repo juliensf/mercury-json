@@ -1463,17 +1463,9 @@ make_error_message(Error) = Msg :-
                 [s(ContextStr), c(Char)], Msg)
         ;
             ErrorDesc = illegal_unicode_escape_character(Char),
-            ( if
-                char.to_int(Char, CodePoint),
-                CodePoint >= 0x0000, CodePoint =< 0x001F
-            then
-                string.format("U+%04X", [i(CodePoint)], CharStr)
-            else
-                CharStr = "'" ++ string.from_char(Char) ++ "'"
-            ),
             string.format("%s: error: character" ++
                 " in Unicode escape is not a hexadecimal digit: %s\n",
-                [s(ContextStr), s(CharStr)], Msg)
+                [s(ContextStr), s(describe_char(Char))], Msg)
         ;
             ErrorDesc = non_finite_number(NumberStr),
             string.format("%s: error: non-finite number: %s\n",
@@ -1481,32 +1473,44 @@ make_error_message(Error) = Msg :-
 
         ;   ErrorDesc = illegal_negation(Char),
             string.format(
-                "%s: error: expected a decimal digit after '-', got '%c'\n",
-                [s(ContextStr), c(Char)], Msg)
+                "%s: error: expected a decimal digit after '-', got %s\n",
+                [s(ContextStr), s(describe_char(Char))], Msg)
         ;
             ErrorDesc = illegal_comment_start(Char),
             string.format(
                 "%s: error: expected '/' or '*' after '/' in" ++
-                " comment start, got '%c'\n",
-                [s(ContextStr), c(Char)], Msg)
+                " comment start, got %s\n",
+                [s(ContextStr), s(describe_char(Char))], Msg)
         ;
             ErrorDesc = bad_signed_exponent(SignChar, Char),
             string.format(
                 "%s: error: expected a decimal digit " ++
-                "after '%c' in exponent, got '%c'\n",
-                [s(ContextStr), c(SignChar), c(Char)], Msg)
+                "after '%c' in exponent, got %s\n",
+                [s(ContextStr), c(SignChar), s(describe_char(Char))], Msg)
         ;
             ErrorDesc = bad_exponent(ExpChar, Char),
             string.format(
                 "%s: error: expected '+', '-' or a decimal digit after " ++
-                "'%c', got '%c'\n",
-                [s(ContextStr), c(ExpChar), c(Char)], Msg)
+                "'%c' in exponent, got %s\n",
+                [s(ContextStr), c(ExpChar), s(describe_char(Char))], Msg)
         ;
             ErrorDesc = expected_eof(Found),
             string.format(
                 "%s: error: expected end-of-file, got '%s'\n",
                 [s(ContextStr), s(Found)], Msg)
         )
+    ).
+
+:- func describe_char(char) = string.
+
+describe_char(Char) = String :-
+    ( if
+        char.to_int(Char, CodePoint),
+        CodePoint >= 0x0000, CodePoint =< 0x001F
+    then
+        string.format("U+%04X", [i(CodePoint)], String)
+    else
+        String = "'" ++ string.from_char(Char) ++ "'"
     ).
 
 %-----------------------------------------------------------------------------%

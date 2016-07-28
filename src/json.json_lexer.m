@@ -548,7 +548,8 @@ get_negative_number(Reader, Buffer, Token, !State) :-
         )
     ;
         GetResult = eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected decimal digit after '-'",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Token = token_error(Error)
     ;
         GetResult = error(StreamError),
@@ -626,7 +627,8 @@ get_number_chars(Reader, Buffer, Result, !State) :-
         )
     ;
         GetResult = eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected '.', 'e', 'E' or decimal digit",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(Error)
     ;
         GetResult = error(StreamError),
@@ -678,7 +680,8 @@ get_frac(Reader, Where, Buffer, Result, !State) :-
             Result = ok
         ;
             Where = frac_start,
-            make_unexpected_eof_error(Reader, no, Error, !State),
+            Msg = "expected decimal digit after '.'",
+            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
             Result = error(Error)
         )
     ;
@@ -751,10 +754,14 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
     ;
         GetResult = eof,
         (
-            ( Where = exp_start
-            ; Where = exp_sign
+            (
+                Where = exp_start,
+                Msg = "expected a digit, '+', or '-'"
+            ;
+                Where = exp_sign,
+                Msg = "expected a digit"
             ),
-            make_unexpected_eof_error(Reader, no, Error, !State),
+            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
             Result = error(Error)
         ;
             Where = exp_digit,
