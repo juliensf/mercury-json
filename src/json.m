@@ -91,7 +91,7 @@
     ;       unpaired_leading_utf16_surrogate(string)
     ;       unpaired_trailing_utf16_surrogate(string)
             % An unpaired leading or trailing UTF-16 surrogate was encountered.
-            % The argument gives the hexadecimal eigits of the code point
+            % The argument gives the hexadecimal digits of the code point
             % involved.
 
     ;       invalid_trailing_utf16_surrogate(string)
@@ -681,9 +681,27 @@
     %
 :- func to_string(value) = string.
 
+    % Convert a string to a JSON value.
+    % Fails if the string cannot be converted into a JSON value.
+    %
 :- pred from_string(string::in, value::out) is semidet.
 
+    % As above, but throw a software_error/1 exception if the string
+    % cannot be converted into a JSON value.
+    %
 :- func det_from_string(string) = value.
+
+:- type from_string_result
+    --->    ok(value)
+    ;       error(json.context, json.error_desc).
+
+    % Convert a string into a JSON value, return an error if the conversion
+    % cannot be performed.
+    %
+:- func maybe_from_string(string) = from_string_result.
+
+:- func error_context_and_desc_to_string(json.context, json.error_desc)
+    = string.
 
 %-----------------------------------------------------------------------------%
 %
@@ -1384,121 +1402,124 @@ make_error_message(Error) = Msg :-
         Msg = stream.error_message(StreamError)
     ;
         Error = json_error(Context, ErrorDesc),
-        Context = context(StreamName, LineNo, ColNo),
-        string.format("%s:%d:%d", [s(StreamName), i(LineNo), i(ColNo)],
-            ContextStr),
-        (
-            ErrorDesc = unexpected_eof(MaybeExtraMsg),
-            (
-                MaybeExtraMsg = no,
-                string.format("%s: error: unexpected end-of-file\n",
-                    [s(ContextStr)], Msg)
-            ;
-                MaybeExtraMsg = yes(ExtraMsg),
-                string.format("%s: error: unexpected end-of-file: %s\n",
-                    [s(ContextStr), s(ExtraMsg)], Msg)
-            )
-        ;
-            ErrorDesc = syntax_error(Where, MaybeExtraMsg),
-            (
-                MaybeExtraMsg = yes(ExtraMsg),
-                string.format("%s: syntax error at '%s': %s\n",
-                    [s(ContextStr), s(Where), s(ExtraMsg)], Msg)
-            ;
-                MaybeExtraMsg = no,
-                string.format("%s: syntax error at '%s'\n",
-                    [s(ContextStr), s(Where)], Msg)
-            )
-        ;
-            ErrorDesc = invalid_character_escape(What),
-            string.format("%s: error: invalid character escape: '\\%c'\n",
-                [s(ContextStr), c(What)], Msg)
-        ;
-            ErrorDesc = unexpected_value(What, MaybeExtraMsg),
-            (
-                MaybeExtraMsg = no,
-                string.format("%s: error: unexpected %s value\n",
-                    [s(ContextStr), s(What)], Msg)
-            ;
-                MaybeExtraMsg = yes(ExtraMsg),
-                string.format("%s: error: unexpected %s value: %s\n",
-                    [s(ContextStr), s(What), s(ExtraMsg)], Msg)
-            )
-        ;
-            ErrorDesc = duplicate_object_member(Name),
-            string.format(
-                "%s: error: object member \"%s\" is not unique\n",
-                [s(ContextStr), s(Name)], Msg)
-        ;
-            ErrorDesc = unterminated_multiline_comment,
-            string.format("%s: error: unterminated multiline comment\n",
-                [s(ContextStr)], Msg)
-        ;
-            ErrorDesc = invalid_unicode_character(What),
-            string.format("%s: error: invalid Unicode character: \\u%s\n",
-                [s(ContextStr), s(What)], Msg)
-        ;
-            ErrorDesc = unpaired_leading_utf16_surrogate(What),
-            string.format("%s: error: unpaired leading UTF-16 surrogate: \\u%s\n",
-                [s(ContextStr), s(What)], Msg)
-        ;
-            ErrorDesc = unpaired_trailing_utf16_surrogate(What),
-            string.format("%s: error: unpaired trailing UTF-16 surrogate: \\u%s\n",
-                [s(ContextStr), s(What)], Msg)
-        ;
-            ErrorDesc = invalid_trailing_utf16_surrogate(What),
-            string.format("%s: error: invalid trailing UTF-16 surrogate: \\u%s\n",
-                [s(ContextStr), s(What)], Msg)
-        ;
-            ErrorDesc = null_character,
-            string.format("%s: error: null character\n",
-                [s(ContextStr)], Msg)
-        ;
-            ErrorDesc = unescaped_control_character(CodePoint),
-            string.format("%s: error: unescaped control character: U+%04X\n",
-                [s(ContextStr), i(CodePoint)], Msg)
-        ;
-            ErrorDesc = illegal_start_character(Char),
-            string.format("%s: error: '%c' at start of JSON value\n",
-                [s(ContextStr), c(Char)], Msg)
-        ;
-            ErrorDesc = illegal_unicode_escape_character(Char),
-            string.format("%s: error: character" ++
-                " in Unicode escape is not a hexadecimal digit: %s\n",
-                [s(ContextStr), s(describe_char(Char))], Msg)
-        ;
-            ErrorDesc = non_finite_number(NumberStr),
-            string.format("%s: error: non-finite number: %s\n",
-                [s(ContextStr), s(NumberStr)], Msg)
+        Msg = error_context_and_desc_to_string(Context, ErrorDesc)
+    ).
 
-        ;   ErrorDesc = illegal_negation(Char),
-            string.format(
-                "%s: error: expected a decimal digit after '-', got %s\n",
-                [s(ContextStr), s(describe_char(Char))], Msg)
+error_context_and_desc_to_string(Context, ErrorDesc) = Msg :-
+    Context = context(StreamName, LineNo, ColNo),
+    string.format("%s:%d:%d", [s(StreamName), i(LineNo), i(ColNo)],
+        ContextStr),
+    (
+        ErrorDesc = unexpected_eof(MaybeExtraMsg),
+        (
+            MaybeExtraMsg = no,
+            string.format("%s: error: unexpected end-of-file\n",
+                [s(ContextStr)], Msg)
         ;
-            ErrorDesc = illegal_comment_start(Char),
-            string.format(
-                "%s: error: expected '/' or '*' after '/' in" ++
-                " comment start, got %s\n",
-                [s(ContextStr), s(describe_char(Char))], Msg)
-        ;
-            ErrorDesc = bad_signed_exponent(SignChar, Char),
-            string.format(
-                "%s: error: expected a decimal digit " ++
-                "after '%c' in exponent, got %s\n",
-                [s(ContextStr), c(SignChar), s(describe_char(Char))], Msg)
-        ;
-            ErrorDesc = bad_exponent(ExpChar, Char),
-            string.format(
-                "%s: error: expected '+', '-' or a decimal digit after " ++
-                "'%c' in exponent, got %s\n",
-                [s(ContextStr), c(ExpChar), s(describe_char(Char))], Msg)
-        ;
-            ErrorDesc = expected_eof(Found),
-            string.format(
-                "%s: error: expected end-of-file, got '%s'\n",
-                [s(ContextStr), s(Found)], Msg)
+            MaybeExtraMsg = yes(ExtraMsg),
+            string.format("%s: error: unexpected end-of-file: %s\n",
+                [s(ContextStr), s(ExtraMsg)], Msg)
         )
+    ;
+        ErrorDesc = syntax_error(Where, MaybeExtraMsg),
+        (
+            MaybeExtraMsg = yes(ExtraMsg),
+            string.format("%s: syntax error at '%s': %s\n",
+                [s(ContextStr), s(Where), s(ExtraMsg)], Msg)
+        ;
+            MaybeExtraMsg = no,
+            string.format("%s: syntax error at '%s'\n",
+                [s(ContextStr), s(Where)], Msg)
+        )
+    ;
+        ErrorDesc = invalid_character_escape(What),
+        string.format("%s: error: invalid character escape: '\\%c'\n",
+            [s(ContextStr), c(What)], Msg)
+    ;
+        ErrorDesc = unexpected_value(What, MaybeExtraMsg),
+        (
+            MaybeExtraMsg = no,
+            string.format("%s: error: unexpected %s value\n",
+                [s(ContextStr), s(What)], Msg)
+        ;
+            MaybeExtraMsg = yes(ExtraMsg),
+            string.format("%s: error: unexpected %s value: %s\n",
+                [s(ContextStr), s(What), s(ExtraMsg)], Msg)
+        )
+    ;
+        ErrorDesc = duplicate_object_member(Name),
+        string.format(
+            "%s: error: object member \"%s\" is not unique\n",
+            [s(ContextStr), s(Name)], Msg)
+    ;
+        ErrorDesc = unterminated_multiline_comment,
+        string.format("%s: error: unterminated multiline comment\n",
+            [s(ContextStr)], Msg)
+    ;
+        ErrorDesc = invalid_unicode_character(What),
+        string.format("%s: error: invalid Unicode character: \\u%s\n",
+            [s(ContextStr), s(What)], Msg)
+    ;
+        ErrorDesc = unpaired_leading_utf16_surrogate(What),
+        string.format("%s: error: unpaired leading UTF-16 surrogate: \\u%s\n",
+            [s(ContextStr), s(What)], Msg)
+    ;
+        ErrorDesc = unpaired_trailing_utf16_surrogate(What),
+        string.format("%s: error: unpaired trailing UTF-16 surrogate: \\u%s\n",
+            [s(ContextStr), s(What)], Msg)
+    ;
+        ErrorDesc = invalid_trailing_utf16_surrogate(What),
+        string.format("%s: error: invalid trailing UTF-16 surrogate: \\u%s\n",
+            [s(ContextStr), s(What)], Msg)
+    ;
+        ErrorDesc = null_character,
+        string.format("%s: error: null character\n",
+            [s(ContextStr)], Msg)
+    ;
+        ErrorDesc = unescaped_control_character(CodePoint),
+        string.format("%s: error: unescaped control character: U+%04X\n",
+            [s(ContextStr), i(CodePoint)], Msg)
+    ;
+        ErrorDesc = illegal_start_character(Char),
+        string.format("%s: error: '%c' at start of JSON value\n",
+            [s(ContextStr), c(Char)], Msg)
+    ;
+        ErrorDesc = illegal_unicode_escape_character(Char),
+        string.format("%s: error: character" ++
+            " in Unicode escape is not a hexadecimal digit: %s\n",
+            [s(ContextStr), s(describe_char(Char))], Msg)
+    ;
+        ErrorDesc = non_finite_number(NumberStr),
+        string.format("%s: error: non-finite number: %s\n",
+            [s(ContextStr), s(NumberStr)], Msg)
+
+    ;   ErrorDesc = illegal_negation(Char),
+        string.format(
+            "%s: error: expected a decimal digit after '-', got %s\n",
+            [s(ContextStr), s(describe_char(Char))], Msg)
+    ;
+        ErrorDesc = illegal_comment_start(Char),
+        string.format(
+            "%s: error: expected '/' or '*' after '/' in" ++
+            " comment start, got %s\n",
+            [s(ContextStr), s(describe_char(Char))], Msg)
+    ;
+        ErrorDesc = bad_signed_exponent(SignChar, Char),
+        string.format(
+            "%s: error: expected a decimal digit " ++
+            "after '%c' in exponent, got %s\n",
+            [s(ContextStr), c(SignChar), s(describe_char(Char))], Msg)
+    ;
+        ErrorDesc = bad_exponent(ExpChar, Char),
+        string.format(
+            "%s: error: expected '+', '-' or a decimal digit after " ++
+            "'%c' in exponent, got %s\n",
+            [s(ContextStr), c(ExpChar), s(describe_char(Char))], Msg)
+    ;
+        ErrorDesc = expected_eof(Found),
+        string.format(
+            "%s: error: expected end-of-file, got '%s'\n",
+            [s(ContextStr), s(Found)], Msg)
     ).
 
 :- func describe_char(char) = string.
@@ -1800,6 +1821,35 @@ det_from_string(String) = Value :-
     ( if json.from_string(String, Value0)
     then Value = Value0
     else error("json.det_from_string: from_string failed")
+    ).
+
+maybe_from_string(String) = Result :-
+    some [!State] (
+        init_string_state(!:State),
+        init_string_reader(no, String, StringReader, !State),
+        json.init_reader(StringReader, Reader, !State),
+        json.read_value(Reader, ParseResult, !.State, _)
+    ),
+    (
+        ParseResult = ok(Value),
+        Result = ok(Value)
+    ;
+        ParseResult = error(ParseError),
+        (
+            % The only we can get a stream error here is if there is
+            % an internal error in the string reader.
+            ParseError = stream_error(StreamError),
+            Msg = stream.error_message(StreamError),
+            error("json.maybe_from_string: stream error: " ++ Msg)
+        ;
+            ParseError = json_error(Context, Desc),
+            Result = error(Context, Desc)
+        )
+    ;
+        % This should not happen -- the call to read_value/4 above will
+        % generate an "unexpected EOF" error if String is empty.
+        ParseResult = eof,
+        error("json.maybe_from_string: unexpected EOF")
     ).
 
 %-----------------------------------------------------------------------------%
