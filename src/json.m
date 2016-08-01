@@ -30,6 +30,7 @@
 :- import_module map.
 :- import_module maybe.
 :- import_module pair.
+:- import_module rbtree.
 :- import_module set_bbbtree.
 :- import_module set_ctree234.
 :- import_module set_ordlist.
@@ -789,6 +790,7 @@
 :- instance to_json(set_bbbtree(T)) <= to_json(T).
 :- instance to_json(maybe(T)) <= to_json(T).
 :- instance to_json(map(K, V)) <= (to_json(K), to_json(V)).
+:- instance to_json(rbtree(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)).
 
 :- instance to_json(json.value).
@@ -826,6 +828,7 @@
 :- instance from_json(set_bbbtree(T)) <= from_json(T).
 :- instance from_json(maybe(T)) <= from_json(T).
 :- instance from_json(map(K, V)) <= (from_json(K), from_json(V)).
+:- instance from_json(rbtree(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(json.value).
 :- instance from_json(json.pointer).
@@ -1256,6 +1259,9 @@ from_type(T) = to_json(T).
 :- instance to_json(map(K, V)) <= (to_json(K), to_json(V)) where [
     func(to_json/1) is json.marshal.map_to_json
 ].
+:- instance to_json(rbtree(K, V)) <= (to_json(K), to_json(V)) where [
+    func(to_json/1) is json.marshal.rbtree_to_json
+].
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)) where [
     func(to_json/1) is json.marshal.bimap_to_json
 ].
@@ -1333,6 +1339,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(map(K, V)) <= (from_json(K), from_json(V)) where [
     func(from_json/1) is json.unmarshal.map_from_json
+].
+:- instance from_json(rbtree(K, V)) <= (from_json(K), from_json(V)) where [
+    func(from_json/1) is json.unmarshal.rbtree_from_json
 ].
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)) where [
     func(from_json/1) is json.unmarshal.bimap_from_json

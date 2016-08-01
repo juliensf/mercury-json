@@ -38,6 +38,7 @@
 :- import_module map.
 :- import_module maybe.
 :- import_module pair.
+:- import_module rbtree.
 :- import_module set.
 :- import_module set_bbbtree.
 :- import_module set_unordlist.
@@ -144,6 +145,16 @@ test_marshaling(File, !IO) :-
     %
     map.from_assoc_list(AssocList, Map),
     test(File, Map, !IO),
+
+    % Test rbtrees.
+    %
+    some [!RBTree] (
+        !:RBTree = rbtree.from_assoc_list(AssocList),
+        rbtree.insert_duplicate(apple, "Apple2", !RBTree),
+        rbtree.insert_duplicate(apple, "Apple3", !RBTree),
+        rbtree.insert_duplicate(apple, "Apple4", !RBTree),
+        test(File, !.RBTree, !IO)
+    ),
 
     % Test bimaps.
     %
@@ -266,7 +277,6 @@ test_marshaling(File, !IO) :-
 do_to_string_test(File, Value, !IO) :-
     io.format(File, "to_string(%s) = \"%s\"\n",
         [s(string(Value)), s(to_string(Value))], !IO).
-
 
 :- pred do_from_string_test(io.text_output_stream::in,
     string::in, io::di, io::uo) is det.

@@ -37,6 +37,7 @@
 :- func set_bbbtree_to_json(set_bbbtree(T)) = json.value <= to_json(T).
 :- func maybe_to_json(maybe(T)) = json.value <= to_json(T).
 :- func map_to_json(map(K, V)) = json.value <= (to_json(K), to_json(V)).
+:- func rbtree_to_json(rbtree(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func bimap_to_json(bimap(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func json_pointer_to_json(json.pointer) = json.value.
 
@@ -200,6 +201,10 @@ maybe_to_json(Maybe) = Value :-
 
 map_to_json(Map) = Value :-
     map.to_assoc_list(Map, KVs),
+    Value = to_json(KVs).
+
+rbtree_to_json(Tree) = Value :-
+    rbtree.rbtree_to_assoc_list(Tree, KVs),
     Value = to_json(KVs).
 
 bimap_to_json(Bimap) = Value :-

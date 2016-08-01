@@ -45,9 +45,7 @@ main(!IO) :-
         true
     catch IO_Error ->
         io.error_message(IO_Error, Msg),
-        io.stderr_stream(Stderr, !IO),
-        io.print_line(Stderr, Msg, !IO),
-        io.set_exit_status(1, !IO)
+        print_error("error: " ++ Msg ++ "\n", !IO)
     catch_any Other ->
         throw(Other)
     ).

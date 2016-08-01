@@ -97,7 +97,7 @@ Result Term: sol([1, 2, 3, 4])
        JSON: [1,2,3,4]
 Result Term: sul([4, 3, 2, 1])
 
- Orig. Term: two(2, two(1, empty, empty), three(3, 4, empty, empty, empty))
+ Orig. Term: two(3, three(1, 2, empty, empty, empty), two(4, empty, empty))
        JSON: [1,2,3,4]
 Result Term: two(3, three(1, 2, empty, empty, empty), two(4, empty, empty))
 
@@ -116,6 +116,10 @@ Result Term: [apple - "Apple", orange - "Orange", lemon - "Lemon"]
  Orig. Term: four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty)
        JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
 Result Term: four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty)
+
+ Orig. Term: black(orange, "Orange", red(apple, "Apple2", black(apple, "Apple3", red(apple, "Apple4", empty, empty), empty), black(apple, "Apple", empty, empty)), black(lemon, "Lemon", empty, empty))
+       JSON: [{"fst":"apple","snd":"Apple4"},{"fst":"apple","snd":"Apple3"},{"fst":"apple","snd":"Apple2"},{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
+Result Term: black(apple, "Apple3", black(apple, "Apple2", red(apple, "Apple", empty, empty), empty), black(orange, "Orange", red(apple, "Apple4", empty, empty), red(lemon, "Lemon", empty, empty)))
 
  Orig. Term: bimap(four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty), four("Apple", apple, "Lemon", lemon, "Orange", orange, empty, empty, empty, empty))
        JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]

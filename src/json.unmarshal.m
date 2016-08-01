@@ -45,6 +45,8 @@
 :- func maybe_from_json(value) = maybe_error(maybe(T)) <= from_json(T).
 :- func map_from_json(value) = maybe_error(map(K, V))
     <= (from_json(K), from_json(V)).
+:- func rbtree_from_json(value) = maybe_error(rbtree(K, V))
+    <= (from_json(K), from_json(V)).
 :- func bimap_from_json(value) = maybe_error(bimap(K, V))
     <= (from_json(K), from_json(V)).
 :- func json_pointer_from_json(value) = maybe_error(json.pointer).
@@ -817,6 +819,40 @@ map_from_json(Value) = Result :-
             MaybeKVs = ok(KVs),
             map.from_assoc_list(KVs, Map),
             Result = ok(Map)
+        ;
+            MaybeKVs = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = string(_)
+        ; Value = object(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> rbtree/2 types.
+%
+
+rbtree_from_json(Value) = Result :-
+    (
+        Value = array(_),
+        MaybeKVs = from_json(Value),
+        (
+            MaybeKVs = ok(KVs),
+            % NOTE: we cannot use rbtree.from_assoc_list/1 since that will
+            % abort if there are duplicate keys.
+            InsertPred = (pred((K - V)::in, !.Tree::in, !:Tree::out) is det :-
+                rbtree.insert_duplicate(K, V, !Tree)
+            ),
+            list.foldl(InsertPred, KVs, rbtree.init, RBTree),
+            Result = ok(RBTree)
         ;
             MaybeKVs = error(Msg),
             Result = error(Msg)
