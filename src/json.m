@@ -996,68 +996,80 @@ read_array(Reader, Result, !State) :-
 
 get_value(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
-    do_get_value(Reader, Token, Result, !State).
+    ( if Token = token_eof then
+        Result = eof
+    else
+        do_get_value(Reader, Token, Result, !State)
+    ).
 
 get_object(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
-    % Save the context of the beginning of the value.
-    make_error_context(Reader, Context, !State),
-    do_get_value(Reader, Token, ValueResult, !State),
-    (
-        ValueResult = ok(Value),
+    ( if Token = token_eof then
+        Result = eof
+    else
+        % Save the context of the beginning of the value.
+        make_error_context(Reader, Context, !State),
+        do_get_value(Reader, Token, ValueResult, !State),
         (
-            Value = object(Members),
-            Result = ok(Members)
+            ValueResult = ok(Value),
+            (
+                Value = object(Members),
+                Result = ok(Members)
+            ;
+                ( Value = null
+                ; Value = bool(_)
+                ; Value = string(_)
+                ; Value = number(_)
+                ; Value = array(_)
+                ),
+                Msg = "value must be an object",
+                ValueDesc = value_desc(Value),
+                ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+                Error = json_error(Context, ErrorDesc),
+                Result = error(Error)
+            )
         ;
-            ( Value = null
-            ; Value = bool(_)
-            ; Value = string(_)
-            ; Value = number(_)
-            ; Value = array(_)
-            ),
-            Msg = "value must be an object",
-            ValueDesc = value_desc(Value),
-            ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
-            Error = json_error(Context, ErrorDesc),
+            ValueResult = eof,
+            Result = eof
+        ;
+            ValueResult = error(Error),
             Result = error(Error)
         )
-    ;
-        ValueResult = eof,
-        Result = eof
-    ;
-        ValueResult = error(Error),
-        Result = error(Error)
     ).
 
 get_array(Reader, Result, !State) :-
     get_token(Reader, Token, !State),
-    % Save the context of the beginning of the value.
-    make_error_context(Reader, Context, !State),
-    do_get_value(Reader, Token, ValueResult, !State),
-    (
-        ValueResult = ok(Value),
+    ( if Token = token_eof then
+        Result = eof
+    else
+        % Save the context of the beginning of the value.
+        make_error_context(Reader, Context, !State),
+        do_get_value(Reader, Token, ValueResult, !State),
         (
-            Value = array(Elements),
-            Result = ok(Elements)
+            ValueResult = ok(Value),
+            (
+                Value = array(Elements),
+                Result = ok(Elements)
+            ;
+                ( Value = null
+                ; Value = bool(_)
+                ; Value = string(_)
+                ; Value = number(_)
+                ; Value = object(_)
+                ),
+                Msg = "value must be an array",
+                ValueDesc = value_desc(Value),
+                ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+                Error = json_error(Context, ErrorDesc),
+                Result = error(Error)
+            )
         ;
-            ( Value = null
-            ; Value = bool(_)
-            ; Value = string(_)
-            ; Value = number(_)
-            ; Value = object(_)
-            ),
-            Msg = "value must be an array",
-            ValueDesc = value_desc(Value),
-            ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
-            Error = json_error(Context, ErrorDesc),
+            ValueResult = eof,
+            Result = eof
+        ;
+            ValueResult = error(Error),
             Result = error(Error)
         )
-    ;
-        ValueResult = eof,
-        Result = eof
-    ;
-        ValueResult = error(Error),
-        Result = error(Error)
     ).
 
 %-----------------------------------------------------------------------------%
