@@ -1,9 +1,12 @@
 MMC = mmc
 
-PROGS = pretty
+PROGS = pretty messages
 
 pretty$(EXEEXT): pretty.m Mercury.modules
 	$(MMC) --make $@
+
+messages$(EXEEXT): messages.m Mercury.modules
+	$(MMC) -lcurl --make $@
 
 Mercury.modules: $(wildcard *.m) $(wildcard ../src/*.m)
 	$(MMC) -f $(wildcard *.m) $(wildcard ../src/*.m)
