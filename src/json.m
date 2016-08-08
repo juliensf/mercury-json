@@ -747,6 +747,7 @@
 %     map/2             array of objects (pairs)
 %     maybe/1           null for 'no' or argument of 'yes'
 %     pair/2            object with two members: "fst" and "snd"
+%     rbtree/2          array of objects (pairs)
 %     set/1             array
 %     set_bbbtree/1     array
 %     set_ctree234/1    array
@@ -792,7 +793,6 @@
 :- instance to_json(map(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(rbtree(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)).
-
 :- instance to_json(json.value).
 :- instance to_json(json.pointer).
 
