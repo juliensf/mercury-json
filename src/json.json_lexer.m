@@ -383,7 +383,10 @@ get_hex_digits(Reader, !.N, !HexDigits, Result, !State) :-
             )
         ;
             ReadResult = eof,
-            make_unexpected_eof_error(Reader, no, Error, !State),
+            % XXX it's also an unterminated string literal -- what's
+            % the more useful error message?
+            Msg = "incomplete Unicode escape",
+            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
             Result = error(Error)
         ;
             ReadResult = error(StreamError),
