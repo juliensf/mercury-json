@@ -169,6 +169,10 @@ Result Term: [unit, unit, unit]
        JSON: [2,3,5,7,11,13,17,19,23]
 Result Term: queue([], [2, 3, 5, 7, 11, 13, 17, 19, 23])
 
+ Orig. Term: pqueue(3, 1, "D", pqueue(1, 491, "C", pqueue(0, 561, "A", empty, empty), empty), pqueue(0, 23, "B", empty, empty))
+       JSON: [{"fst":1,"snd":"D"},{"fst":23,"snd":"B"},{"fst":491,"snd":"C"},{"fst":561,"snd":"A"}]
+Result Term: pqueue(3, 1, "D", pqueue(1, 23, "B", pqueue(0, 561, "A", empty, empty), empty), pqueue(0, 491, "C", empty, empty))
+
  Orig. Term: [bool(yes), bool(no), null, number(5.61)]
        JSON: [true,false,null,5.61]
 Result Term: [bool(yes), bool(no), null, number(5.61)]

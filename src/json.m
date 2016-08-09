@@ -30,6 +30,7 @@
 :- import_module map.
 :- import_module maybe.
 :- import_module pair.
+:- import_module pqueue.
 :- import_module queue.
 :- import_module rational.
 :- import_module rbtree.
@@ -750,6 +751,7 @@
 %     map/2             array of objects (pairs)
 %     maybe/1           null for 'no' or argument of 'yes'
 %     pair/2            object with two members: "fst" and "snd"
+%     pqueue/2          array of objects (pairs)
 %     queue/1           array
 %     rational/0        object with two members: "numer" and "denom"
 %     rbtree/2          array of objects (pairs)
@@ -790,6 +792,7 @@
 :- instance to_json(array2d(T)) <= to_json(T).
 :- instance to_json(version_array(T)) <= to_json(T).
 :- instance to_json(bitmap).
+:- instance to_json(pqueue(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(rational).
 :- instance to_json(set_ordlist(T)) <= to_json(T).
 :- instance to_json(set_unordlist(T)) <= to_json(T).
@@ -830,6 +833,7 @@
 :- instance from_json(array2d(T)) <= from_json(T).
 :- instance from_json(version_array(T)) <= from_json(T).
 :- instance from_json(bitmap).
+:- instance from_json(pqueue(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(rational).
 :- instance from_json(set_ordlist(T)) <= from_json(T).
 :- instance from_json(set_unordlist(T)) <= from_json(T).
@@ -1262,6 +1266,9 @@ from_type(T) = to_json(T).
 :- instance to_json(bitmap) where [
     func(to_json/1) is json.marshal.bitmap_to_json
 ].
+:- instance to_json(pqueue(K, V)) <= (to_json(K), to_json(V)) where [
+    func(to_json/1) is json.marshal.pqueue_to_json
+].
 :- instance to_json(rational) where [
     func(to_json/1) is json.marshal.rational_to_json
 ].
@@ -1354,6 +1361,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(bitmap) where [
     func(from_json/1) is json.unmarshal.bitmap_from_json
+].
+:- instance from_json(pqueue(K, V)) <= (from_json(K), from_json(V)) where [
+    func(from_json/1) is json.unmarshal.pqueue_from_json
 ].
 :- instance from_json(set_ordlist(T)) <= from_json(T) where [
     func(from_json/1) is json.unmarshal.set_ordlist_from_json

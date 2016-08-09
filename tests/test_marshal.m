@@ -38,6 +38,7 @@
 :- import_module map.
 :- import_module maybe.
 :- import_module pair.
+:- import_module pqueue.
 :- import_module queue.
 :- import_module rational.
 :- import_module rbtree.
@@ -214,10 +215,15 @@ test_marshaling(File, !IO) :-
     %
     test(File, [unit, unit, unit], !IO),
 
-    % Tests queues.
+    % Test queues.
     %
     Queue = queue.from_list([2, 3, 5, 7, 11, 13, 17, 19, 23]),
     test(File, Queue, !IO),
+
+    % Test priority queues.
+    %
+    assoc_list_to_pqueue([561 - "A", 23 - "B", 491 - "C", 1 - "D"], PQueue),
+    test(File, PQueue, !IO),
 
     % Test JSON.
     %

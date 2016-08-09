@@ -52,6 +52,8 @@
     <= (from_json(K), from_json(V)).
 :- func unit_from_json(value) = maybe_error(unit).
 :- func queue_from_json(value) = maybe_error(queue(T)) <= from_json(T).
+:- func pqueue_from_json(value) = maybe_error(pqueue(K, V))
+    <= (from_json(K), from_json(V)).
 :- func json_pointer_from_json(value) = maybe_error(json.pointer).
 
 %-----------------------------------------------------------------------------%
@@ -992,6 +994,32 @@ queue_from_json(Value) = Result :-
             Result = ok(Queue)
         ;
             QueueElemsResult = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+
+pqueue_from_json(Value) = Result :-
+    (
+        Value = array(_),
+        MaybeKVs = from_json(Value),
+        (
+            MaybeKVs = ok(KVs),
+            assoc_list_to_pqueue(KVs, PQueue),
+            Result = ok(PQueue)
+        ;
+            MaybeKVs = error(Msg),
             Result = error(Msg)
         )
     ;

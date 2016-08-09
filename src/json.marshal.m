@@ -42,6 +42,7 @@
 :- func bimap_to_json(bimap(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func unit_to_json(unit) = json.value.
 :- func queue_to_json(queue(T)) = json.value <= to_json(T).
+:- func pqueue_to_json(pqueue(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func json_pointer_to_json(json.pointer) = json.value.
 
 %-----------------------------------------------------------------------------%
@@ -227,6 +228,10 @@ unit_to_json(_Unit) = string("unit").
 queue_to_json(Queue) = Value :-
     List = queue.to_list(Queue),
     Value = to_json(List).
+
+pqueue_to_json(PriorityQueue) = Value :-
+    KVs = pqueue.to_assoc_list(PriorityQueue),
+    Value = to_json(KVs).
 
 json_pointer_to_json(Pointer) = Value :-
     PointerStr = json.pointer_to_string(Pointer),
