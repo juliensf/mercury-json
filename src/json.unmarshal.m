@@ -30,6 +30,7 @@
 :- func array2d_from_json(value) = maybe_error(array2d(T)) <= from_json(T).
 :- func version_array_from_json(value) = maybe_error(version_array(T))
     <= from_json(T).
+:- func rational_from_json(value) = maybe_error(rational).
 :- func set_ordlist_from_json(value) = maybe_error(set_ordlist(T))
     <= from_json(T).
 :- func set_unordlist_from_json(value) = maybe_error(set_unordlist(T))
@@ -610,6 +611,55 @@ version_array_from_json(Value) = Result :-
         ),
         TypeDesc = type_desc_from_result(Result),
         ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> rational/0 types.
+%
+
+rational_from_json(Value) = Result :-
+    (
+        Value = object(Object),
+        ( if
+            map.count(Object) = 2,
+            map.search(Object, "numer", NumeratorValue),
+            map.search(Object, "denom", DenominatorValue)
+        then
+            MaybeNumerator = integer_from_json(NumeratorValue),
+            (
+                MaybeNumerator = ok(Numerator),
+                MaybeDenominator = integer_from_json(DenominatorValue),
+                (
+                    MaybeDenominator = ok(Denominator),
+                    % XXX Post 14.01 -- use integer.is_zero/1.
+                    ( if Denominator = integer.zero then
+                        Result = error("rational/0 with zero denominator")
+                    else
+                        Rational = rational.from_integers(Numerator, Denominator),
+                        Result = ok(Rational)
+                    )
+                ;
+                    MaybeDenominator = error(ErrorMsg),
+                    Result = error(ErrorMsg)
+                )
+            ;
+                MaybeNumerator = error(ErrorMsg),
+                Result = error(ErrorMsg)
+            )
+        else
+            Result = error("object is not a rational/0")
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = array(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
         Result = error(ErrorMsg)
     ).
 

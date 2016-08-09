@@ -31,6 +31,7 @@
 :- import_module maybe.
 :- import_module pair.
 :- import_module queue.
+:- import_module rational.
 :- import_module rbtree.
 :- import_module set_bbbtree.
 :- import_module set_ctree234.
@@ -750,6 +751,7 @@
 %     maybe/1           null for 'no' or argument of 'yes'
 %     pair/2            object with two members: "fst" and "snd"
 %     queue/1           array
+%     rational/0        object with two members: "numer" and "denom"
 %     rbtree/2          array of objects (pairs)
 %     set/1             array
 %     set_bbbtree/1     array
@@ -788,6 +790,7 @@
 :- instance to_json(array2d(T)) <= to_json(T).
 :- instance to_json(version_array(T)) <= to_json(T).
 :- instance to_json(bitmap).
+:- instance to_json(rational).
 :- instance to_json(set_ordlist(T)) <= to_json(T).
 :- instance to_json(set_unordlist(T)) <= to_json(T).
 :- instance to_json(set_tree234(T)) <= to_json(T).
@@ -827,6 +830,7 @@
 :- instance from_json(array2d(T)) <= from_json(T).
 :- instance from_json(version_array(T)) <= from_json(T).
 :- instance from_json(bitmap).
+:- instance from_json(rational).
 :- instance from_json(set_ordlist(T)) <= from_json(T).
 :- instance from_json(set_unordlist(T)) <= from_json(T).
 :- instance from_json(set_tree234(T)) <= from_json(T).
@@ -1258,6 +1262,9 @@ from_type(T) = to_json(T).
 :- instance to_json(bitmap) where [
     func(to_json/1) is json.marshal.bitmap_to_json
 ].
+:- instance to_json(rational) where [
+    func(to_json/1) is json.marshal.rational_to_json
+].
 :- instance to_json(set_ordlist(T)) <= to_json(T) where [
     func(to_json/1) is json.marshal.set_ordlist_to_json
 ].
@@ -1341,6 +1348,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(version_array(T)) <= from_json(T) where [
     func(from_json/1) is json.unmarshal.version_array_from_json
+].
+:- instance from_json(rational) where [
+    func(from_json/1) is json.unmarshal.rational_from_json
 ].
 :- instance from_json(bitmap) where [
     func(from_json/1) is json.unmarshal.bitmap_from_json

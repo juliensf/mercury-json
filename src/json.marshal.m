@@ -30,6 +30,7 @@
 :- func array2d_to_json(array2d(T)) = json.value <= to_json(T).
 :- func version_array_to_json(version_array(T)) = json.value <= to_json(T).
 :- func bitmap_to_json(bitmap) = json.value.
+:- func rational_to_json(rational) = json.value.
 :- func set_ordlist_to_json(set_ordlist(T)) = json.value <= to_json(T).
 :- func set_unordlist_to_json(set_unordlist(T)) = json.value <= to_json(T).
 :- func set_tree234_to_json(set_tree234(T)) = json.value <= to_json(T).
@@ -171,6 +172,14 @@ version_array_to_values(Array, Min, I, !Values) :-
 bitmap_to_json(Bitmap) = Value :-
     String = bitmap.to_string(Bitmap),
     Value = string(String).
+
+rational_to_json(Rational) = Value :-
+    Numerator = rational.numer(Rational),
+    Denominator = rational.denom(Rational),
+    Value = json.det_make_object([
+        "numer" - integer_to_json(Numerator),
+        "denom" - integer_to_json(Denominator)
+    ]).
 
 set_ordlist_to_json(Set) = Result :-
     set_ordlist.to_sorted_list(Set, List),

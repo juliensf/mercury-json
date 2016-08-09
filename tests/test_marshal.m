@@ -39,6 +39,7 @@
 :- import_module maybe.
 :- import_module pair.
 :- import_module queue.
+:- import_module rational.
 :- import_module rbtree.
 :- import_module set.
 :- import_module set_bbbtree.
@@ -90,6 +91,13 @@ test_marshaling(File, !IO) :-
     %
     Integer = integer.det_from_string("2365712637126347861237846728356712647827834723847812937812734871293478127"),
     test(File, Integer, !IO),
+
+    % Test rationals.
+    %
+    Numerator = integer.det_from_string("2137491723578213491283472187358217348129357812374912873489123"),
+    Denominator = integer.det_from_string("19823914719237911293810238918239182984120318293812381"),
+    Rational = rational.from_integers(Numerator, Denominator),
+    test(File, Rational, !IO),
 
     % Test dates.
     %
