@@ -38,6 +38,7 @@
 :- import_module map.
 :- import_module maybe.
 :- import_module pair.
+:- import_module queue.
 :- import_module rbtree.
 :- import_module set.
 :- import_module set_bbbtree.
@@ -202,7 +203,13 @@ test_marshaling(File, !IO) :-
     ),
 
     % Test unit.
+    %
     test(File, [unit, unit, unit], !IO),
+
+    % Tests queues.
+    %
+    Queue = queue.from_list([2, 3, 5, 7, 11, 13, 17, 19, 23]),
+    test(File, Queue, !IO),
 
     % Test JSON.
     %

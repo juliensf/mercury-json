@@ -30,6 +30,7 @@
 :- import_module map.
 :- import_module maybe.
 :- import_module pair.
+:- import_module queue.
 :- import_module rbtree.
 :- import_module set_bbbtree.
 :- import_module set_ctree234.
@@ -748,13 +749,14 @@
 %     map/2             array of objects (pairs)
 %     maybe/1           null for 'no' or argument of 'yes'
 %     pair/2            object with two members: "fst" and "snd"
+%     queue/1           array
 %     rbtree/2          array of objects (pairs)
 %     set/1             array
 %     set_bbbtree/1     array
 %     set_ctree234/1    array
 %     set_tree234/1     array
 %     set_unordlist/1   array
-%     unit              string
+%     unit/0            string
 %     version_array/1   array
 %
 % Note that for types that lack a canonical representation, the JSON marshaler
@@ -796,6 +798,7 @@
 :- instance to_json(rbtree(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(unit).
+:- instance to_json(queue(T)) <= to_json(T).
 :- instance to_json(json.value).
 :- instance to_json(json.pointer).
 
@@ -834,6 +837,7 @@
 :- instance from_json(rbtree(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(unit).
+:- instance from_json(queue(T)) <= from_json(T).
 :- instance from_json(json.value).
 :- instance from_json(json.pointer).
 
@@ -1284,6 +1288,9 @@ from_type(T) = to_json(T).
 :- instance to_json(unit) where [
     func(to_json/1) is json.marshal.unit_to_json
 ].
+:- instance to_json(queue(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.queue_to_json
+].
 :- instance to_json(json.value) where [
     to_json(V) = V
 ].
@@ -1367,6 +1374,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(unit) where [
     func(from_json/1) is json.unmarshal.unit_from_json
+].
+:- instance from_json(queue(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.queue_from_json
 ].
 :- instance from_json(json.value) where [
     from_json(V) = ok(V)

@@ -40,6 +40,7 @@
 :- func rbtree_to_json(rbtree(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func bimap_to_json(bimap(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func unit_to_json(unit) = json.value.
+:- func queue_to_json(queue(T)) = json.value <= to_json(T).
 :- func json_pointer_to_json(json.pointer) = json.value.
 
 %-----------------------------------------------------------------------------%
@@ -213,6 +214,10 @@ bimap_to_json(Bimap) = Value :-
     Value = to_json(KVs).
 
 unit_to_json(_Unit) = string("unit").
+
+queue_to_json(Queue) = Value :-
+    List = queue.to_list(Queue),
+    Value = to_json(List).
 
 json_pointer_to_json(Pointer) = Value :-
     PointerStr = json.pointer_to_string(Pointer),

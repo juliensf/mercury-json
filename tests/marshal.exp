@@ -161,6 +161,10 @@ Result Term: "<24:10AFBD>"
        JSON: ["unit","unit","unit"]
 Result Term: [unit, unit, unit]
 
+ Orig. Term: queue([], [2, 3, 5, 7, 11, 13, 17, 19, 23])
+       JSON: [2,3,5,7,11,13,17,19,23]
+Result Term: queue([], [2, 3, 5, 7, 11, 13, 17, 19, 23])
+
  Orig. Term: [bool(yes), bool(no), null, number(5.61)]
        JSON: [true,false,null,5.61]
 Result Term: [bool(yes), bool(no), null, number(5.61)]

@@ -50,6 +50,7 @@
 :- func bimap_from_json(value) = maybe_error(bimap(K, V))
     <= (from_json(K), from_json(V)).
 :- func unit_from_json(value) = maybe_error(unit).
+:- func queue_from_json(value) = maybe_error(queue(T)) <= from_json(T).
 :- func json_pointer_from_json(value) = maybe_error(json.pointer).
 
 %-----------------------------------------------------------------------------%
@@ -922,6 +923,36 @@ unit_from_json(Value) = Result :-
         ),
         TypeDesc = type_desc_from_result(Result),
         ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> queue/1 types.
+%
+
+queue_from_json(Value) = Result :-
+    (
+        Value = array(Values),
+        unmarshal_list_elems(Values, [], QueueElemsResult),
+        (
+            QueueElemsResult = ok(RevElems),
+            list.reverse(RevElems, Elems),
+            Queue = queue.from_list(Elems),
+            Result = ok(Queue)
+        ;
+            QueueElemsResult = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
         Result = error(ErrorMsg)
     ).
 
