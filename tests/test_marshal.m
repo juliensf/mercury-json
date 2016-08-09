@@ -46,6 +46,7 @@
 :- import_module set_ctree234.
 :- import_module stream.
 :- import_module string.
+:- import_module unit.
 :- import_module univ.
 :- import_module version_array.
 
@@ -199,6 +200,9 @@ test_marshaling(File, !IO) :-
     else
         true
     ),
+
+    % Test unit.
+    test(File, [unit, unit, unit], !IO),
 
     % Test JSON.
     %

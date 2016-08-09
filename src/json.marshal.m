@@ -39,6 +39,7 @@
 :- func map_to_json(map(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func rbtree_to_json(rbtree(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func bimap_to_json(bimap(K, V)) = json.value <= (to_json(K), to_json(V)).
+:- func unit_to_json(unit) = json.value.
 :- func json_pointer_to_json(json.pointer) = json.value.
 
 %-----------------------------------------------------------------------------%
@@ -210,6 +211,8 @@ rbtree_to_json(Tree) = Value :-
 bimap_to_json(Bimap) = Value :-
     bimap.to_assoc_list(Bimap, KVs),
     Value = to_json(KVs).
+
+unit_to_json(_Unit) = string("unit").
 
 json_pointer_to_json(Pointer) = Value :-
     PointerStr = json.pointer_to_string(Pointer),

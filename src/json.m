@@ -37,6 +37,7 @@
 :- import_module set_tree234.
 :- import_module set_unordlist.
 :- import_module stream.
+:- import_module unit.
 :- import_module version_array.
 
 %-----------------------------------------------------------------------------%
@@ -753,6 +754,7 @@
 %     set_ctree234/1    array
 %     set_tree234/1     array
 %     set_unordlist/1   array
+%     unit              string
 %     version_array/1   array
 %
 % Note that for types that lack a canonical representation, the JSON marshaler
@@ -793,6 +795,7 @@
 :- instance to_json(map(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(rbtree(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)).
+:- instance to_json(unit).
 :- instance to_json(json.value).
 :- instance to_json(json.pointer).
 
@@ -830,6 +833,7 @@
 :- instance from_json(map(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(rbtree(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)).
+:- instance from_json(unit).
 :- instance from_json(json.value).
 :- instance from_json(json.pointer).
 
@@ -1277,6 +1281,9 @@ from_type(T) = to_json(T).
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)) where [
     func(to_json/1) is json.marshal.bimap_to_json
 ].
+:- instance to_json(unit) where [
+    func(to_json/1) is json.marshal.unit_to_json
+].
 :- instance to_json(json.value) where [
     to_json(V) = V
 ].
@@ -1357,6 +1364,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)) where [
     func(from_json/1) is json.unmarshal.bimap_from_json
+].
+:- instance from_json(unit) where [
+    func(from_json/1) is json.unmarshal.unit_from_json
 ].
 :- instance from_json(json.value) where [
     from_json(V) = ok(V)

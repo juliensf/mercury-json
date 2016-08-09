@@ -49,6 +49,7 @@
     <= (from_json(K), from_json(V)).
 :- func bimap_from_json(value) = maybe_error(bimap(K, V))
     <= (from_json(K), from_json(V)).
+:- func unit_from_json(value) = maybe_error(unit).
 :- func json_pointer_from_json(value) = maybe_error(json.pointer).
 
 %-----------------------------------------------------------------------------%
@@ -897,6 +898,30 @@ bimap_from_json(Value) = Result :-
         ),
         TypeDesc = type_desc_from_result(Result),
         ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> unit/0 types.
+%
+
+unit_from_json(Value) = Result :-
+    (
+        Value = string(UnitStr),
+        ( if UnitStr = "unit"
+        then Result = ok(unit)
+        else Result = error("string is not a unit/0 value")
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = array(_)
+        ; Value = object(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
         Result = error(ErrorMsg)
     ).
 
