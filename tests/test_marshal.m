@@ -125,6 +125,12 @@ test_marshaling(File, !IO) :-
     test(File, yes("foo"), !IO),
     test(File, no : maybe(string), !IO),
 
+    % Test the type maybe(json.value).
+    % The original scheme we used for handling maybe's could not distinguish
+    % between 'yes(null)' and 'no'.
+    %
+    test(File, yes(null), !IO),
+
     % Test pairs.
     %
     test(File, apple - orange, !IO),

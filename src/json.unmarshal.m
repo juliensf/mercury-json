@@ -800,20 +800,31 @@ maybe_from_json(Value) = Result :-
         Value = null,
         Result = ok(no)
     ;
+        Value = object(Object),
+        ( if
+            map.count(Object) = 1,
+            map.search(Object, "yes", ArgValue)
+        then
+            MaybeArg = from_json(ArgValue),
+            (
+                MaybeArg = ok(Arg),
+                Result = ok(yes(Arg))
+            ;
+                MaybeArg = error(Msg),
+                Result = error(Msg)
+            )
+        else
+            Result = error("object is not a maybe.yes/1")
+        )
+    ;
         ( Value = bool(_)
         ; Value = string(_)
         ; Value = number(_)
-        ; Value = object(_)
         ; Value = array(_)
         ),
-        MaybeArgTerm = from_json(Value),
-        (
-            MaybeArgTerm = ok(ArgTerm),
-            Result = ok(yes(ArgTerm))
-        ;
-            MaybeArgTerm = error(Msg),
-            Result = error(Msg)
-        )
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        Result = error(ErrorMsg)
     ).
 
 %-----------------------------------------------------------------------------%

@@ -232,7 +232,8 @@ maybe_to_json(Maybe) = Value :-
         Value = null
     ;
         Maybe = yes(Arg),
-        Value = to_json(Arg)
+        ArgValue = to_json(Arg),
+        Value = json.det_make_object(["yes" - ArgValue])
     ).
 
 map_to_json(Map) = Value :-
