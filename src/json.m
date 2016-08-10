@@ -750,6 +750,7 @@
 %     list/1            array
 %     map/2             array of objects with two members: "key" and "value"
 %     maybe/1           null for 'no' or object with one member: "yes"
+%     maybe_error/2     object with one member: either "ok" or "error"
 %     pair/2            object with two members: "fst" and "snd"
 %     pqueue/2          array of objects with two members: "key" and "value"
 %     queue/1           array
@@ -800,6 +801,7 @@
 :- instance to_json(set_ctree234(T)) <= to_json(T).
 :- instance to_json(set_bbbtree(T)) <= to_json(T).
 :- instance to_json(maybe(T)) <= to_json(T).
+:- instance to_json(maybe_error(T, E)) <= (to_json(T), to_json(E)).
 :- instance to_json(map(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(rbtree(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)).
@@ -841,6 +843,7 @@
 :- instance from_json(set_ctree234(T)) <= from_json(T).
 :- instance from_json(set_bbbtree(T)) <= from_json(T).
 :- instance from_json(maybe(T)) <= from_json(T).
+:- instance from_json(maybe_error(T, E)) <= (from_json(T), from_json(E)).
 :- instance from_json(map(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(rbtree(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)).
@@ -1290,6 +1293,9 @@ from_type(T) = to_json(T).
 :- instance to_json(maybe(T)) <= to_json(T) where [
     func(to_json/1) is json.marshal.maybe_to_json
 ].
+:- instance to_json(maybe_error(T, E)) <= (to_json(T), to_json(E)) where [
+    func(to_json/1) is json.marshal.maybe_error_to_json
+].
 :- instance to_json(map(K, V)) <= (to_json(K), to_json(V)) where [
     func(to_json/1) is json.marshal.map_to_json
 ].
@@ -1382,6 +1388,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(maybe(T)) <= from_json(T) where [
     func(from_json/1) is json.unmarshal.maybe_from_json
+].
+:- instance from_json(maybe_error(T, E)) <= (from_json(T), from_json(E)) where [
+    func(from_json/1) is json.unmarshal.maybe_error_from_json
 ].
 :- instance from_json(map(K, V)) <= (from_json(K), from_json(V)) where [
     func(from_json/1) is json.unmarshal.map_from_json

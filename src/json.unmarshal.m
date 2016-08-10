@@ -44,6 +44,8 @@
 :- func pair_from_json(value) = maybe_error(pair(A, B)) <=
     (from_json(A), from_json(B)).
 :- func maybe_from_json(value) = maybe_error(maybe(T)) <= from_json(T).
+:- func maybe_error_from_json(value) = maybe_error(maybe_error(T, E))
+    <= (from_json(T), from_json(E)).
 :- func map_from_json(value) = maybe_error(map(K, V))
     <= (from_json(K), from_json(V)).
 :- func rbtree_from_json(value) = maybe_error(rbtree(K, V))
@@ -818,6 +820,57 @@ maybe_from_json(Value) = Result :-
         )
     ;
         ( Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = array(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> maybe_error/2 types.
+%
+
+maybe_error_from_json(Value) = Result :-
+    (
+        Value = object(Object),
+        ( if
+            map.count(Object) = 1
+        then
+            ( if
+                map.search(Object, "ok", OkValue)
+            then
+                MaybeOk = from_json(OkValue),
+                (
+                    MaybeOk = ok(Ok),
+                    Result = ok(ok(Ok))
+                ;
+                    MaybeOk = error(Msg),
+                    Result = error(Msg)
+                )
+            else if
+                map.search(Object, "error", ErrorValue)
+            then
+                MaybeError = from_json(ErrorValue),
+                (
+                    MaybeError = ok(Error),
+                    Result = ok(error(Error))
+                ;
+                    MaybeError = error(Msg),
+                    Result = error(Msg)
+                )
+            else
+                Result = error("object is not a maybe_error/2 value")
+            )
+        else
+            Result = error("object is not a maybe_error/2 value")
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
         ; Value = string(_)
         ; Value = number(_)
         ; Value = array(_)

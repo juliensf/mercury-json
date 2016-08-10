@@ -37,6 +37,8 @@
 :- func set_ctree234_to_json(set_ctree234(T)) = json.value <= to_json(T).
 :- func set_bbbtree_to_json(set_bbbtree(T)) = json.value <= to_json(T).
 :- func maybe_to_json(maybe(T)) = json.value <= to_json(T).
+:- func maybe_error_to_json(maybe_error(T, E)) = json.value
+    <= (to_json(T), to_json(E)).
 :- func map_to_json(map(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func rbtree_to_json(rbtree(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func bimap_to_json(bimap(K, V)) = json.value <= (to_json(K), to_json(V)).
@@ -234,6 +236,17 @@ maybe_to_json(Maybe) = Value :-
         Maybe = yes(Arg),
         ArgValue = to_json(Arg),
         Value = json.det_make_object(["yes" - ArgValue])
+    ).
+
+maybe_error_to_json(MaybeError) = Value :-
+    (
+        MaybeError = ok(Ok),
+        OkValue = to_json(Ok),
+        Value = json.det_make_object(["ok" - OkValue])
+    ;
+        MaybeError = error(Error),
+        ErrorValue = to_json(Error),
+        Value = json.det_make_object(["error" - ErrorValue])
     ).
 
 map_to_json(Map) = Value :-

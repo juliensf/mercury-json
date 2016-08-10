@@ -89,6 +89,22 @@ Result Term: no
        JSON: {"yes":null}
 Result Term: yes(null)
 
+ Orig. Term: ok(561)
+       JSON: {"ok":561}
+Result Term: ok(561)
+
+ Orig. Term: ok(null)
+       JSON: {"ok":null}
+Result Term: ok(null)
+
+ Orig. Term: error("this is an error")
+       JSON: {"error":"this is an error"}
+Result Term: error("this is an error")
+
+ Orig. Term: error([1, 2, 3, 4])
+       JSON: {"error":[1,2,3,4]}
+Result Term: error([1, 2, 3, 4])
+
  Orig. Term: apple - orange
        JSON: {"fst":"apple","snd":"orange"}
 Result Term: apple - orange

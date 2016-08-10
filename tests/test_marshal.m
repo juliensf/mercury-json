@@ -131,6 +131,13 @@ test_marshaling(File, !IO) :-
     %
     test(File, yes(null), !IO),
 
+    % Test maybe_error/2 types.
+    %
+    test(File, ok(561) : maybe_error(int), !IO),
+    test(File, ok(null) : maybe_error(json.value), !IO),
+    test(File, error("this is an error") : maybe_error(string), !IO),
+    test(File, error([1, 2, 3, 4]) : maybe_error(string, list(int)), !IO),
+
     % Test pairs.
     %
     test(File, apple - orange, !IO),
