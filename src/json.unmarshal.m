@@ -821,13 +821,18 @@ maybe_from_json(Value) = Result :-
 % JSON -> pair/2 types.
 %
 
-pair_from_json(Value) = Result :-
+pair_from_json(Value) = do_pair_from_json("fst", "snd", Value).
+
+:- func do_pair_from_json(string, string, value) = maybe_error(pair(A, B)) <=
+    (from_json(A), from_json(B)).
+
+do_pair_from_json(FstName, SndName, Value) = Result :-
     (
         Value = object(Object),
         ( if
             map.count(Object) = 2,
-            map.search(Object, "fst", FstValue),
-            map.search(Object, "snd", SndValue)
+            map.search(Object, FstName, FstValue),
+            map.search(Object, SndName, SndValue)
         then
             MaybeFst = from_json(FstValue),
             (
@@ -867,8 +872,8 @@ pair_from_json(Value) = Result :-
 
 map_from_json(Value) = Result :-
     (
-        Value = array(_),
-        MaybeKVs = from_json(Value),
+        Value = array(Elems),
+        unmarshal_list_of_pairs("key", "value", Elems, [], MaybeKVs),
         (
             MaybeKVs = ok(KVs),
             map.from_assoc_list(KVs, Map),
@@ -889,6 +894,22 @@ map_from_json(Value) = Result :-
         Result = error(ErrorMsg)
     ).
 
+:-pred unmarshal_list_of_pairs(string::in, string::in, list(value)::in,
+    list(pair(K, V))::in, maybe_error(list(pair(K, V)))::out) is det
+    <= (from_json(K), from_json(V)).
+
+unmarshal_list_of_pairs(_, _, [], Pairs, ok(Pairs)).
+unmarshal_list_of_pairs(FstName, SndName, [Value | Values], !.Pairs, Result) :-
+    MaybePair = do_pair_from_json(FstName, SndName, Value),
+    (
+        MaybePair = ok(Pair),
+        !:Pairs = [Pair | !.Pairs],
+        unmarshal_list_of_pairs(FstName, SndName, Values, !.Pairs, Result)
+    ;
+        MaybePair = error(Msg),
+        Result = error(Msg)
+    ).
+
 %-----------------------------------------------------------------------------%
 %
 % JSON -> rbtree/2 types.
@@ -896,8 +917,8 @@ map_from_json(Value) = Result :-
 
 rbtree_from_json(Value) = Result :-
     (
-        Value = array(_),
-        MaybeKVs = from_json(Value),
+        Value = array(Elems),
+        unmarshal_list_of_pairs("key", "value", Elems, [], MaybeKVs),
         (
             MaybeKVs = ok(KVs),
             % NOTE: we cannot use rbtree.from_assoc_list/1 since that will
@@ -930,8 +951,8 @@ rbtree_from_json(Value) = Result :-
 
 bimap_from_json(Value) = Result :-
     (
-        Value = array(_),
-        MaybeKVs = from_json(Value),
+        Value = array(Elems),
+        unmarshal_list_of_pairs("key", "value", Elems, [], MaybeKVs),
         (
             MaybeKVs = ok(KVs),
             ( if bimap.from_assoc_list(KVs, Bimap)
@@ -1012,8 +1033,8 @@ queue_from_json(Value) = Result :-
 
 pqueue_from_json(Value) = Result :-
     (
-        Value = array(_),
-        MaybeKVs = from_json(Value),
+        Value = array(Elems),
+        unmarshal_list_of_pairs("key", "value", Elems, [], MaybeKVs),
         (
             MaybeKVs = ok(KVs),
             assoc_list_to_pqueue(KVs, PQueue),

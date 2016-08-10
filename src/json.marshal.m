@@ -99,6 +99,30 @@ list_to_values([T | Ts], !Values) :-
     !:Values = [Value | !.Values],
     list_to_values(Ts, !Values).
 
+:- func list_of_pairs_to_json(string, string, list(pair(A, B))) = value
+    <= (to_json(A), to_json(B)).
+
+list_of_pairs_to_json(FstName, SndName, ListPairs) =  Value :-
+    list_of_pairs_to_values(FstName, SndName, ListPairs, [], RevValues),
+    list.reverse(RevValues, Values),
+    Value = array(Values).
+
+:- pred list_of_pairs_to_values(string::in, string::in,
+    list(pair(A, B))::in, list(value)::in, list(value)::out) is det
+    <= (to_json(A), to_json(B)).
+
+list_of_pairs_to_values(_, _, [], !Values).
+list_of_pairs_to_values(FstName, SndName, [Pair | Pairs], !Values) :-
+    Pair = Fst - Snd,
+    FstValue = to_json(Fst),
+    SndValue = to_json(Snd),
+    Value  = json.det_make_object([
+        FstName - FstValue,
+        SndName - SndValue
+    ]),
+    !:Values = [Value | !.Values],
+    list_of_pairs_to_values(FstName, SndName, Pairs, !Values).
+
 cord_to_json(Cord) = Result :-
     List = cord.list(Cord),
     Result = list_to_json(List).
@@ -213,15 +237,15 @@ maybe_to_json(Maybe) = Value :-
 
 map_to_json(Map) = Value :-
     map.to_assoc_list(Map, KVs),
-    Value = to_json(KVs).
+    Value = list_of_pairs_to_json("key", "value", KVs).
 
 rbtree_to_json(Tree) = Value :-
     rbtree.rbtree_to_assoc_list(Tree, KVs),
-    Value = to_json(KVs).
+    Value = list_of_pairs_to_json("key", "value", KVs).
 
 bimap_to_json(Bimap) = Value :-
     bimap.to_assoc_list(Bimap, KVs),
-    Value = to_json(KVs).
+    Value = list_of_pairs_to_json("key", "value", KVs).
 
 unit_to_json(_Unit) = string("unit").
 
@@ -231,7 +255,7 @@ queue_to_json(Queue) = Value :-
 
 pqueue_to_json(PriorityQueue) = Value :-
     KVs = pqueue.to_assoc_list(PriorityQueue),
-    Value = to_json(KVs).
+    Value = list_of_pairs_to_json("key", "value", KVs).
 
 json_pointer_to_json(Pointer) = Value :-
     PointerStr = json.pointer_to_string(Pointer),

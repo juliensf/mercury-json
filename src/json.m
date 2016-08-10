@@ -739,22 +739,22 @@
 %     Mercury Type      JSON
 %     ------------      ----
 %     array/1           array
-%     array2d/1         array of arrays
+%     array2d/1         array of arrays (rectangular)
 %     bool/0            Boolean
-%     bimap/2           array of objects (pairs -- see below)
+%     bimap/2           array of objects with two members: "key" and "value"
 %     bitmap/0          string (as per bitmap.to_string/1)
 %     cord/1            array
 %     date/0            string (as per calendar.date_to_string/1)
 %     duration/0        string (as per calendar.duration_to_string/1)
 %     integer/0         string (decimal representation)
 %     list/1            array
-%     map/2             array of objects (pairs)
+%     map/2             array of objects with two members: "key" and "value"
 %     maybe/1           null for 'no' or argument of 'yes'
 %     pair/2            object with two members: "fst" and "snd"
-%     pqueue/2          array of objects (pairs)
+%     pqueue/2          array of objects with two members: "key" and "value"
 %     queue/1           array
 %     rational/0        object with two members: "numer" and "denom"
-%     rbtree/2          array of objects (pairs)
+%     rbtree/2          array of objects with two members: "key" and "value"
 %     set/1             array
 %     set_bbbtree/1     array
 %     set_ctree234/1    array

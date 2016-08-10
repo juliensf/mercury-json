@@ -118,15 +118,15 @@ Result Term: tree(3, 4, tree(2, 2, tree(1, 1, empty, empty), empty), tree(4, 1, 
 Result Term: [apple - "Apple", orange - "Orange", lemon - "Lemon"]
 
  Orig. Term: four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty)
-       JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
+       JSON: [{"key":"apple","value":"Apple"},{"key":"orange","value":"Orange"},{"key":"lemon","value":"Lemon"}]
 Result Term: four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty)
 
  Orig. Term: black(orange, "Orange", red(apple, "Apple2", black(apple, "Apple3", red(apple, "Apple4", empty, empty), empty), black(apple, "Apple", empty, empty)), black(lemon, "Lemon", empty, empty))
-       JSON: [{"fst":"apple","snd":"Apple4"},{"fst":"apple","snd":"Apple3"},{"fst":"apple","snd":"Apple2"},{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
-Result Term: black(apple, "Apple3", black(apple, "Apple2", red(apple, "Apple", empty, empty), empty), black(orange, "Orange", red(apple, "Apple4", empty, empty), red(lemon, "Lemon", empty, empty)))
+       JSON: [{"key":"apple","value":"Apple4"},{"key":"apple","value":"Apple3"},{"key":"apple","value":"Apple2"},{"key":"apple","value":"Apple"},{"key":"orange","value":"Orange"},{"key":"lemon","value":"Lemon"}]
+Result Term: black(orange, "Orange", red(apple, "Apple2", black(apple, "Apple3", red(apple, "Apple4", empty, empty), empty), black(apple, "Apple", empty, empty)), black(lemon, "Lemon", empty, empty))
 
  Orig. Term: bimap(four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty), four("Apple", apple, "Lemon", lemon, "Orange", orange, empty, empty, empty, empty))
-       JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
+       JSON: [{"key":"apple","value":"Apple"},{"key":"orange","value":"Orange"},{"key":"lemon","value":"Lemon"}]
 Result Term: bimap(four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty), four("Apple", apple, "Lemon", lemon, "Orange", orange, empty, empty, empty, empty))
 
  Orig. Term: nonempty_cord(branch_node(list_node(1, [2, 3]), list_node(5, [6, 7])))
@@ -170,7 +170,7 @@ Result Term: [unit, unit, unit]
 Result Term: queue([], [2, 3, 5, 7, 11, 13, 17, 19, 23])
 
  Orig. Term: pqueue(3, 1, "D", pqueue(1, 491, "C", pqueue(0, 561, "A", empty, empty), empty), pqueue(0, 23, "B", empty, empty))
-       JSON: [{"fst":1,"snd":"D"},{"fst":23,"snd":"B"},{"fst":491,"snd":"C"},{"fst":561,"snd":"A"}]
+       JSON: [{"key":1,"value":"D"},{"key":23,"value":"B"},{"key":491,"value":"C"},{"key":561,"value":"A"}]
 Result Term: pqueue(3, 1, "D", pqueue(1, 23, "B", pqueue(0, 561, "A", empty, empty), empty), pqueue(0, 491, "C", empty, empty))
 
  Orig. Term: [bool(yes), bool(no), null, number(5.61)]
