@@ -78,12 +78,16 @@ Result Term: pear
 Result Term: [apple, orange, lemon, pear]
 
  Orig. Term: yes("foo")
-       JSON: "foo"
+       JSON: {"yes":"foo"}
 Result Term: yes("foo")
 
  Orig. Term: no
        JSON: null
 Result Term: no
+
+ Orig. Term: yes(null)
+       JSON: {"yes":null}
+Result Term: yes(null)
 
  Orig. Term: apple - orange
        JSON: {"fst":"apple","snd":"orange"}

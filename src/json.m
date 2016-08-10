@@ -749,7 +749,7 @@
 %     integer/0         string (decimal representation)
 %     list/1            array
 %     map/2             array of objects with two members: "key" and "value"
-%     maybe/1           null for 'no' or argument of 'yes'
+%     maybe/1           null for 'no' or object with one member: "yes"
 %     pair/2            object with two members: "fst" and "snd"
 %     pqueue/2          array of objects with two members: "key" and "value"
 %     queue/1           array
@@ -760,7 +760,7 @@
 %     set_ctree234/1    array
 %     set_tree234/1     array
 %     set_unordlist/1   array
-%     unit/0            string
+%     unit/0            string ("unit")
 %     version_array/1   array
 %
 % Note that for types that lack a canonical representation, the JSON marshaler
