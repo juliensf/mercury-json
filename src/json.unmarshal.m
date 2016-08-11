@@ -1223,11 +1223,11 @@ add_edges([Edge | Edges], !.Digraph, Result) :-
             digraph.add_edge(SrcKey, DstKey, !Digraph),
             add_edges(Edges, !.Digraph, Result)
         else
-            Msg = string.format("'%s' is not a vertex", [s(string(Dst))]),
+            Msg = string.format("'%s' is not in vertex set", [s(string(Dst))]),
             Result = error(Msg)
         )
     else
-        Msg = string.format("'%s' is not a vertex", [s(string(Src))]),
+        Msg = string.format("'%s' is not in vertex set", [s(string(Src))]),
         Result = error(Msg)
     ).
 

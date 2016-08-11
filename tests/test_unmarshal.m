@@ -27,9 +27,11 @@
 :- import_module array2d.
 :- import_module bitmap.
 :- import_module bool.
+:- import_module digraph.
 :- import_module integer.
 :- import_module list.
 :- import_module maybe.
+:- import_module pair.
 :- import_module type_desc.
 
 %-----------------------------------------------------------------------------%
@@ -44,7 +46,8 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_bitmaps(File, !IO),
     test_unmarshal_lists(File, !IO),
     test_unmarshal_arrays(File, !IO),
-    test_unmarshal_array2ds(File, !IO).
+    test_unmarshal_array2ds(File, !IO),
+    test_unmarshal_digraphs(File, !IO).
 
 %-----------------------------------------------------------------------------%
 
@@ -189,6 +192,79 @@ test_unmarshal_array2ds(File, !IO) :-
             array([int(1)]),
             array([int(2), int(3)])
         ]), _ : array2d(int), !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_digraphs(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_digraphs(File, !IO) :-
+
+    % Test empty graph.
+    %
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "vertices" - array([]),
+            "edges"    - array([])
+        ]), _ : digraph(string), !IO),
+
+    % Edge contains src not in vertex set.
+    %
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "vertices" - array([string("A"), string("B")]),
+            "edges"    - array([
+                            det_make_object([
+                                "source" - string("C"),
+                                "dest"   - string("A")
+                            ])
+                        ])
+        ]), _ : digraph(string), !IO),
+
+    % Edge contains dst not in vertex set.
+    %
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "vertices" - array([string("A"), string("B")]),
+            "edges"    - array([
+                            det_make_object([
+                                "source" - string("A"),
+                                "dest"   - string("C")
+                            ])
+                        ])
+        ]), _ : digraph(string), !IO),
+
+    % Missing 'edges' member.
+    %
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "vertices" - array([string("A"), string("B")])
+        ]), _ : digraph(string), !IO),
+
+    % Missing 'vertices' member.
+    %
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "edges"    - array([
+                            det_make_object([
+                                "source" - string("A"),
+                                "dest"   - string("C")
+                            ])
+                        ])
+            ]), _ : digraph(string), !IO),
+
+    % Value is not an object.
+    %
+    do_unmarshal_test(File,
+        null, _ : digraph(string), !IO),
+
+    % Vertex value has wrong type.
+    %
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "vertices" - array([null, string("B")]),
+            "edges"    - array([])
+        ]), _ : digraph(string), !IO).
 
 %-----------------------------------------------------------------------------%
 
