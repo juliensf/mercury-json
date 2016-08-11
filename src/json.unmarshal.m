@@ -15,6 +15,7 @@
 
 %-----------------------------------------------------------------------------%
 
+:- func bag_from_json(value) = maybe_error(bag(T)) <= from_json(T).
 :- func int_from_json(value) = maybe_error(int).
 :- func float_from_json(value) = maybe_error(float).
 :- func char_from_json(value) = maybe_error(char).
@@ -65,6 +66,55 @@
 :- implementation.
 
 :- import_module type_desc.
+
+%-----------------------------------------------------------------------------%
+
+bag_from_json(Value) = Result :-
+    (
+        Value = array(Elems),
+        unmarshal_list_of_pairs("value", "count", Elems, [], MaybeVCs),
+        (
+            MaybeVCs = ok(VCs),
+            add_values_and_counts(VCs, bag.init, Result)
+        ;
+            MaybeVCs = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = string(_)
+        ; Value = object(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
+        Result = error(ErrorMsg)
+    ).
+
+:- pred add_values_and_counts(list(pair(T, int))::in, bag(T)::in,
+    maybe_error(bag(T))::out) is det.
+
+add_values_and_counts([], Bag, ok(Bag)).
+add_values_and_counts([VC | VCs], !.Bag, Result) :-
+    VC = Value - Count,
+    ( if Count > 0 then
+        add_value_n_times(Count, Value, !Bag),
+        add_values_and_counts(VCs, !.Bag, Result)
+    else
+        string.format("value '%s' count is less than 1", [s(string(Value))], Msg),
+        Result = error(Msg)
+    ).
+
+:- pred add_value_n_times(int::in, T::in, bag(T)::in, bag(T)::out) is det.
+
+add_value_n_times(N, Value, !Bag) :-
+    ( if N > 0 then
+        bag.insert(Value, !Bag),
+        add_value_n_times(N - 1, Value, !Bag)
+    else
+        true
+    ).
 
 %-----------------------------------------------------------------------------%
 

@@ -197,6 +197,14 @@ Result Term: pqueue(3, 1, "D", pqueue(1, 23, "B", pqueue(0, 561, "A", empty, emp
        JSON: {"edges":[{"dest":"B","source":"A"},{"dest":"C","source":"A"},{"dest":"B","source":"C"}],"vertices":["A","B","C","D"]}
 Result Term: digraph(4, bimap(two("B", digraph_key(1), two("A", digraph_key(0), empty, empty), three("C", digraph_key(2), "D", digraph_key(3), empty, empty, empty)), two(digraph_key(1), "B", two(digraph_key(0), "A", empty, empty), three(digraph_key(2), "C", digraph_key(3), "D", empty, empty, empty))), three(0, sparse_bitset([bitset_elem(0, 6)]), 2, sparse_bitset([bitset_elem(0, 2)]), empty, empty, empty), three(1, sparse_bitset([bitset_elem(0, 5)]), 2, sparse_bitset([bitset_elem(0, 1)]), empty, empty, empty))
 
+ Orig. Term: bag(empty)
+       JSON: []
+Result Term: bag(empty)
+
+ Orig. Term: bag(four(apple, 1, lemon, 3, pear, 2, empty, empty, empty, empty))
+       JSON: [{"count":2,"value":"pear"},{"count":3,"value":"lemon"},{"count":1,"value":"apple"}]
+Result Term: bag(four(apple, 1, lemon, 3, pear, 2, empty, empty, empty, empty))
+
  Orig. Term: [bool(yes), bool(no), null, number(5.61)]
        JSON: [true,false,null,5.61]
 Result Term: [bool(yes), bool(no), null, number(5.61)]

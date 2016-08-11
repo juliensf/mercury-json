@@ -18,9 +18,10 @@
 :- import_module array.
 :- import_module array2d.
 :- import_module assoc_list.
-:- import_module bool.
+:- import_module bag.
 :- import_module bimap.
 :- import_module bitmap.
+:- import_module bool.
 :- import_module calendar.
 :- import_module char.
 :- import_module cord.
@@ -783,6 +784,7 @@
     func to_json(T) = json.value
 ].
 
+:- instance to_json(bag(T)) <= to_json(T).
 :- instance to_json(int).
 :- instance to_json(float).
 :- instance to_json(string).
@@ -826,6 +828,7 @@
     func from_json(json.value) = maybe_error(T)
 ].
 
+:- instance from_json(bag(T)) <= from_json(T).
 :- instance from_json(int).
 :- instance from_json(float).
 :- instance from_json(char).
@@ -1231,6 +1234,9 @@ write_pretty(File, Value, !IO) :-
 
 from_type(T) = to_json(T).
 
+:- instance to_json(bag(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.bag_to_json
+].
 :- instance to_json(int) where [
     func(to_json/1) is json.marshal.int_to_json
 ].
@@ -1330,6 +1336,9 @@ from_type(T) = to_json(T).
 
 %-----------------------------------------------------------------------------%
 
+:- instance from_json(bag(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.bag_from_json
+].
 :- instance from_json(int) where [
     func(from_json/1) is json.unmarshal.int_from_json
 ].

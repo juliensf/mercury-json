@@ -15,6 +15,7 @@
 
 %-----------------------------------------------------------------------------%
 
+:- func bag_to_json(bag(T)) = json.value <= to_json(T).
 :- func int_to_json(int) = json.value.
 :- func float_to_json(float) = json.value.
 :- func string_to_json(string) = json.value.
@@ -56,6 +57,11 @@
 :- import_module exception.
 
 %-----------------------------------------------------------------------------%
+
+bag_to_json(Bag) = Value :-
+    bag.to_assoc_list(Bag, VCs),
+    list_of_pairs_to_values("value", "count", VCs, [], Values),
+    Value = array(Values).
 
 int_to_json(Int) = number(float(Int)).
 

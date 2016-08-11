@@ -26,6 +26,7 @@
 :- import_module array.
 :- import_module array2d.
 :- import_module assoc_list.
+:- import_module bag.
 :- import_module bimap.
 :- import_module bitmap.
 :- import_module bool.
@@ -253,6 +254,22 @@ test_marshaling(File, !IO) :-
         Digraph = !.DG
     ),
     test(File, Digraph, !IO),
+
+    % Test bags.
+    %
+    bag.init(EmptyBag : bag(int)),
+    test(File, EmptyBag, !IO),
+
+    some [!Bag] (
+        bag.init(!:Bag),
+        bag.insert(lemon, !Bag),
+        bag.insert(lemon, !Bag),
+        bag.insert(lemon, !Bag),
+        bag.insert(apple, !Bag),
+        bag.insert(pear, !Bag),
+        bag.insert(pear, !Bag),
+        test(File, !.Bag, !IO)
+    ),
 
     % Test JSON.
     %
