@@ -31,6 +31,7 @@
 :- import_module bool.
 :- import_module calendar.
 :- import_module cord.
+:- import_module digraph.
 :- import_module float.
 :- import_module int.
 :- import_module integer.
@@ -237,6 +238,21 @@ test_marshaling(File, !IO) :-
     %
     assoc_list_to_pqueue([561 - "A", 23 - "B", 491 - "C", 1 - "D"], PQueue),
     test(File, PQueue, !IO),
+
+    % Test directed graphs.
+    %
+    some [!DG] (
+        digraph.init(!:DG),
+        digraph.add_vertex("A", AKey, !DG),
+        digraph.add_vertex("B", BKey, !DG),
+        digraph.add_vertex("C", CKey, !DG),
+        digraph.add_vertex("D", _DKey, !DG),
+        digraph.add_edge(AKey, BKey, !DG),
+        digraph.add_edge(AKey, CKey, !DG),
+        digraph.add_edge(CKey, BKey, !DG),
+        Digraph = !.DG
+    ),
+    test(File, Digraph, !IO),
 
     % Test JSON.
     %

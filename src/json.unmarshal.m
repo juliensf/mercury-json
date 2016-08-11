@@ -56,6 +56,7 @@
 :- func queue_from_json(value) = maybe_error(queue(T)) <= from_json(T).
 :- func pqueue_from_json(value) = maybe_error(pqueue(K, V))
     <= (from_json(K), from_json(V)).
+:- func digraph_from_json(value) = maybe_error(digraph(T)) <= from_json(T).
 :- func json_pointer_from_json(value) = maybe_error(json.pointer).
 
 %-----------------------------------------------------------------------------%
@@ -1094,6 +1095,9 @@ queue_from_json(Value) = Result :-
     ).
 
 %-----------------------------------------------------------------------------%
+%
+% JSON -> pqueue/2 types.
+%
 
 pqueue_from_json(Value) = Result :-
     (
@@ -1117,6 +1121,114 @@ pqueue_from_json(Value) = Result :-
         TypeDesc = type_desc_from_result(Result),
         ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
         Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> digraph/1 types.
+%
+
+digraph_from_json(Value) = Result :-
+    (
+        Value = object(Object),
+        ( if
+            map.count(Object) = 2,
+            map.search(Object, "vertices", VerticesValue),
+            map.search(Object, "edges", EdgesValue)
+        then
+            MaybeVertices = vertex_list_from_json(VerticesValue),
+            (
+                MaybeVertices = ok(Vertices),
+                MaybeEdges = edge_list_from_json(EdgesValue),
+                (
+                    MaybeEdges = ok(Edges),
+                    some [!Digraph] (
+                        digraph.init(!:Digraph),
+                        AddVertex = (pred(V::in, !.DG::in, !:DG::out) is det :-
+                            digraph.add_vertex(V, _, !DG)
+                        ),
+                        list.foldl(AddVertex, Vertices, !Digraph),
+                        add_edges(Edges, !.Digraph, Result)
+                    )
+                ;
+                    MaybeEdges = error(Msg),
+                    Result = error(Msg)
+                )
+            ;
+                MaybeVertices = error(Msg),
+                Result = error(Msg)
+            )
+        else
+            Result = error("object is not a digraph/1")
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = array(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        Result = error(ErrorMsg)
+    ).
+
+:- func vertex_list_from_json(value) = maybe_error(list(T)) <= from_json(T).
+
+vertex_list_from_json(Value) = Result :-
+    (
+        Value = array(Elems),
+        unmarshal_list_elems(Elems, [], RevVerticesResult),
+        (
+            RevVerticesResult = ok(RevVertices),
+            list.reverse(RevVertices, Vertices),
+            Result = ok(Vertices)
+        ;
+            RevVerticesResult = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = string(_)
+        ; Value = object(_)
+        ),
+        Result = error("expected a JSON array as value of 'vertices' member")
+    ).
+
+:- func edge_list_from_json(value) = maybe_error(list(pair(T))) <= from_json(T).
+
+edge_list_from_json(Value) = Result :-
+    (
+        Value = array(Elems),
+        unmarshal_list_of_pairs("source", "dest", Elems, [], Result)
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = string(_)
+        ; Value = object(_)
+        ),
+        Result = error("expected a JSON array as value of 'edges' member")
+    ).
+
+:- pred add_edges(list(pair(T))::in, digraph(T)::in, maybe_error(digraph(T))::out) is det.
+
+add_edges([], Digraph, ok(Digraph)).
+add_edges([Edge | Edges], !.Digraph, Result) :-
+    Edge = Src - Dst,
+    ( if digraph.search_key(!.Digraph, Src, SrcKey) then
+        ( if digraph.search_key(!.Digraph, Dst, DstKey) then
+            digraph.add_edge(SrcKey, DstKey, !Digraph),
+            add_edges(Edges, !.Digraph, Result)
+        else
+            Msg = string.format("'%s' is not a vertex", [s(string(Dst))]),
+            Result = error(Msg)
+        )
+    else
+        Msg = string.format("'%s' is not a vertex", [s(string(Src))]),
+        Result = error(Msg)
     ).
 
 %-----------------------------------------------------------------------------%

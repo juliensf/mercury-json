@@ -24,6 +24,7 @@
 :- import_module calendar.
 :- import_module char.
 :- import_module cord.
+:- import_module digraph.
 :- import_module integer.
 :- import_module io.
 :- import_module list.
@@ -745,6 +746,10 @@
 %     bitmap/0          string (as per bitmap.to_string/1)
 %     cord/1            array
 %     date/0            string (as per calendar.date_to_string/1)
+%     digraph           object with two members: "vertices" and "edges"
+%                       - the value of "vertices" is an array
+%                       - the value of "edges" is an array of objects, where
+%                         each object has two members: "source" and "dest"
 %     duration/0        string (as per calendar.duration_to_string/1)
 %     integer/0         string (decimal representation)
 %     list/1            array
@@ -807,6 +812,7 @@
 :- instance to_json(bimap(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(unit).
 :- instance to_json(queue(T)) <= to_json(T).
+:- instance to_json(digraph(T)) <= to_json(T).
 :- instance to_json(json.value).
 :- instance to_json(json.pointer).
 
@@ -849,6 +855,7 @@
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(unit).
 :- instance from_json(queue(T)) <= from_json(T).
+:- instance from_json(digraph(T)) <= from_json(T).
 :- instance from_json(json.value).
 :- instance from_json(json.pointer).
 
@@ -1311,6 +1318,9 @@ from_type(T) = to_json(T).
 :- instance to_json(queue(T)) <= to_json(T) where [
     func(to_json/1) is json.marshal.queue_to_json
 ].
+:- instance to_json(digraph(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.digraph_to_json
+].
 :- instance to_json(json.value) where [
     to_json(V) = V
 ].
@@ -1406,6 +1416,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(queue(T)) <= from_json(T) where [
     func(from_json/1) is json.unmarshal.queue_from_json
+].
+:- instance from_json(digraph(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.digraph_from_json
 ].
 :- instance from_json(json.value) where [
     from_json(V) = ok(V)

@@ -44,6 +44,7 @@
 :- func bimap_to_json(bimap(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func unit_to_json(unit) = json.value.
 :- func queue_to_json(queue(T)) = json.value <= to_json(T).
+:- func digraph_to_json(digraph(T)) = json.value <= to_json(T).
 :- func pqueue_to_json(pqueue(K, V)) = json.value <= (to_json(K), to_json(V)).
 :- func json_pointer_to_json(json.pointer) = json.value.
 
@@ -266,6 +267,16 @@ unit_to_json(_Unit) = string("unit").
 queue_to_json(Queue) = Value :-
     List = queue.to_list(Queue),
     Value = to_json(List).
+
+digraph_to_json(Graph) = Value :-
+    Vertices = digraph.vertices(Graph),
+    VerticesValue = to_json(Vertices),
+    Edges = digraph.to_assoc_list(Graph),
+    EdgesValue = list_of_pairs_to_json("source", "dest", Edges),
+    Value = json.det_make_object([
+        "vertices" - VerticesValue,
+        "edges" - EdgesValue
+    ]).
 
 pqueue_to_json(PriorityQueue) = Value :-
     KVs = pqueue.to_assoc_list(PriorityQueue),
