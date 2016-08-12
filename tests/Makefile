@@ -33,9 +33,17 @@ test_json: Mercury.modules
 tags: $(wildcard *.m) $(wildcard ../src/*.m)
 	mtags $(wildcard *.m) $(wildcard ../src/*.m)
 
+.PHONY: coverage
+coverage: test_json
+	mtc --coverage-test -o test_json.trace_counts ./test_json
+	mcov test_json.trace_counts -o test_json.coverage-procs
+	mcov test_json.trace_counts -d -o test_json.coverage-labels
+
 .PHONY: realclean
 realclean:
 	$(MMC) --make test_json.realclean
 	/bin/rm -rf Mercury
 	/bin/rm -f Mercury.modules
 	/bin/rm -f FAILED_TESTS ABORTED_TESTS
+	/bin/rm -f test_json.trace_counts test_json.coverage-procs
+	/bin/rm -f test_json.coverage-labels
