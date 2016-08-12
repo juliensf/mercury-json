@@ -33,11 +33,24 @@ test_json: Mercury.modules
 tags: $(wildcard *.m) $(wildcard ../src/*.m)
 	mtags $(wildcard *.m) $(wildcard ../src/*.m)
 
+# We're only interested in coverage information from the JSON library modules.
+#
+COVERAGE_RESTRICTION = \
+	-m json 		\
+	-m json.char_buffer 	\
+	-m json.json_lexer 	\
+	-m json.json_parser	\
+	-m json.marshal         \
+	-m json.pointer		\
+	-m json.string_reader	\
+	-m json.umarshal	\
+	-m json.writer
+
 .PHONY: coverage
 coverage: test_json
 	mtc --coverage-test -o test_json.trace_counts ./test_json
-	mcov test_json.trace_counts -o test_json.coverage-procs
-	mcov test_json.trace_counts -d -o test_json.coverage-labels
+	mcov $(COVERAGE_RESTRICTION) test_json.trace_counts -o test_json.coverage-procs
+	mcov $(COVERAGE_RESTRICTION) test_json.trace_counts -d -o test_json.coverage-labels
 
 .PHONY: realclean
 realclean:

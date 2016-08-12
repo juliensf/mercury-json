@@ -31,36 +31,70 @@
 %-----------------------------------------------------------------------------%
 
 test_value_procs(File, !IO) :-
-    list.foldl(run_test_value_test(File, "is_null", is_null), test_values,
+    list.foldl(run_test_is_value(File, "is_null", is_null), test_values,
         !IO),
     io.nl(File, !IO),
-    list.foldl(run_test_value_test(File, "is_bool", is_bool), test_values,
+    list.foldl(run_test_is_value(File, "is_bool", is_bool), test_values,
         !IO),
     io.nl(File, !IO),
-    list.foldl(run_test_value_test(File, "is_string", is_string), test_values,
+    list.foldl(run_test_is_value(File, "is_string", is_string), test_values,
         !IO),
     io.nl(File, !IO),
-    list.foldl(run_test_value_test(File, "is_number", is_number), test_values,
+    list.foldl(run_test_is_value(File, "is_number", is_number), test_values,
         !IO),
     io.nl(File, !IO),
-    list.foldl(run_test_value_test(File, "is_array", is_array), test_values,
+    list.foldl(run_test_is_value(File, "is_array", is_array), test_values,
         !IO),
     io.nl(File, !IO),
-    list.foldl(run_test_value_test(File, "is_object", is_object), test_values,
+    list.foldl(run_test_is_value(File, "is_object", is_object), test_values,
+        !IO),
+    io.nl(File, !IO),
+
+    list.foldl(run_test_get_value(File, "get_bool", get_bool), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_get_value(File, "get_string", get_string), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_get_value(File, "get_number", get_number), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_get_value(File, "get_int", get_int), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_get_value(File, "get_array", get_array), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_get_value(File, "get_object", get_object), test_values,
         !IO).
 
 %-----------------------------------------------------------------------------%
 
-:- pred run_test_value_test(io.text_output_stream::in,
+:- pred run_test_is_value(io.text_output_stream::in,
     string::in, pred(value)::in(pred(in) is semidet),
     json.value::in, io::di, io::uo) is det.
 
-run_test_value_test(File, PredName, Pred, Value, !IO) :-
+run_test_is_value(File, PredName, Pred, Value, !IO) :-
     ValueStr = json.to_string(Value),
     io.format(File, "%s(%s) ===> ", [s(PredName), s(ValueStr)], !IO),
     ( if Pred(Value)
     then io.write_string(File, "TRUE\n", !IO)
     else io.write_string(File, "FALSE\n", !IO)
+    ).
+
+%-----------------------------------------------------------------------------%
+
+:- pred run_test_get_value(io.text_output_stream::in,
+    string::in, pred(value, T)::in(pred(in, out) is semidet),
+    json.value::in, io::di, io::uo) is det.
+
+run_test_get_value(File, PredName, Pred, Value, !IO) :-
+    ValueStr = json.to_string(Value),
+    io.format(File, "%s(%s) ===> ", [s(PredName), s(ValueStr)], !IO),
+    ( if Pred(Value, Result) then
+        io.format(File, "%s\n", [s(string(Result))], !IO)
+    else
+        io.write_string(File, "FALSE\n", !IO)
     ).
 
 %-----------------------------------------------------------------------------%

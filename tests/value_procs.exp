@@ -93,3 +93,99 @@ is_object([null,true,false,1]) ===> FALSE
 is_object({}) ===> TRUE
 is_object({"foo":true}) ===> TRUE
 is_object({"bar":false,"foo":true}) ===> TRUE
+
+get_bool(null) ===> FALSE
+get_bool(false) ===> no
+get_bool(true) ===> yes
+get_bool("") ===> FALSE
+get_bool("foo") ===> FALSE
+get_bool(-1.34) ===> FALSE
+get_bool(-1) ===> FALSE
+get_bool(0) ===> FALSE
+get_bool(1) ===> FALSE
+get_bool(1.34) ===> FALSE
+get_bool([]) ===> FALSE
+get_bool([null,true,false,1]) ===> FALSE
+get_bool({}) ===> FALSE
+get_bool({"foo":true}) ===> FALSE
+get_bool({"bar":false,"foo":true}) ===> FALSE
+
+get_string(null) ===> FALSE
+get_string(false) ===> FALSE
+get_string(true) ===> FALSE
+get_string("") ===> ""
+get_string("foo") ===> "foo"
+get_string(-1.34) ===> FALSE
+get_string(-1) ===> FALSE
+get_string(0) ===> FALSE
+get_string(1) ===> FALSE
+get_string(1.34) ===> FALSE
+get_string([]) ===> FALSE
+get_string([null,true,false,1]) ===> FALSE
+get_string({}) ===> FALSE
+get_string({"foo":true}) ===> FALSE
+get_string({"bar":false,"foo":true}) ===> FALSE
+
+get_number(null) ===> FALSE
+get_number(false) ===> FALSE
+get_number(true) ===> FALSE
+get_number("") ===> FALSE
+get_number("foo") ===> FALSE
+get_number(-1.34) ===> -1.34
+get_number(-1) ===> -1.0
+get_number(0) ===> 0.0
+get_number(1) ===> 1.0
+get_number(1.34) ===> 1.34
+get_number([]) ===> FALSE
+get_number([null,true,false,1]) ===> FALSE
+get_number({}) ===> FALSE
+get_number({"foo":true}) ===> FALSE
+get_number({"bar":false,"foo":true}) ===> FALSE
+
+get_int(null) ===> FALSE
+get_int(false) ===> FALSE
+get_int(true) ===> FALSE
+get_int("") ===> FALSE
+get_int("foo") ===> FALSE
+get_int(-1.34) ===> -1
+get_int(-1) ===> -1
+get_int(0) ===> 0
+get_int(1) ===> 1
+get_int(1.34) ===> 1
+get_int([]) ===> FALSE
+get_int([null,true,false,1]) ===> FALSE
+get_int({}) ===> FALSE
+get_int({"foo":true}) ===> FALSE
+get_int({"bar":false,"foo":true}) ===> FALSE
+
+get_array(null) ===> FALSE
+get_array(false) ===> FALSE
+get_array(true) ===> FALSE
+get_array("") ===> FALSE
+get_array("foo") ===> FALSE
+get_array(-1.34) ===> FALSE
+get_array(-1) ===> FALSE
+get_array(0) ===> FALSE
+get_array(1) ===> FALSE
+get_array(1.34) ===> FALSE
+get_array([]) ===> []
+get_array([null,true,false,1]) ===> [null, bool(yes), bool(no), number(1.0)]
+get_array({}) ===> FALSE
+get_array({"foo":true}) ===> FALSE
+get_array({"bar":false,"foo":true}) ===> FALSE
+
+get_object(null) ===> FALSE
+get_object(false) ===> FALSE
+get_object(true) ===> FALSE
+get_object("") ===> FALSE
+get_object("foo") ===> FALSE
+get_object(-1.34) ===> FALSE
+get_object(-1) ===> FALSE
+get_object(0) ===> FALSE
+get_object(1) ===> FALSE
+get_object(1.34) ===> FALSE
+get_object([]) ===> FALSE
+get_object([null,true,false,1]) ===> FALSE
+get_object({}) ===> empty
+get_object({"foo":true}) ===> two("foo", bool(yes), empty, empty)
+get_object({"bar":false,"foo":true}) ===> three("bar", bool(no), "foo", bool(yes), empty, empty, empty)
