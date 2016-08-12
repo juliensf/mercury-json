@@ -25,6 +25,7 @@
 :- import_module test_marshal.
 :- import_module test_pointer.
 :- import_module test_unmarshal.
+:- import_module test_object_procs.
 :- import_module test_value_procs.
 
 :- import_module bool.
@@ -63,6 +64,7 @@ main(!IO) :-
                 RunMarshalingTests = yes,
                 RunPointerTests = yes,
                 RunUnmarshalingTests = yes,
+                RunObjectProcTests = yes,
                 RunValueProcTests = yes
             ;
                 NonOptionArgs = [_ | _],
@@ -86,6 +88,12 @@ main(!IO) :-
                     else
                         RunUnmarshalingTests = no
                     ),
+                    ( if list.member("object_procs", !.FilteredArgs) then
+                        list.delete_all(!.FilteredArgs, "object_procs", !:FilteredArgs),
+                        RunObjectProcTests = yes
+                    else
+                        RunObjectProcTests = no
+                    ),
                     ( if list.member("value_procs", !.FilteredArgs) then
                         list.delete_all(!.FilteredArgs, "value_procs", !:FilteredArgs),
                         RunValueProcTests = yes
@@ -104,28 +112,40 @@ main(!IO) :-
                         0, !:NumFailures, !IO),
                     (
                         RunMarshalingTests = yes,
-                        run_marshaling_tests(OptionTable, !NumFailures, !IO),
+                        run_internal_tests(OptionTable, "marshal", test_marshaling,
+                            !NumFailures, !IO),
                         !:TotalTests = !.TotalTests + 1
                     ;
                         RunMarshalingTests = no
                     ),
                     (
                         RunPointerTests = yes,
-                        run_pointer_tests(OptionTable, !NumFailures, !IO),
+                        run_internal_tests(OptionTable, "pointer", test_pointer,
+                            !NumFailures, !IO),
                         !:TotalTests = !.TotalTests + 1
                     ;
                         RunPointerTests = no
                     ),
                     (
                         RunUnmarshalingTests = yes,
-                        run_unmarshaling_tests(OptionTable, !NumFailures, !IO),
+                        run_internal_tests(OptionTable, "unmarshal", test_unmarshaling,
+                            !NumFailures, !IO),
                         !:TotalTests = !.TotalTests + 1
                     ;
                         RunUnmarshalingTests = no
                     ),
                     (
+                        RunObjectProcTests = yes,
+                        run_internal_tests(OptionTable, "object_procs", test_object_procs,
+                            !NumFailures, !IO),
+                        !:TotalTests = !.TotalTests + 1
+                    ;
+                        RunObjectProcTests = no
+                    ),
+                    (
                         RunValueProcTests = yes,
-                        run_value_proc_tests(OptionTable, !NumFailures, !IO),
+                        run_internal_tests(OptionTable, "value_procs", test_value_procs,
+                            !NumFailures, !IO),
                         !:TotalTests = !.TotalTests + 1
                     ;
                         RunValueProcTests = no
@@ -276,73 +296,19 @@ override_default_params("infinity",
 
 %-----------------------------------------------------------------------------%
 
-:- pred run_marshaling_tests(option_table(option)::in, int::in, int::out,
-    io::di, io::uo) is cc_multi.
+:- pred run_internal_tests(option_table(option), string,
+    pred(io.text_output_stream, io, io), int, int, io, io).
+:- mode run_internal_tests(in, in, pred(in, di, uo) is det,
+    in, out, di, uo) is det.
+:- mode run_internal_tests(in, in, pred(in, di, uo) is cc_multi,
+    in, out, di, uo) is cc_multi.
 
-run_marshaling_tests(OptionTable, !NumFailures, !IO) :-
-    BaseFileName = "marshal",
+run_internal_tests(OptionTable, BaseFileName, TestPred, !NumFailures, !IO) :-
     OutputFileName = BaseFileName ++ ".out",
     io.open_output(OutputFileName, MaybeOpenResult, !IO),
     (
         MaybeOpenResult = ok(OutputFile),
-        test_marshaling(OutputFile, !IO),
-        io.close_output(OutputFile, !IO),
-        check_result(OptionTable, BaseFileName, !NumFailures, !IO)
-    ;
-        MaybeOpenResult = error(_),
-        unexpected($file, $pred, "cannot open output")
-    ).
-
-%-----------------------------------------------------------------------------%
-
-:- pred run_pointer_tests(option_table(option)::in, int::in, int::out,
-    io::di, io::uo) is det.
-
-run_pointer_tests(OptionTable, !NumFailures, !IO) :-
-    BaseFileName = "pointer",
-    OutputFileName = BaseFileName ++ ".out",
-    io.open_output(OutputFileName, MaybeOpenResult, !IO),
-    (
-        MaybeOpenResult = ok(OutputFile),
-        test_pointer(OutputFile, !IO),
-        io.close_output(OutputFile, !IO),
-        check_result(OptionTable, BaseFileName, !NumFailures, !IO)
-    ;
-        MaybeOpenResult = error(_),
-        unexpected($file, $pred, "cannot open output")
-    ).
-
-%-----------------------------------------------------------------------------%
-
-:- pred run_unmarshaling_tests(option_table(option)::in, int::in, int::out,
-    io::di, io::uo) is det.
-
-run_unmarshaling_tests(OptionTable, !NumFailures, !IO) :-
-    BaseFileName = "unmarshal",
-    OutputFileName = BaseFileName ++ ".out",
-    io.open_output(OutputFileName, MaybeOpenResult, !IO),
-    (
-        MaybeOpenResult = ok(OutputFile),
-        test_unmarshaling(OutputFile, !IO),
-        io.close_output(OutputFile, !IO),
-        check_result(OptionTable, BaseFileName, !NumFailures, !IO)
-    ;
-        MaybeOpenResult = error(_),
-        unexpected($file, $pred, "cannot open output")
-    ).
-
-%-----------------------------------------------------------------------------%
-
-:- pred run_value_proc_tests(option_table(option)::in, int::in, int::out,
-    io::di, io::uo) is cc_multi.
-
-run_value_proc_tests(OptionTable, !NumFailures, !IO) :-
-    BaseFileName = "value_procs",
-    OutputFileName = BaseFileName ++ ".out",
-    io.open_output(OutputFileName, MaybeOpenResult, !IO),
-    (
-        MaybeOpenResult = ok(OutputFile),
-        test_value_procs(OutputFile, !IO),
+        TestPred(OutputFile, !IO),
         io.close_output(OutputFile, !IO),
         check_result(OptionTable, BaseFileName, !NumFailures, !IO)
     ;

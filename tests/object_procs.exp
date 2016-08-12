@@ -1,0 +1,89 @@
+search_bool({}, "foo", yes) ===> yes
+search_bool({}, "bar", yes) ===> yes
+search_bool({"foo":null}, "foo", yes) ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have null value"))
+search_bool({"foo":null}, "bar", yes) ===> yes
+search_bool({"foo":true}, "foo", yes) ===> yes
+search_bool({"foo":true}, "bar", yes) ===> yes
+search_bool({"foo":3.141}, "foo", yes) ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have number value"))
+search_bool({"foo":3.141}, "bar", yes) ===> yes
+search_bool({"foo":"abcde"}, "foo", yes) ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have string value"))
+search_bool({"foo":"abcde"}, "bar", yes) ===> yes
+search_bool({"foo":[]}, "foo", yes) ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have array value"))
+search_bool({"foo":[]}, "bar", yes) ===> yes
+search_bool({"foo":{}}, "foo", yes) ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have object value"))
+search_bool({"foo":{}}, "bar", yes) ===> yes
+
+search_string({}, "foo", "") ===> ""
+search_string({}, "bar", "") ===> ""
+search_string({"foo":null}, "foo", "") ===> EXCP (software_error("json.det_get_string: expected string value: have null value"))
+search_string({"foo":null}, "bar", "") ===> ""
+search_string({"foo":true}, "foo", "") ===> EXCP (software_error("json.det_get_string: expected string value: have Boolean value"))
+search_string({"foo":true}, "bar", "") ===> ""
+search_string({"foo":3.141}, "foo", "") ===> EXCP (software_error("json.det_get_string: expected string value: have number value"))
+search_string({"foo":3.141}, "bar", "") ===> ""
+search_string({"foo":"abcde"}, "foo", "") ===> "abcde"
+search_string({"foo":"abcde"}, "bar", "") ===> ""
+search_string({"foo":[]}, "foo", "") ===> EXCP (software_error("json.det_get_string: expected string value: have array value"))
+search_string({"foo":[]}, "bar", "") ===> ""
+search_string({"foo":{}}, "foo", "") ===> EXCP (software_error("json.det_get_string: expected string value: have object value"))
+search_string({"foo":{}}, "bar", "") ===> ""
+
+search_number({}, "foo", 561.0) ===> 561.0
+search_number({}, "bar", 561.0) ===> 561.0
+search_number({"foo":null}, "foo", 561.0) ===> EXCP (software_error("json.det_get_number: expected number value: have null value"))
+search_number({"foo":null}, "bar", 561.0) ===> 561.0
+search_number({"foo":true}, "foo", 561.0) ===> EXCP (software_error("json.det_get_number: expected number value: have Boolean value"))
+search_number({"foo":true}, "bar", 561.0) ===> 561.0
+search_number({"foo":3.141}, "foo", 561.0) ===> 3.141
+search_number({"foo":3.141}, "bar", 561.0) ===> 561.0
+search_number({"foo":"abcde"}, "foo", 561.0) ===> EXCP (software_error("json.det_get_number: expected number value: have string value"))
+search_number({"foo":"abcde"}, "bar", 561.0) ===> 561.0
+search_number({"foo":[]}, "foo", 561.0) ===> EXCP (software_error("json.det_get_number: expected number value: have array value"))
+search_number({"foo":[]}, "bar", 561.0) ===> 561.0
+search_number({"foo":{}}, "foo", 561.0) ===> EXCP (software_error("json.det_get_number: expected number value: have object value"))
+search_number({"foo":{}}, "bar", 561.0) ===> 561.0
+
+search_int({}, "foo", 2) ===> 2
+search_int({}, "bar", 2) ===> 2
+search_int({"foo":null}, "foo", 2) ===> EXCP (software_error("json.get_int: expected number value: have null value"))
+search_int({"foo":null}, "bar", 2) ===> 2
+search_int({"foo":true}, "foo", 2) ===> EXCP (software_error("json.get_int: expected number value: have Boolean value"))
+search_int({"foo":true}, "bar", 2) ===> 2
+search_int({"foo":3.141}, "foo", 2) ===> 3
+search_int({"foo":3.141}, "bar", 2) ===> 2
+search_int({"foo":"abcde"}, "foo", 2) ===> EXCP (software_error("json.get_int: expected number value: have string value"))
+search_int({"foo":"abcde"}, "bar", 2) ===> 2
+search_int({"foo":[]}, "foo", 2) ===> EXCP (software_error("json.get_int: expected number value: have array value"))
+search_int({"foo":[]}, "bar", 2) ===> 2
+search_int({"foo":{}}, "foo", 2) ===> EXCP (software_error("json.get_int: expected number value: have object value"))
+search_int({"foo":{}}, "bar", 2) ===> 2
+
+search_object({}, "foo", empty) ===> empty
+search_object({}, "bar", empty) ===> empty
+search_object({"foo":null}, "foo", empty) ===> EXCP (software_error("json.det_get_object: expected object value: have null value"))
+search_object({"foo":null}, "bar", empty) ===> empty
+search_object({"foo":true}, "foo", empty) ===> EXCP (software_error("json.det_get_object: expected object value: have Boolean value"))
+search_object({"foo":true}, "bar", empty) ===> empty
+search_object({"foo":3.141}, "foo", empty) ===> EXCP (software_error("json.det_get_object: expected object value: have number value"))
+search_object({"foo":3.141}, "bar", empty) ===> empty
+search_object({"foo":"abcde"}, "foo", empty) ===> EXCP (software_error("json.det_get_object: expected object value: have string value"))
+search_object({"foo":"abcde"}, "bar", empty) ===> empty
+search_object({"foo":[]}, "foo", empty) ===> EXCP (software_error("json.det_get_object: expected object value: have array value"))
+search_object({"foo":[]}, "bar", empty) ===> empty
+search_object({"foo":{}}, "foo", empty) ===> empty
+search_object({"foo":{}}, "bar", empty) ===> empty
+
+search_array({}, "foo", []) ===> []
+search_array({}, "bar", []) ===> []
+search_array({"foo":null}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have null value"))
+search_array({"foo":null}, "bar", []) ===> []
+search_array({"foo":true}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have Boolean value"))
+search_array({"foo":true}, "bar", []) ===> []
+search_array({"foo":3.141}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have number value"))
+search_array({"foo":3.141}, "bar", []) ===> []
+search_array({"foo":"abcde"}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have string value"))
+search_array({"foo":"abcde"}, "bar", []) ===> []
+search_array({"foo":[]}, "foo", []) ===> []
+search_array({"foo":[]}, "bar", []) ===> []
+search_array({"foo":{}}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have object value"))
+search_array({"foo":{}}, "bar", []) ===> []
