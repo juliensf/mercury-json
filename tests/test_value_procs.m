@@ -14,7 +14,7 @@
 
 :- import_module io.
 
-:- pred test_value_procs(io.text_output_stream::in, io::di, io::uo) is det.
+:- pred test_value_procs(io.text_output_stream::in, io::di, io::uo) is cc_multi.
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
@@ -24,6 +24,7 @@
 :- import_module json.
 
 :- import_module bool.
+:- import_module exception.
 :- import_module list.
 :- import_module pair.
 :- import_module string.
@@ -66,6 +67,25 @@ test_value_procs(File, !IO) :-
         !IO),
     io.nl(File, !IO),
     list.foldl(run_test_get_value(File, "get_object", get_object), test_values,
+        !IO),
+    io.nl(File, !IO),
+
+    list.foldl(run_test_det_get_value(File, "det_get_bool", det_get_bool), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_det_get_value(File, "det_get_string", det_get_string), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_det_get_value(File, "det_get_number", det_get_number), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_det_get_value(File, "det_get_int", det_get_int), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_det_get_value(File, "det_get_array", det_get_array), test_values,
+        !IO),
+    io.nl(File, !IO),
+    list.foldl(run_test_det_get_value(File, "det_get_object", det_get_object), test_values,
         !IO).
 
 %-----------------------------------------------------------------------------%
@@ -95,6 +115,24 @@ run_test_get_value(File, PredName, Pred, Value, !IO) :-
         io.format(File, "%s\n", [s(string(Result))], !IO)
     else
         io.write_string(File, "FALSE\n", !IO)
+    ).
+
+%-----------------------------------------------------------------------------%
+
+:- pred run_test_det_get_value(io.text_output_stream::in,
+    string::in, (func(value) =  T)::in,
+    json.value::in, io::di, io::uo) is cc_multi.
+
+run_test_det_get_value(File, FuncName, Func, Value, !IO) :-
+    ValueStr = json.to_string(Value),
+    io.format(File, "%s(%s) ===> ", [s(FuncName), s(ValueStr)], !IO),
+    ( try [] (
+        Result = Func(Value)
+    ) then
+        io.format(File, "%s\n", [s(string(Result))], !IO)
+    catch Excp ->
+        Excp = software_error(Msg),
+        io.format(File, "EXCP (%s)\n", [s(Msg)], !IO)
     ).
 
 %-----------------------------------------------------------------------------%

@@ -189,3 +189,99 @@ get_object([null,true,false,1]) ===> FALSE
 get_object({}) ===> empty
 get_object({"foo":true}) ===> two("foo", bool(yes), empty, empty)
 get_object({"bar":false,"foo":true}) ===> three("bar", bool(no), "foo", bool(yes), empty, empty, empty)
+
+det_get_bool(null) ===> EXCP (json.det_get_bool: expected Boolean value: have null value)
+det_get_bool(false) ===> no
+det_get_bool(true) ===> yes
+det_get_bool("") ===> EXCP (json.det_get_bool: expected Boolean value: have string value)
+det_get_bool("foo") ===> EXCP (json.det_get_bool: expected Boolean value: have string value)
+det_get_bool(-1.34) ===> EXCP (json.det_get_bool: expected Boolean value: have number value)
+det_get_bool(-1) ===> EXCP (json.det_get_bool: expected Boolean value: have number value)
+det_get_bool(0) ===> EXCP (json.det_get_bool: expected Boolean value: have number value)
+det_get_bool(1) ===> EXCP (json.det_get_bool: expected Boolean value: have number value)
+det_get_bool(1.34) ===> EXCP (json.det_get_bool: expected Boolean value: have number value)
+det_get_bool([]) ===> EXCP (json.det_get_bool: expected Boolean value: have array value)
+det_get_bool([null,true,false,1]) ===> EXCP (json.det_get_bool: expected Boolean value: have array value)
+det_get_bool({}) ===> EXCP (json.det_get_bool: expected Boolean value: have object value)
+det_get_bool({"foo":true}) ===> EXCP (json.det_get_bool: expected Boolean value: have object value)
+det_get_bool({"bar":false,"foo":true}) ===> EXCP (json.det_get_bool: expected Boolean value: have object value)
+
+det_get_string(null) ===> EXCP (json.det_get_string: expected string value: have null value)
+det_get_string(false) ===> EXCP (json.det_get_string: expected string value: have Boolean value)
+det_get_string(true) ===> EXCP (json.det_get_string: expected string value: have Boolean value)
+det_get_string("") ===> ""
+det_get_string("foo") ===> "foo"
+det_get_string(-1.34) ===> EXCP (json.det_get_string: expected string value: have number value)
+det_get_string(-1) ===> EXCP (json.det_get_string: expected string value: have number value)
+det_get_string(0) ===> EXCP (json.det_get_string: expected string value: have number value)
+det_get_string(1) ===> EXCP (json.det_get_string: expected string value: have number value)
+det_get_string(1.34) ===> EXCP (json.det_get_string: expected string value: have number value)
+det_get_string([]) ===> EXCP (json.det_get_string: expected string value: have array value)
+det_get_string([null,true,false,1]) ===> EXCP (json.det_get_string: expected string value: have array value)
+det_get_string({}) ===> EXCP (json.det_get_string: expected string value: have object value)
+det_get_string({"foo":true}) ===> EXCP (json.det_get_string: expected string value: have object value)
+det_get_string({"bar":false,"foo":true}) ===> EXCP (json.det_get_string: expected string value: have object value)
+
+det_get_number(null) ===> EXCP (json.det_get_number: expected number value: have null value)
+det_get_number(false) ===> EXCP (json.det_get_number: expected number value: have Boolean value)
+det_get_number(true) ===> EXCP (json.det_get_number: expected number value: have Boolean value)
+det_get_number("") ===> EXCP (json.det_get_number: expected number value: have string value)
+det_get_number("foo") ===> EXCP (json.det_get_number: expected number value: have string value)
+det_get_number(-1.34) ===> -1.34
+det_get_number(-1) ===> -1.0
+det_get_number(0) ===> 0.0
+det_get_number(1) ===> 1.0
+det_get_number(1.34) ===> 1.34
+det_get_number([]) ===> EXCP (json.det_get_number: expected number value: have array value)
+det_get_number([null,true,false,1]) ===> EXCP (json.det_get_number: expected number value: have array value)
+det_get_number({}) ===> EXCP (json.det_get_number: expected number value: have object value)
+det_get_number({"foo":true}) ===> EXCP (json.det_get_number: expected number value: have object value)
+det_get_number({"bar":false,"foo":true}) ===> EXCP (json.det_get_number: expected number value: have object value)
+
+det_get_int(null) ===> EXCP (json.get_int: expected number value: have null value)
+det_get_int(false) ===> EXCP (json.get_int: expected number value: have Boolean value)
+det_get_int(true) ===> EXCP (json.get_int: expected number value: have Boolean value)
+det_get_int("") ===> EXCP (json.get_int: expected number value: have string value)
+det_get_int("foo") ===> EXCP (json.get_int: expected number value: have string value)
+det_get_int(-1.34) ===> -1
+det_get_int(-1) ===> -1
+det_get_int(0) ===> 0
+det_get_int(1) ===> 1
+det_get_int(1.34) ===> 1
+det_get_int([]) ===> EXCP (json.get_int: expected number value: have array value)
+det_get_int([null,true,false,1]) ===> EXCP (json.get_int: expected number value: have array value)
+det_get_int({}) ===> EXCP (json.get_int: expected number value: have object value)
+det_get_int({"foo":true}) ===> EXCP (json.get_int: expected number value: have object value)
+det_get_int({"bar":false,"foo":true}) ===> EXCP (json.get_int: expected number value: have object value)
+
+det_get_array(null) ===> EXCP (json.get_array: expected array value: have null value)
+det_get_array(false) ===> EXCP (json.get_array: expected array value: have Boolean value)
+det_get_array(true) ===> EXCP (json.get_array: expected array value: have Boolean value)
+det_get_array("") ===> EXCP (json.get_array: expected array value: have string value)
+det_get_array("foo") ===> EXCP (json.get_array: expected array value: have string value)
+det_get_array(-1.34) ===> EXCP (json.get_array: expected array value: have number value)
+det_get_array(-1) ===> EXCP (json.get_array: expected array value: have number value)
+det_get_array(0) ===> EXCP (json.get_array: expected array value: have number value)
+det_get_array(1) ===> EXCP (json.get_array: expected array value: have number value)
+det_get_array(1.34) ===> EXCP (json.get_array: expected array value: have number value)
+det_get_array([]) ===> []
+det_get_array([null,true,false,1]) ===> [null, bool(yes), bool(no), number(1.0)]
+det_get_array({}) ===> EXCP (json.get_array: expected array value: have object value)
+det_get_array({"foo":true}) ===> EXCP (json.get_array: expected array value: have object value)
+det_get_array({"bar":false,"foo":true}) ===> EXCP (json.get_array: expected array value: have object value)
+
+det_get_object(null) ===> EXCP (json.det_get_object: expected object value: have null value)
+det_get_object(false) ===> EXCP (json.det_get_object: expected object value: have Boolean value)
+det_get_object(true) ===> EXCP (json.det_get_object: expected object value: have Boolean value)
+det_get_object("") ===> EXCP (json.det_get_object: expected object value: have string value)
+det_get_object("foo") ===> EXCP (json.det_get_object: expected object value: have string value)
+det_get_object(-1.34) ===> EXCP (json.det_get_object: expected object value: have number value)
+det_get_object(-1) ===> EXCP (json.det_get_object: expected object value: have number value)
+det_get_object(0) ===> EXCP (json.det_get_object: expected object value: have number value)
+det_get_object(1) ===> EXCP (json.det_get_object: expected object value: have number value)
+det_get_object(1.34) ===> EXCP (json.det_get_object: expected object value: have number value)
+det_get_object([]) ===> EXCP (json.det_get_object: expected object value: have array value)
+det_get_object([null,true,false,1]) ===> EXCP (json.det_get_object: expected object value: have array value)
+det_get_object({}) ===> empty
+det_get_object({"foo":true}) ===> two("foo", bool(yes), empty, empty)
+det_get_object({"bar":false,"foo":true}) ===> three("bar", bool(no), "foo", bool(yes), empty, empty, empty)

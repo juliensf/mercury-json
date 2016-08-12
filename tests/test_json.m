@@ -334,7 +334,7 @@ run_unmarshaling_tests(OptionTable, !NumFailures, !IO) :-
 %-----------------------------------------------------------------------------%
 
 :- pred run_value_proc_tests(option_table(option)::in, int::in, int::out,
-    io::di, io::uo) is det.
+    io::di, io::uo) is cc_multi.
 
 run_value_proc_tests(OptionTable, !NumFailures, !IO) :-
     BaseFileName = "value_procs",
