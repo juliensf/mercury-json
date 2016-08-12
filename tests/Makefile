@@ -43,7 +43,7 @@ coverage: test_json
 realclean:
 	$(MMC) --make test_json.realclean
 	/bin/rm -rf Mercury
-	/bin/rm -f Mercury.modules
+	/bin/rm -f Mercury.modules tags
 	/bin/rm -f FAILED_TESTS ABORTED_TESTS
 	/bin/rm -f test_json.trace_counts test_json.coverage-procs
 	/bin/rm -f test_json.coverage-labels
