@@ -25,6 +25,7 @@
 :- import_module test_marshal.
 :- import_module test_pointer.
 :- import_module test_unmarshal.
+:- import_module test_value_procs.
 
 :- import_module bool.
 :- import_module char.
@@ -61,7 +62,8 @@ main(!IO) :-
                     MaybeGatherResult, !IO),
                 RunMarshalingTests = yes,
                 RunPointerTests = yes,
-                RunUnmarshalingTests = yes
+                RunUnmarshalingTests = yes,
+                RunValueProcTests = yes
             ;
                 NonOptionArgs = [_ | _],
                 some [!FilteredArgs] (
@@ -83,6 +85,12 @@ main(!IO) :-
                         RunUnmarshalingTests = yes
                     else
                         RunUnmarshalingTests = no
+                    ),
+                    ( if list.member("value_procs", !.FilteredArgs) then
+                        list.delete_all(!.FilteredArgs, "value_procs", !:FilteredArgs),
+                        RunValueProcTests = yes
+                    else
+                        RunValueProcTests = no
                     ),
                     MaybeGatherResult = ok(!.FilteredArgs)
                 )
@@ -114,6 +122,13 @@ main(!IO) :-
                         !:TotalTests = !.TotalTests + 1
                     ;
                         RunUnmarshalingTests = no
+                    ),
+                    (
+                        RunValueProcTests = yes,
+                        run_value_proc_tests(OptionTable, !NumFailures, !IO),
+                        !:TotalTests = !.TotalTests + 1
+                    ;
+                        RunValueProcTests = no
                     ),
                     ( if !.NumFailures = 0 then
                         io.write_string("ALL TESTS PASSED\n", !IO)
@@ -318,6 +333,25 @@ run_unmarshaling_tests(OptionTable, !NumFailures, !IO) :-
 
 %-----------------------------------------------------------------------------%
 
+:- pred run_value_proc_tests(option_table(option)::in, int::in, int::out,
+    io::di, io::uo) is det.
+
+run_value_proc_tests(OptionTable, !NumFailures, !IO) :-
+    BaseFileName = "value_procs",
+    OutputFileName = BaseFileName ++ ".out",
+    io.open_output(OutputFileName, MaybeOpenResult, !IO),
+    (
+        MaybeOpenResult = ok(OutputFile),
+        test_value_procs(OutputFile, !IO),
+        io.close_output(OutputFile, !IO),
+        check_result(OptionTable, BaseFileName, !NumFailures, !IO)
+    ;
+        MaybeOpenResult = error(_),
+        unexpected($file, $pred, "cannot open output")
+    ).
+
+%-----------------------------------------------------------------------------%
+
 :- pred check_result(option_table(option)::in, string::in, int::in, int::out,
     io::di, io::uo) is det.
 
@@ -411,4 +445,3 @@ bad_cmdline(Msg, !IO) :-
 %-----------------------------------------------------------------------------%
 :- end_module test_json.
 %-----------------------------------------------------------------------------%
-

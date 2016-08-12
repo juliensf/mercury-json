@@ -10,6 +10,12 @@ else
 DIFF_FLAGS=
 endif
 
+ifdef GRADE
+GRADEFLAGS=--grade $(GRADE)
+else
+GRADEFLAGS=
+endif
+
 .PHONY: runtests
 runtests: test_json
 	@./test_json $(DIFF_FLAGS)
@@ -22,7 +28,7 @@ Mercury.modules: $(wildcard *.m) $(wildcard ../src/*.m)
 	$(MMC) -f $(wildcard *.m) $(wildcard ../src/*.m)
 
 test_json: Mercury.modules
-	$(MMC) --make $@
+	$(MMC) $(GRADEFLAGS) --make $@
 
 tags: $(wildcard *.m) $(wildcard ../src/*.m)
 	mtags $(wildcard *.m) $(wildcard ../src/*.m)
