@@ -1,3 +1,93 @@
+lookup_bool({}, "foo") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"foo\"\n\tValue Type: json.value"))
+lookup_bool({}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_bool({"foo":null}, "foo") ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have null value"))
+lookup_bool({"foo":null}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_bool({"foo":true}, "foo") ===> yes
+lookup_bool({"foo":true}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_bool({"foo":3.141}, "foo") ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have number value"))
+lookup_bool({"foo":3.141}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_bool({"foo":"abcde"}, "foo") ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have string value"))
+lookup_bool({"foo":"abcde"}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_bool({"foo":[]}, "foo") ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have array value"))
+lookup_bool({"foo":[]}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_bool({"foo":{}}, "foo") ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have object value"))
+lookup_bool({"foo":{}}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+
+lookup_string({}, "foo") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"foo\"\n\tValue Type: json.value"))
+lookup_string({}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_string({"foo":null}, "foo") ===> EXCP (software_error("json.det_get_string: expected string value: have null value"))
+lookup_string({"foo":null}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_string({"foo":true}, "foo") ===> EXCP (software_error("json.det_get_string: expected string value: have Boolean value"))
+lookup_string({"foo":true}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_string({"foo":3.141}, "foo") ===> EXCP (software_error("json.det_get_string: expected string value: have number value"))
+lookup_string({"foo":3.141}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_string({"foo":"abcde"}, "foo") ===> "abcde"
+lookup_string({"foo":"abcde"}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_string({"foo":[]}, "foo") ===> EXCP (software_error("json.det_get_string: expected string value: have array value"))
+lookup_string({"foo":[]}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_string({"foo":{}}, "foo") ===> EXCP (software_error("json.det_get_string: expected string value: have object value"))
+lookup_string({"foo":{}}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+
+lookup_number({}, "foo") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"foo\"\n\tValue Type: json.value"))
+lookup_number({}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_number({"foo":null}, "foo") ===> EXCP (software_error("json.det_get_number: expected number value: have null value"))
+lookup_number({"foo":null}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_number({"foo":true}, "foo") ===> EXCP (software_error("json.det_get_number: expected number value: have Boolean value"))
+lookup_number({"foo":true}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_number({"foo":3.141}, "foo") ===> 3.141
+lookup_number({"foo":3.141}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_number({"foo":"abcde"}, "foo") ===> EXCP (software_error("json.det_get_number: expected number value: have string value"))
+lookup_number({"foo":"abcde"}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_number({"foo":[]}, "foo") ===> EXCP (software_error("json.det_get_number: expected number value: have array value"))
+lookup_number({"foo":[]}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_number({"foo":{}}, "foo") ===> EXCP (software_error("json.det_get_number: expected number value: have object value"))
+lookup_number({"foo":{}}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+
+lookup_int({}, "foo") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"foo\"\n\tValue Type: json.value"))
+lookup_int({}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_int({"foo":null}, "foo") ===> EXCP (software_error("json.get_int: expected number value: have null value"))
+lookup_int({"foo":null}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_int({"foo":true}, "foo") ===> EXCP (software_error("json.get_int: expected number value: have Boolean value"))
+lookup_int({"foo":true}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_int({"foo":3.141}, "foo") ===> 3
+lookup_int({"foo":3.141}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_int({"foo":"abcde"}, "foo") ===> EXCP (software_error("json.get_int: expected number value: have string value"))
+lookup_int({"foo":"abcde"}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_int({"foo":[]}, "foo") ===> EXCP (software_error("json.get_int: expected number value: have array value"))
+lookup_int({"foo":[]}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_int({"foo":{}}, "foo") ===> EXCP (software_error("json.get_int: expected number value: have object value"))
+lookup_int({"foo":{}}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+
+lookup_object({}, "foo") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"foo\"\n\tValue Type: json.value"))
+lookup_object({}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_object({"foo":null}, "foo") ===> EXCP (software_error("json.det_get_object: expected object value: have null value"))
+lookup_object({"foo":null}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_object({"foo":true}, "foo") ===> EXCP (software_error("json.det_get_object: expected object value: have Boolean value"))
+lookup_object({"foo":true}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_object({"foo":3.141}, "foo") ===> EXCP (software_error("json.det_get_object: expected object value: have number value"))
+lookup_object({"foo":3.141}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_object({"foo":"abcde"}, "foo") ===> EXCP (software_error("json.det_get_object: expected object value: have string value"))
+lookup_object({"foo":"abcde"}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_object({"foo":[]}, "foo") ===> EXCP (software_error("json.det_get_object: expected object value: have array value"))
+lookup_object({"foo":[]}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_object({"foo":{}}, "foo") ===> empty
+lookup_object({"foo":{}}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+
+lookup_array({}, "foo") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"foo\"\n\tValue Type: json.value"))
+lookup_array({}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_array({"foo":null}, "foo") ===> EXCP (software_error("json.get_array: expected array value: have null value"))
+lookup_array({"foo":null}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_array({"foo":true}, "foo") ===> EXCP (software_error("json.get_array: expected array value: have Boolean value"))
+lookup_array({"foo":true}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_array({"foo":3.141}, "foo") ===> EXCP (software_error("json.get_array: expected array value: have number value"))
+lookup_array({"foo":3.141}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_array({"foo":"abcde"}, "foo") ===> EXCP (software_error("json.get_array: expected array value: have string value"))
+lookup_array({"foo":"abcde"}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_array({"foo":[]}, "foo") ===> []
+lookup_array({"foo":[]}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+lookup_array({"foo":{}}, "foo") ===> EXCP (software_error("json.get_array: expected array value: have object value"))
+lookup_array({"foo":{}}, "bar") ===> EXCP (software_error("map.lookup: key not found\n\tKey Type: string\n\tKey Value: \"bar\"\n\tValue Type: json.value"))
+
 search_bool({}, "foo", yes) ===> yes
 search_bool({}, "bar", yes) ===> yes
 search_bool({"foo":null}, "foo", yes) ===> EXCP (software_error("json.det_get_bool: expected Boolean value: have null value"))
@@ -87,3 +177,48 @@ search_array({"foo":[]}, "foo", []) ===> []
 search_array({"foo":[]}, "bar", []) ===> []
 search_array({"foo":{}}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have object value"))
 search_array({"foo":{}}, "bar", []) ===> []
+
+search_string_or_null({}, "foo", "") ===> ""
+search_string_or_null({}, "bar", "") ===> ""
+search_string_or_null({"foo":null}, "foo", "") ===> ""
+search_string_or_null({"foo":null}, "bar", "") ===> ""
+search_string_or_null({"foo":true}, "foo", "") ===> EXCP (software_error("json.det_get_string: expected string value: have Boolean value"))
+search_string_or_null({"foo":true}, "bar", "") ===> ""
+search_string_or_null({"foo":3.141}, "foo", "") ===> EXCP (software_error("json.det_get_string: expected string value: have number value"))
+search_string_or_null({"foo":3.141}, "bar", "") ===> ""
+search_string_or_null({"foo":"abcde"}, "foo", "") ===> "abcde"
+search_string_or_null({"foo":"abcde"}, "bar", "") ===> ""
+search_string_or_null({"foo":[]}, "foo", "") ===> EXCP (software_error("json.det_get_string: expected string value: have array value"))
+search_string_or_null({"foo":[]}, "bar", "") ===> ""
+search_string_or_null({"foo":{}}, "foo", "") ===> EXCP (software_error("json.det_get_string: expected string value: have object value"))
+search_string_or_null({"foo":{}}, "bar", "") ===> ""
+
+search_object_or_null({}, "foo", empty) ===> empty
+search_object_or_null({}, "bar", empty) ===> empty
+search_object_or_null({"foo":null}, "foo", empty) ===> empty
+search_object_or_null({"foo":null}, "bar", empty) ===> empty
+search_object_or_null({"foo":true}, "foo", empty) ===> EXCP (software_error("json.det_get_object: expected object value: have Boolean value"))
+search_object_or_null({"foo":true}, "bar", empty) ===> empty
+search_object_or_null({"foo":3.141}, "foo", empty) ===> EXCP (software_error("json.det_get_object: expected object value: have number value"))
+search_object_or_null({"foo":3.141}, "bar", empty) ===> empty
+search_object_or_null({"foo":"abcde"}, "foo", empty) ===> EXCP (software_error("json.det_get_object: expected object value: have string value"))
+search_object_or_null({"foo":"abcde"}, "bar", empty) ===> empty
+search_object_or_null({"foo":[]}, "foo", empty) ===> EXCP (software_error("json.det_get_object: expected object value: have array value"))
+search_object_or_null({"foo":[]}, "bar", empty) ===> empty
+search_object_or_null({"foo":{}}, "foo", empty) ===> empty
+search_object_or_null({"foo":{}}, "bar", empty) ===> empty
+
+search_array_or_null({}, "foo", []) ===> []
+search_array_or_null({}, "bar", []) ===> []
+search_array_or_null({"foo":null}, "foo", []) ===> []
+search_array_or_null({"foo":null}, "bar", []) ===> []
+search_array_or_null({"foo":true}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have Boolean value"))
+search_array_or_null({"foo":true}, "bar", []) ===> []
+search_array_or_null({"foo":3.141}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have number value"))
+search_array_or_null({"foo":3.141}, "bar", []) ===> []
+search_array_or_null({"foo":"abcde"}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have string value"))
+search_array_or_null({"foo":"abcde"}, "bar", []) ===> []
+search_array_or_null({"foo":[]}, "foo", []) ===> []
+search_array_or_null({"foo":[]}, "bar", []) ===> []
+search_array_or_null({"foo":{}}, "foo", []) ===> EXCP (software_error("json.get_array: expected array value: have object value"))
+search_array_or_null({"foo":{}}, "bar", []) ===> []

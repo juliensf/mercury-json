@@ -35,6 +35,31 @@
 
 test_object_procs(File, !IO) :-
     list.foldl(
+        run_lookup_test(File, "lookup_bool", lookup_bool, test_members),
+        test_objects, !IO),
+    io.nl(File, !IO),
+    list.foldl(
+        run_lookup_test(File, "lookup_string", lookup_string, test_members),
+        test_objects, !IO),
+    io.nl(File, !IO),
+    list.foldl(
+        run_lookup_test(File, "lookup_number", lookup_number, test_members),
+        test_objects, !IO),
+    io.nl(File, !IO),
+    list.foldl(
+        run_lookup_test(File, "lookup_int", lookup_int, test_members),
+        test_objects, !IO),
+    io.nl(File, !IO),
+    list.foldl(
+        run_lookup_test(File, "lookup_object", lookup_object, test_members),
+        test_objects, !IO),
+    io.nl(File, !IO),
+    list.foldl(
+        run_lookup_test(File, "lookup_array", lookup_array, test_members),
+        test_objects, !IO),
+    io.nl(File, !IO),
+
+    list.foldl(
         run_search_test(File, "search_bool", search_bool, yes, test_members),
         test_objects, !IO),
     io.nl(File, !IO),
@@ -56,7 +81,47 @@ test_object_procs(File, !IO) :-
     io.nl(File, !IO),
     list.foldl(
         run_search_test(File, "search_array", search_array, [], test_members),
+        test_objects, !IO),
+    io.nl(File, !IO),
+
+    list.foldl(
+        run_search_test(File, "search_string_or_null", search_string_or_null, "", test_members),
+        test_objects, !IO),
+    io.nl(File, !IO),
+    list.foldl(
+        run_search_test(File, "search_object_or_null", search_object_or_null, map.init, test_members),
+        test_objects, !IO),
+    io.nl(File, !IO),
+    list.foldl(
+        run_search_test(File, "search_array_or_null", search_array_or_null, [], test_members),
         test_objects, !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred run_lookup_test(io.text_output_stream::in, string::in,
+    (func(object, string) = T)::in, list(string)::in, json.value::in,
+    io::di, io::uo) is cc_multi.
+
+run_lookup_test(File, FuncName, Func, Members, Value, !IO) :-
+    list.foldl(run_lookup_test_2(File, FuncName, Func, Value),
+        Members, !IO).
+
+:- pred run_lookup_test_2(io.text_output_stream::in, string::in,
+    (func(object, string) = T)::in, value::in, string::in,
+    io::di, io::uo) is cc_multi.
+
+run_lookup_test_2(File, FuncName, Func, Value, Member, !IO) :-
+    ValueStr = json.to_string(Value),
+    io.format(File, "%s(%s, \"%s\") ===> ",
+        [s(FuncName), s(ValueStr), s(Member)], !IO),
+    Object = det_get_object(Value),
+    ( try [] (
+        Result = Func(Object, Member)
+    ) then
+        io.format(File, "%s\n", [s(string(Result))], !IO)
+    catch_any Excp ->
+        io.format(File, "EXCP (%s)\n", [s(string(Excp))], !IO)
+    ).
 
 %-----------------------------------------------------------------------------%
 
