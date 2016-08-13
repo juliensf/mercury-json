@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2015 Julien Fischer.
+% Copyright (C) 2015-2016 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -14,7 +14,7 @@
 
 :- import_module io.
 
-:- pred test_pointer(io.text_output_stream::in, io::di, io::uo) is det.
+:- pred test_pointer(io.text_output_stream::in, io::di, io::uo) is cc_multi.
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
@@ -30,26 +30,11 @@
 %-----------------------------------------------------------------------------%
 
 test_pointer(File, !IO) :-
-    io.write_string(File, "Testing JSON pointer resolution:\n", !IO),
-    TestPointers = [
-        "",
-        "/foo",
-        "/foo/0",
-        "/",
-        "/a~1b",
-        "/c%d",
-        "/e^f",
-        "/g|h",
-        "/i\\j",
-        "/k\"l",
-        "/ ",
-        "/m~0n",
-        "/foo/-",
-        "/foo/10",
-        "/bar",
-        "/foo/bar"
-    ],
-    list.foldl(do_resolve_test(File, rfc6901_example), TestPointers, !IO).
+    io.write_string(File, "Testing JSON pointer resolution using resolve/3:\n", !IO),
+    list.foldl(do_resolve_test(File, rfc6901_example), test_pointers, !IO),
+    io.nl(File, !IO),
+    io.write_string(File, "Testing JSON pointer resolution using det_resolve/2:\n", !IO),
+    list.foldl(do_det_resolve_test(File, rfc6901_example), test_pointers, !IO).
 
 %-----------------------------------------------------------------------------%
 
@@ -68,6 +53,27 @@ do_resolve_test(File, Document, PointerStr, !IO) :-
         io.write_string(File, "RESULT: invalid pointer\n", !IO)
     ).
 
+%-----------------------------------------------------------------------------%
+
+:- pred do_det_resolve_test(io.text_output_stream::in, json.value::in,
+    string::in, io::di, io::uo) is cc_multi.
+
+do_det_resolve_test(File, Document, PointerStr, !IO) :-
+    io.format(File, "TEST POINTER: \"%s\"\n", [s(PointerStr)], !IO),
+    ( if string_to_pointer(PointerStr, Pointer) then
+        ( try [] (
+            Value = json.det_resolve(Pointer, Document)
+        ) then
+            io.format(File, "RESULT: %s\n", [s(to_string(Value))], !IO)
+        catch_any Excp ->
+            io.format(File, "RESULT: EXCP (%s)\n", [s(string(Excp))], !IO)
+        )
+    else
+        io.write_string(File, "RESULT: invalid pointer\n", !IO)
+    ).
+
+%-----------------------------------------------------------------------------%
+
 :- func rfc6901_example = json.value.
 
 rfc6901_example = json.det_make_object([
@@ -84,6 +90,28 @@ rfc6901_example = json.det_make_object([
 ]).
 
 %-----------------------------------------------------------------------------%
+
+:- func test_pointers = list(string).
+
+test_pointers = [
+    "",
+    "/foo",
+    "/foo/0",
+    "/",
+    "/a~1b",
+    "/c%d",
+    "/e^f",
+    "/g|h",
+    "/i\\j",
+    "/k\"l",
+    "/ ",
+    "/m~0n",
+    "/foo/-",
+    "/foo/10",
+    "/bar",
+    "/foo/bar"
+].
+
+%-----------------------------------------------------------------------------%
 :- end_module test_pointer.
 %-----------------------------------------------------------------------------%
-
