@@ -1,0 +1,209 @@
+*** Testing writer(compact, do_not_allow_infinities, no_member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+EXCP (non_finite_number_error("put_number: inf or -inf"))
+
+""
+
+"foo"
+
+[1,2,3,4,5,6]
+
+{"bar":false,"foo":true}
+
+*** Testing writer(compact, allow_infinities, no_member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+Infinity
+
+""
+
+"foo"
+
+[1,2,3,4,5,6]
+
+{"bar":false,"foo":true}
+
+*** Testing writer(compact, do_not_allow_infinities, member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+EXCP (non_finite_number_error("put_number: inf or -inf"))
+
+""
+
+"foo"
+
+[1,2,3,4,5,6]
+
+{"bar":false}
+
+*** Testing writer(compact, allow_infinities, member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+Infinity
+
+""
+
+"foo"
+
+[1,2,3,4,5,6]
+
+{"bar":false}
+
+*** Testing writer(pretty, do_not_allow_infinities, no_member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+EXCP (non_finite_number_error("put_number: inf or -inf"))
+
+""
+
+"foo"
+
+[
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+]
+
+{
+  "bar" : false,
+  "foo" : true
+}
+
+*** Testing writer(pretty, allow_infinities, no_member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+Infinity
+
+""
+
+"foo"
+
+[
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+]
+
+{
+  "bar" : false,
+  "foo" : true
+}
+
+*** Testing writer(pretty, do_not_allow_infinities, member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+EXCP (non_finite_number_error("put_number: inf or -inf"))
+
+""
+
+"foo"
+
+[
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+]
+
+{
+  "bar" : false
+}
+
+*** Testing writer(pretty, allow_infinities, member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+Infinity
+
+""
+
+"foo"
+
+[
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+]
+
+{
+  "bar" : false
+}
+//
+//This is an EOL comment
+/**//*This is a mutli
+line comment*/
+
+*** Testing write_compact/3 ***
+null
+true
+
+*** Testing writer_pretty/3 ****
+null
+true
+
+*** Testing write_compact/4 ***
+null
+true
+
+*** Testing write_pretty/4 ****
+null
+true

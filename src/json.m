@@ -1210,12 +1210,12 @@ put_comment(Writer, Comment, !State) :-
 %
 
 write_compact(Value, !IO) :-
-    io.stdout_stream(Stdout, !IO),
-    write_compact(Stdout, Value, !IO).
+    io.output_stream(File, !IO),
+    write_compact(File, Value, !IO).
 
 write_pretty(Value, !IO) :-
-    io.stdout_stream(Stdout, !IO),
-    write_pretty(Stdout, Value, !IO).
+    io.output_stream(File, !IO),
+    write_pretty(File, Value, !IO).
 
 write_compact(File, Value, !IO) :-
     Params = writer_params(compact, do_not_allow_infinities, no_member_filter),

@@ -24,9 +24,10 @@
 :- import_module json.
 :- import_module test_marshal.
 :- import_module test_pointer.
-:- import_module test_unmarshal.
 :- import_module test_object_procs.
+:- import_module test_unmarshal.
 :- import_module test_value_procs.
+:- import_module test_writer.
 
 :- import_module bool.
 :- import_module char.
@@ -65,7 +66,8 @@ main(!IO) :-
                 RunPointerTests = yes,
                 RunUnmarshalingTests = yes,
                 RunObjectProcTests = yes,
-                RunValueProcTests = yes
+                RunValueProcTests = yes,
+                RunWriterTests = yes
             ;
                 NonOptionArgs = [_ | _],
                 some [!FilteredArgs] (
@@ -99,6 +101,12 @@ main(!IO) :-
                         RunValueProcTests = yes
                     else
                         RunValueProcTests = no
+                    ),
+                    ( if list.member("writer", !.FilteredArgs) then
+                        list.delete_all(!.FilteredArgs, "writer", !:FilteredArgs),
+                        RunWriterTests = yes
+                    else
+                        RunWriterTests = no
                     ),
                     MaybeGatherResult = ok(!.FilteredArgs)
                 )
@@ -149,6 +157,14 @@ main(!IO) :-
                         !:TotalTests = !.TotalTests + 1
                     ;
                         RunValueProcTests = no
+                    ),
+                    (
+                        RunWriterTests = yes,
+                        run_internal_tests(OptionTable, "writer", test_writer,
+                            !NumFailures, !IO),
+                        !:TotalTests = !.TotalTests + 1
+                    ;
+                        RunWriterTests = no
                     ),
                     ( if !.NumFailures = 0 then
                         io.write_string("ALL TESTS PASSED\n", !IO)
