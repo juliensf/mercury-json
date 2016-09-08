@@ -343,18 +343,23 @@ do_pretty_put_json(Stream, AllowInfinities, MemberFilter, N, Value, !State) :-
         put_number(Stream, AllowInfinities, Number, !State)
     ;
         Value = object(MembersMap),
-        put(Stream, "{\n", !State),
-        (
-            MemberFilter = no_member_filter,
-            MembersList = map.to_assoc_list(MembersMap)
-        ;
-            MemberFilter = member_filter(FilterPred),
-            map.foldr(maybe_filter_member(FilterPred), MembersMap, [], MembersList)
-        ),
-        pretty_put_members(Stream, AllowInfinities, MemberFilter,
-            N + 2, MembersList, !State),
-        indent(Stream, N, !State),
-        put(Stream, "}", !State)
+        ( if map.is_empty(MembersMap) then
+            put(Stream, "{}", !State)
+        else
+            put(Stream, "{\n", !State),
+            (
+                MemberFilter = no_member_filter,
+                MembersList = map.to_assoc_list(MembersMap)
+            ;
+                MemberFilter = member_filter(FilterPred),
+                map.foldr(maybe_filter_member(FilterPred), MembersMap,
+                    [], MembersList)
+            ),
+            pretty_put_members(Stream, AllowInfinities, MemberFilter,
+                N + 2, MembersList, !State),
+            indent(Stream, N, !State),
+            put(Stream, "}", !State)
+        )
     ;
         Value = array(Elements),
         (

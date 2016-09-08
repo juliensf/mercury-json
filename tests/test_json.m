@@ -25,6 +25,7 @@
 :- import_module test_marshal.
 :- import_module test_pointer.
 :- import_module test_object_procs.
+:- import_module test_streaming.
 :- import_module test_unmarshal.
 :- import_module test_value_procs.
 :- import_module test_writer.
@@ -64,6 +65,7 @@ main(!IO) :-
                     MaybeGatherResult, !IO),
                 RunMarshalingTests = yes,
                 RunPointerTests = yes,
+                RunStreamingTests = yes,
                 RunUnmarshalingTests = yes,
                 RunObjectProcTests = yes,
                 RunValueProcTests = yes,
@@ -108,6 +110,12 @@ main(!IO) :-
                     else
                         RunWriterTests = no
                     ),
+                    ( if list.member("streaming", !.FilteredArgs) then
+                        list.delete_all(!.FilteredArgs, "streamining", !:FilteredArgs),
+                        RunStreamingTests = yes
+                    else
+                        RunStreamingTests = no
+                    ),
                     MaybeGatherResult = ok(!.FilteredArgs)
                 )
             ),
@@ -133,6 +141,14 @@ main(!IO) :-
                         !:TotalTests = !.TotalTests + 1
                     ;
                         RunPointerTests = no
+                    ),
+                    (
+                        RunStreamingTests = yes,
+                        run_internal_tests(OptionTable, "streaming", test_streaming,
+                            !NumFailures, !IO),
+                        !:TotalTests = !.TotalTests + 1
+                    ;
+                        RunStreamingTests = no
                     ),
                     (
                         RunUnmarshalingTests = yes,

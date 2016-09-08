@@ -1,0 +1,35 @@
+*** Testing get/4 method (values.json_stream) ***
+
+null
+true
+false
+1.23
+500
+"Hello"
+""
+[
+  false,
+  true,
+  false
+]
+{}
+{
+  "name" : null
+}
+{
+  "name1" : true,
+  "name2" : false
+}
+[
+  {},
+  {},
+  {}
+]
+
+*** Testing get/4 method (bad_values.json_stream) ***
+
+null
+true
+false
+error: bad_values.json_stream:4:2: syntax error at '[': object member name not a string
+

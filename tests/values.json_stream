@@ -1,0 +1,12 @@
+null true false
+1.23 500
+"Hello"
+""
+[false, true, false]
+{}
+{"name" : null}
+{
+    "name1" : true,
+    "name2" : false
+}
+[{}, {}, {}]
