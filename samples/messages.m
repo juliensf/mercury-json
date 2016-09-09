@@ -8,7 +8,7 @@
 % Author: Julien Fischer <juliensf@gmail.com>
 %
 % This program queries GitHub's System Status API* and reads the most
-% recent communications as list of JSON objects.  It then serializes
+% recent communications as a list of JSON objects.  It then serializes
 % those JSON objects into Mercury values and prints them out.
 %
 % In C grades, this program needs to be linked against libcurl (e.g. by
