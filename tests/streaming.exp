@@ -33,7 +33,7 @@ true
 false
 error: bad_values.json_stream:4:2: syntax error at '[': object member name not a string
 
-*** Testing get_value/4 method (values.json_stream) ***
+*** Testing get_value/4 predicate (values.json_stream) ***
 
 null
 true
@@ -61,9 +61,25 @@ false
   {}
 ]
 
-*** Testing get_value/4 method (bad_values.json_stream) ***
+*** Testing get_value/4 predicate (bad_values.json_stream) ***
 
 null
 true
 false
 error: bad_values.json_stream:4:2: syntax error at '[': object member name not a string
+
+*** Testing get_object/4 predicate (objects.json_stream) ***
+
+{}
+{}
+{
+  "foo" : 1
+}
+{
+  "baaz" : false,
+  "bar" : null
+}
+
+*** Testing get_object/4 predicate (bad_objects.json_stream) ***
+
+error: bad_objects.json_stream:1:1: error: unexpected array value: value must be an object
