@@ -83,3 +83,36 @@ error: bad_values.json_stream:4:2: syntax error at '[': object member name not a
 *** Testing get_object/4 predicate (bad_objects.json_stream) ***
 
 error: bad_objects.json_stream:1:1: error: unexpected array value: value must be an object
+
+*** Testing get_array/4 predicate (arrays.json_stream) ***
+
+[]
+[]
+[]
+[
+  [],
+  [],
+  []
+]
+[
+  1,
+  2,
+  3,
+  4
+]
+[
+  {},
+  {},
+  {
+    "foo" : null
+  }
+]
+
+*** Testing get_array/4 predicate (bad_arrays.json_stream) ***
+
+[
+  1,
+  2,
+  3
+]
+error: bad_arrays.json_stream:2:1: error: unexpected object value: value must be an array

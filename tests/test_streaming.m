@@ -14,11 +14,6 @@
 
 :- import_module io.
 
-% get_generic [DONE]
-% get_value   [DONE]
-% get_object  [DONE]
-% get_array
-
 :- pred test_streaming(io.text_output_stream::in, io::di, io::uo) is det.
 
 %-----------------------------------------------------------------------------%
@@ -62,7 +57,17 @@ test_streaming(File, !IO) :-
 
     Test6 = "bad_objects.json_stream",
     io.format(File, "*** Testing get_object/4 predicate (%s) ***\n\n", [s(Test6)], !IO),
-    do_stream_test(File, Test6, get_object_until_eof, !IO).
+    do_stream_test(File, Test6, get_object_until_eof, !IO),
+    io.nl(File, !IO),
+
+    Test7 = "arrays.json_stream",
+    io.format(File, "*** Testing get_array/4 predicate (%s) ***\n\n", [s(Test7)], !IO),
+    do_stream_test(File, Test7, get_array_until_eof, !IO),
+    io.nl(File, !IO),
+
+    Test8 = "bad_arrays.json_stream",
+    io.format(File, "*** Testing get_array/4 predicate (%s) ***\n\n", [s(Test8)], !IO),
+    do_stream_test(File, Test8, get_array_until_eof, !IO).
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
@@ -134,6 +139,25 @@ get_object_until_eof(File, Reader, !IO) :-
         GetResult = ok(Object),
         json.write_pretty(File, object(Object), !IO),
         get_object_until_eof(File, Reader, !IO)
+    ;
+        GetResult = eof
+    ;
+        GetResult = error(Error),
+        Msg = stream.error_message(Error),
+        io.format(File, "error: %s", [s(Msg)], !IO)
+    ).
+
+%-----------------------------------------------------------------------------%
+
+:- pred get_array_until_eof(io.text_output_stream::in,
+    json.reader(io.text_input_stream)::in, io::di, io::uo) is det.
+
+get_array_until_eof(File, Reader, !IO) :-
+    json.get_array(Reader, GetResult, !IO),
+    (
+        GetResult = ok(Array),
+        json.write_pretty(File, array(Array), !IO),
+        get_array_until_eof(File, Reader, !IO)
     ;
         GetResult = eof
     ;
