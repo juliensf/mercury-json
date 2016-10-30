@@ -681,8 +681,16 @@ get_frac(Reader, Where, Buffer, Result, !State) :-
             char_buffer.add(Buffer, Char, !State),
             get_exp(Reader, exp_start, Buffer, Result, !State)
         else
-            stream.unget(Stream, Char, !State),
-            Result = ok
+            (
+                Where = frac_start,
+                Msg = "expected decimal digit after '.'",
+                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+                Result = error(Error)
+            ;
+                Where = frac_digit,
+                stream.unget(Stream, Char, !State),
+                Result = ok
+            )
         )
     ;
         GetResult = eof,
