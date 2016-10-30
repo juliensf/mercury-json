@@ -631,9 +631,16 @@ get_number_chars(Reader, Buffer, Result, !State) :-
         )
     ;
         GetResult = eof,
-        Msg = "expected '.', 'e', 'E' or decimal digit",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
-        Result = error(Error)
+        ( if
+            char_buffer.last(Buffer, LastChar, !.State),
+            char.is_digit(LastChar)
+        then
+            Result = ok
+        else
+            Msg = "expected '.', 'e', 'E' or decimal digit",
+            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            Result = error(Error)
+        )
     ;
         GetResult = error(StreamError),
         Result = error(stream_error(StreamError))
