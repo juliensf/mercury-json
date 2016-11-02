@@ -147,7 +147,10 @@
             % (either 'e' or 'E'), but the following character, Char, is
             % not '+', '-' or a decimal digit.
 
-    ;       expected_eof(string).
+    ;       expected_eof(string)
+
+    ;       maximum_nesting_depth_reached.
+            % The maximum nesting depth limit has been reached.
 
 :- instance stream.error(json.error(Error)) <= stream.error(Error).
 
@@ -339,7 +342,8 @@
                 allow_comments         :: allow_comments,
                 allow_trailing_commas  :: allow_trailing_commas,
                 allow_repeated_members :: allow_repeated_members,
-                allow_infinities       :: allow_infinities
+                allow_infinities       :: allow_infinities,
+                maximum_nesting_depth  :: maximum_nesting_depth
             ).
 
     % Should the extension that allows comments in the JSON being read be
@@ -378,10 +382,15 @@
             % If any object members are repeated, keep the last one that we
             % encounter and discard any others.
 
+:- type json.maximum_nesting_depth
+    --->    no_maximum_nesting_depth
+    ;       maximum_nesting_depth(int).
+
     % init_reader(Stream, Reader, !State):
     % Reader is a new JSON reader using Stream as a character stream and using
     % the default reader parameters.  With the default parameters the reader
-    % will conform to the RFC 7159 definition of JSON.
+    % will conform to the RFC 7159 definition of JSON and have a maximum
+    % nesting depth of 64 levels.
     %
 :- pred init_reader(Stream::in, reader(Stream)::out, State::di, State::uo)
         is det
@@ -392,6 +401,8 @@
 
     % init_reader(Stream, Parameters, Reader, !State):
     % As above, but allow reader parameters to be set by the caller.
+    % Throws a software_error/1 exception if the is a maximum nesting depth
+    % limit set and the value of that limit is less than zero.
     %
 :- pred init_reader(Stream::in, reader_params::in, reader(Stream)::out,
         State::di, State::uo) is det
@@ -682,21 +693,27 @@
 %
 % String conversion.
 %
+
     % Convert a JSON value into a string.
     % Throws an exception if the JSON value is, or contains, a non-finite
     % number.
     %
 :- func to_string(value) = string.
 
-    % Convert a string to a JSON value.
+    % Convert a string to a JSON value with the default reader parameters.
     % Fails if the string cannot be converted into a JSON value.
     %
 :- pred from_string(string::in, value::out) is semidet.
+
+    % As above, but with reader parameters specified by the caller.
+    %
+:- pred from_string(reader_params::in, string::in, value::out) is semidet.
 
     % As above, but throw a software_error/1 exception if the string
     % cannot be converted into a JSON value.
     %
 :- func det_from_string(string) = value.
+:- func det_from_string(reader_params, string) = value.
 
 :- type from_string_result
     --->    ok(value)
@@ -706,6 +723,10 @@
     % cannot be performed.
     %
 :- func maybe_from_string(string) = from_string_result.
+
+    % As above, but with reader parameters specified by the caller.
+    %
+:- func maybe_from_string(reader_params, string) = from_string_result.
 
 :- func error_context_and_desc_to_string(json.context, json.error_desc)
     = string.
@@ -906,51 +927,60 @@
 
 :- type json.reader(Stream)
     --->    json_reader(
-                json_reader_stream    :: Stream,
-                json_comments         :: allow_comments,
-                json_trailing_commas  :: allow_trailing_commas,
-                json_repeated_members :: allow_repeated_members,
-                json_infinities       :: allow_infinities,
-                json_column_number    :: mutvar(int),
-                json_char_buffer      :: char_buffer
+                json_reader_stream         :: Stream,
+                json_comments              :: allow_comments,
+                json_trailing_commas       :: allow_trailing_commas,
+                json_repeated_members      :: allow_repeated_members,
+                json_infinities            :: allow_infinities,
+                json_maximum_nesting_depth :: maximum_nesting_depth,
+                json_column_number         :: mutvar(int),
+                json_char_buffer           :: char_buffer
             ).
 
-init_reader(Stream, Reader, !State) :-
-    promise_pure (
-        impure new_mutvar(0, ColNumVar),
-        impure char_buffer.init(CharBuffer),
-        Reader = json_reader(
-            Stream,
-            do_not_allow_comments,
-            do_not_allow_trailing_commas,
-            do_not_allow_repeated_members,
-            do_not_allow_infinities,
-            ColNumVar,
-            CharBuffer
-        ),
-        !:State = !.State
+:- func default_reader_params = reader_params.
+
+default_reader_params = Params :-
+    Params = reader_params(
+        do_not_allow_comments,
+        do_not_allow_trailing_commas,
+        do_not_allow_repeated_members,
+        do_not_allow_infinities,
+        maximum_nesting_depth(64)
     ).
+
+init_reader(Stream, Reader, !State) :-
+    Params = default_reader_params,
+    init_reader(Stream, Params, Reader, !State).
 
 init_reader(Stream, Params, Reader, !State) :-
     Params = reader_params(
         AllowComments,
         AllowTrailingCommas,
         RepeatedMembers,
-        AllowInfinities
+        AllowInfinities,
+        MaximumNestingDepth
     ),
-    promise_pure (
-        impure new_mutvar(0, ColNumVar),
-        impure char_buffer.init(CharBuffer),
-        Reader = json_reader(
-            Stream,
-            AllowComments,
-            AllowTrailingCommas,
-            RepeatedMembers,
-            AllowInfinities,
-            ColNumVar,
-            CharBuffer
-        ),
-        !:State = !.State
+    ( if
+        MaximumNestingDepth = maximum_nesting_depth(MaxDepth),
+        MaxDepth < 0
+    then
+        error("json.init_reader: maximum nesting depth < 0")
+    else
+        promise_pure (
+            impure new_mutvar(0, ColNumVar),
+            impure char_buffer.init(CharBuffer),
+            Reader = json_reader(
+                Stream,
+                AllowComments,
+                AllowTrailingCommas,
+                RepeatedMembers,
+                AllowInfinities,
+                MaximumNestingDepth,
+                ColNumVar,
+                CharBuffer
+            ),
+            !:State = !.State
+        )
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1028,7 +1058,8 @@ get_value(Reader, Result, !State) :-
     ( if Token = token_eof then
         Result = eof
     else
-        do_get_value(Reader, Token, Result, !State)
+        NestingDepth = 0,
+        do_get_value(Reader, NestingDepth, Token, Result, !State)
     ).
 
 get_object(Reader, Result, !State) :-
@@ -1038,7 +1069,8 @@ get_object(Reader, Result, !State) :-
     else
         % Save the context of the beginning of the value.
         make_error_context(Reader, Context, !State),
-        do_get_value(Reader, Token, ValueResult, !State),
+        NestingDepth = 0,
+        do_get_value(Reader, NestingDepth, Token, ValueResult, !State),
         (
             ValueResult = ok(Value),
             (
@@ -1073,7 +1105,8 @@ get_array(Reader, Result, !State) :-
     else
         % Save the context of the beginning of the value.
         make_error_context(Reader, Context, !State),
-        do_get_value(Reader, Token, ValueResult, !State),
+        NestingDepth = 0,
+        do_get_value(Reader, NestingDepth, Token, ValueResult, !State),
         (
             ValueResult = ok(Value),
             (
@@ -1612,6 +1645,11 @@ error_context_and_desc_to_string(Context, ErrorDesc) = Msg :-
         string.format(
             "%s: error: expected end-of-file, got '%s'\n",
             [s(ContextStr), s(Found)], Msg)
+    ;
+        ErrorDesc = maximum_nesting_depth_reached,
+        string.format(
+            "%s: error: maximum nesting depth limit reached\n",
+            [s(ContextStr)], Msg)
     ).
 
 :- func describe_char(char) = string.
@@ -1894,10 +1932,14 @@ to_string(Value) = String :-
     ).
 
 from_string(String, Value) :-
+    Params = default_reader_params,
+    from_string(Params, String, Value).
+
+from_string(Params, String, Value) :-
     some [!State] (
         init_string_state(!:State),
         init_string_reader(no, String, StringReader, !State),
-        json.init_reader(StringReader, Reader, !State),
+        json.init_reader(StringReader, Params, Reader, !State),
         json.read_value(Reader, Result, !.State, _)
     ),
     require_complete_switch [Result] (
@@ -1910,16 +1952,24 @@ from_string(String, Value) :-
     ).
 
 det_from_string(String) = Value :-
-    ( if json.from_string(String, Value0)
+    Params = default_reader_params,
+    Value = det_from_string(Params, String).
+
+det_from_string(Params, String) = Value :-
+    ( if json.from_string(Params, String, Value0)
     then Value = Value0
     else error("json.det_from_string: from_string failed")
     ).
 
 maybe_from_string(String) = Result :-
+    Params = default_reader_params,
+    Result = maybe_from_string(Params, String).
+
+maybe_from_string(Params, String) = Result :-
     some [!State] (
         init_string_state(!:State),
         init_string_reader(no, String, StringReader, !State),
-        json.init_reader(StringReader, Reader, !State),
+        json.init_reader(StringReader, Params, Reader, !State),
         json.read_value(Reader, ParseResult, !.State, _)
     ),
     (

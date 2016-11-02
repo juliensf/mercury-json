@@ -29,6 +29,7 @@
 :- import_module bool.
 :- import_module char.
 :- import_module exception.
+:- import_module int.
 :- import_module list.
 :- import_module maybe.
 :- import_module getopt.
@@ -151,8 +152,25 @@ handle_args_and_options(OptionTable, Args, ReaderParams, MaybeInputFile,
         RepeatedMembers = do_not_allow_repeated_members,    % Dummy value.
         !:Continue = no
     ),
+    getopt.lookup_maybe_int_option(OptionTable, maximum_nesting_depth,
+        MaybeMaxNestDepth),
+    (
+        MaybeMaxNestDepth = no,
+        MaxNestDepth = no_maximum_nesting_depth
+    ;
+        MaybeMaxNestDepth = yes(DepthLimit),
+        ( if DepthLimit < 0 then
+            BadMaxNestDepthMsg = "error: value of '--maximum-nesting-depth'" ++
+                "must be greater than equal to zero.\n",
+            print_error(BadMaxNestDepthMsg, !IO),
+            MaxNestDepth = maximum_nesting_depth(0), % Dummy value.
+            !:Continue = no
+        else
+            MaxNestDepth = maximum_nesting_depth(DepthLimit)
+        )
+    ),
     ReaderParams = reader_params(AllowComments, AllowTrailingCommas,
-        RepeatedMembers, AllowInfinities).
+        RepeatedMembers, AllowInfinities, MaxNestDepth).
 
 :- pred pretty_print_json(json.reader_params::in,
     maybe(io.text_input_stream)::in, io::di, io::uo) is det.
@@ -167,7 +185,7 @@ pretty_print_json(ReaderParams, MaybeInputFile, !IO) :-
 
     % Initialise a JSON reader and attach it to the input file stream.
     %
-    json.init_reader(InputFile, Reader, !IO),
+    json.init_reader(InputFile, ReaderParams, Reader, !IO),
 
     % Ask the reader to get a JSON value from the standard input stream.
     %
@@ -220,7 +238,8 @@ pretty_print_json(ReaderParams, MaybeInputFile, !IO) :-
     ;       allow_infinities
     ;       allow_trailing_commas
     ;       allow_comments
-    ;       repeated_members.
+    ;       repeated_members
+    ;       maximum_nesting_depth.
 
 :- pred short_option(char::in, option::out) is semidet.
 
@@ -233,6 +252,7 @@ long_option("allow-infinities",      allow_infinities).
 long_option("allow-trailing-commas", allow_trailing_commas).
 long_option("allow-comments",        allow_comments).
 long_option("repeated-members",      repeated_members).
+long_option("maximum-nesting-depth", maximum_nesting_depth).
 
 :- pred option_default(option::out, option_data::out) is multi.
 
@@ -241,6 +261,7 @@ option_default(allow_infinities, bool(no)).
 option_default(allow_trailing_commas, bool(no)).
 option_default(allow_comments, bool(no)).
 option_default(repeated_members, string("none")).
+option_default(maximum_nesting_depth, maybe_int(no)).
 
 :- pred string_to_repeated_members(string::in,
     allow_repeated_members::out) is semidet.
@@ -280,7 +301,11 @@ usage(!IO) :-
         "--allow-infinities",
         "\tAllow \"Infinity\" in the input JSON.",
         "--allow-comments",
-        "\tAllow comments in the input JSON."
+        "\tAllow comments in the input JSON.",
+        "--max-nesting-depth <n>",
+        "--maximum-nesting-depth <n>",
+        "\tAbort if the nesting depth reaches <n>.",
+        "\tDefault is no maximum nesting depth limit."
     ], !IO).
 
 :- pred write_tabbed_lines(io.text_output_stream::in, list(string)::in,

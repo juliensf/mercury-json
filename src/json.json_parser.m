@@ -10,6 +10,8 @@
 
 %-----------------------------------------------------------------------------%
 
+:- type nesting_depth == int.
+
 :- pred do_read_value(json.reader(Stream)::in,
     token(Error)::in, json.result(json.value, Error)::out,
     State::di, State::uo) is det
@@ -19,7 +21,8 @@
     ).
 
 :- pred do_get_value(json.reader(Stream)::in,
-    token(Error)::in, json.result(json.value, Error)::out,
+    nesting_depth::in, token(Error)::in,
+    json.result(json.value, Error)::out,
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
@@ -90,7 +93,8 @@
 %-----------------------------------------------------------------------------%
 
 do_read_value(Reader, Token, Result, !State) :-
-    do_get_value(Reader, Token, ValueResult, !State),
+    NestingDepth = 0,
+    do_get_value(Reader, NestingDepth, Token, ValueResult, !State),
     %
     % We now need to check that there is nothing else (except whitespace and
     % possibly comments) in the stream.
@@ -131,13 +135,13 @@ do_read_value(Reader, Token, Result, !State) :-
         Result = error(Error)
     ).
 
-do_get_value(Reader, Token, Result, !State) :-
+do_get_value(Reader, !.NestingDepth, Token, Result, !State) :-
     (
         Token = token_left_curly_bracket,
-        do_get_object(Reader, Result, !State)
+        do_get_object(Reader, !.NestingDepth, Result, !State)
     ;
         Token = token_left_square_bracket,
-        do_get_array(Reader, Result, !State)
+        do_get_array(Reader, !.NestingDepth, Result, !State)
     ;
         Token = token_string(String),
         Result = ok(json.string(String))
@@ -185,6 +189,7 @@ do_get_value(Reader, Token, Result, !State) :-
 %
 
 :- pred do_get_object(json.reader(Stream)::in,
+    nesting_depth::in,
     json.result(json.value, Error)::out,
     State::di, State::uo) is det
     <= (
@@ -192,16 +197,26 @@ do_get_value(Reader, Token, Result, !State) :-
         stream.putback(Stream, char, State, Error)
     ).
 
-do_get_object(Stream, Result, !State) :-
-    do_get_members(Stream, at_start, map.init, MaybeMembers, !State),
-    (
-        MaybeMembers = ok(Members),
-        Result = ok(json.object(Members))
-    ;
-        MaybeMembers = eof,
-        Result = eof
-    ;
-        MaybeMembers = error(Error),
+do_get_object(Reader, !.NestingDepth, Result, !State) :-
+    !:NestingDepth = !.NestingDepth + 1,
+    ( if below_nesting_depth_limit(Reader, !.NestingDepth) then
+        do_get_members(Reader, !.NestingDepth, at_start, map.init, MaybeMembers,
+            !State),
+        (
+            MaybeMembers = ok(Members),
+            Object = object(Members),
+            Result = ok(Object)
+        ;
+            MaybeMembers = eof,
+            Result = eof
+        ;
+            MaybeMembers = error(Error),
+            Result = error(Error)
+        )
+    else
+        make_error_context(Reader, Context, !State),
+        ErrorDesc = maximum_nesting_depth_reached,
+        Error = json_error(Context, ErrorDesc),
         Result = error(Error)
     ).
 
@@ -209,7 +224,8 @@ do_get_object(Stream, Result, !State) :-
     --->    at_start        % We have just seen '{'.
     ;       after_comma.    % We have just seen ",".
 
-:- pred do_get_members(json.reader(Stream)::in, object_where::in,
+:- pred do_get_members(json.reader(Stream)::in, nesting_depth::in,
+    object_where::in,
     map(string, json.value)::in,
     json.result(map(string, json.value), Error)::out,
     State::di, State::uo) is det
@@ -218,7 +234,7 @@ do_get_object(Stream, Result, !State) :-
         stream.putback(Stream, char, State, Error)
     ).
 
-do_get_members(Reader, Where, !.Members, Result, !State) :-
+do_get_members(Reader, !.NestingDepth, Where, !.Members, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_curly_bracket,
@@ -249,7 +265,7 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                 ; NextToken = token_true
                 ; NextToken = token_null
                 ),
-                do_get_value(Reader, NextToken, ValueResult, !State),
+                do_get_value(Reader, !.NestingDepth, NextToken, ValueResult, !State),
                 (
                     ValueResult = ok(Value),
                     RepeatedMembers = Reader ^ json_repeated_members,
@@ -276,8 +292,8 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
                             Result = ok(!.Members)
                         ;
                             NextNextToken = token_comma,
-                            do_get_members(Reader, after_comma, !.Members,
-                                Result, !State)
+                            do_get_members(Reader, !.NestingDepth, after_comma,
+                                !.Members, Result, !State)
                         ;
                             ( NextNextToken = token_left_curly_bracket
                             ; NextNextToken = token_left_square_bracket
@@ -407,40 +423,49 @@ do_get_members(Reader, Where, !.Members, Result, !State) :-
 % Parse arrays.
 %
 
-:- pred do_get_array(json.reader(Stream)::in,
+:- pred do_get_array(json.reader(Stream)::in, nesting_depth::in,
     json.result(json.value, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-do_get_array(Stream, Result, !State) :-
-    do_get_array_items(Stream, at_start, [], MaybeRevItems, !State),
-    (
-        MaybeRevItems = ok(RevItems),
-        list.reverse(RevItems, Items),
-        Result = ok(json.array(Items))
-    ;
-        MaybeRevItems = eof,
-        Result = eof
-    ;
-        MaybeRevItems = error(Error),
+do_get_array(Reader, !.NestingDepth, Result, !State) :-
+    !:NestingDepth = !.NestingDepth + 1,
+    ( if below_nesting_depth_limit(Reader, !.NestingDepth) then
+        do_get_array_items(Reader, !.NestingDepth, at_start, [], MaybeRevItems,
+            !State),
+        (
+            MaybeRevItems = ok(RevItems),
+            list.reverse(RevItems, Items),
+            Result = ok(json.array(Items))
+        ;
+            MaybeRevItems = eof,
+            Result = eof
+        ;
+            MaybeRevItems = error(Error),
+            Result = error(Error)
+        )
+    else
+        make_error_context(Reader, Context, !State),
+        ErrorDesc = maximum_nesting_depth_reached,
+        Error = json_error(Context, ErrorDesc),
         Result = error(Error)
     ).
 
 :- type array_where
-    --->    at_start        % We have just seen '{'.
+    --->    at_start        % We have just seen '['.
     ;       after_comma.    % We have just seen ",".
 
-:- pred do_get_array_items(json.reader(Stream)::in, array_where::in,
-    list(json.value)::in, json.result(list(json.value), Error)::out,
-    State::di, State::uo) is det
+:- pred do_get_array_items(json.reader(Stream)::in, nesting_depth::in,
+    array_where::in, list(json.value)::in,
+    json.result(list(json.value), Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-do_get_array_items(Reader, Where, !.Items, Result, !State) :-
+do_get_array_items(Reader, !.NestingDepth, Where, !.Items, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_square_bracket,
@@ -465,7 +490,7 @@ do_get_array_items(Reader, Where, !.Items, Result, !State) :-
         ; Token = token_true
         ; Token = token_null
         ),
-        do_get_value(Reader, Token, ItemResult, !State),
+        do_get_value(Reader, !.NestingDepth, Token, ItemResult, !State),
         (
             ItemResult = ok(Item),
             !:Items = [Item | !.Items],
@@ -475,7 +500,8 @@ do_get_array_items(Reader, Where, !.Items, Result, !State) :-
                 Result = ok(!.Items)
             ;
                 NextToken = token_comma,
-                do_get_array_items(Reader, after_comma, !.Items, Result, !State)
+                do_get_array_items(Reader, !.NestingDepth, after_comma, !.Items,
+                    Result, !State)
             ;
                 ( NextToken = token_left_curly_bracket
                 ; NextToken = token_left_square_bracket
@@ -535,8 +561,16 @@ do_object_fold(Reader, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_left_curly_bracket,
-        do_object_fold_members(Reader, at_start, Pred, !.Acc,
-            Result, !State)
+        NestingDepth = 1,
+        ( if below_nesting_depth_limit(Reader, NestingDepth) then
+            do_object_fold_members(Reader, NestingDepth, at_start, Pred,
+                !.Acc, Result, !State)
+        else
+            make_error_context(Reader, Context, !State),
+            ErrorDesc = maximum_nesting_depth_reached,
+            Error = json_error(Context, ErrorDesc),
+            Result = error(!.Acc, Error)
+        )
     ;
         ( Token = token_right_curly_bracket
         ; Token = token_left_square_bracket
@@ -562,19 +596,20 @@ do_object_fold(Reader, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, Error)
     ).
 
-:- pred do_object_fold_members(json.reader(Stream), object_where,
-    pred(string, json.value, A, A),
+:- pred do_object_fold_members(json.reader(Stream), nesting_depth,
+    object_where, pred(string, json.value, A, A),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode do_object_fold_members(in, in, in(pred(in, in, in, out) is det),
+:- mode do_object_fold_members(in, in, in, in(pred(in, in, in, out) is det),
     in, out, di, uo) is det.
-:- mode do_object_fold_members(in, in, in(pred(in, in, in, out) is cc_multi),
+:- mode do_object_fold_members(in, in, in, in(pred(in, in, in, out) is cc_multi),
     in, out, di, uo) is cc_multi.
 
-do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
+do_object_fold_members(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
+        !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_curly_bracket,
@@ -596,7 +631,8 @@ do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
         (
             ColonToken = token_colon,
             get_token(Reader, NextToken, !State),
-            do_get_value(Reader, NextToken, ValueResult, !State),
+            do_get_value(Reader, !.NestingDepth, NextToken, ValueResult,
+                !State),
             (
                 ValueResult = ok(Value),
                 Pred(Key, Value, !Acc),
@@ -606,8 +642,8 @@ do_object_fold_members(Reader, Where, Pred, !.Acc, Result, !State) :-
                     Result = ok(!.Acc)
                 ;
                     NextNextToken = token_comma,
-                    do_object_fold_members(Reader, after_comma, Pred, !.Acc,
-                        Result, !State)
+                    do_object_fold_members(Reader, !.NestingDepth, after_comma,
+                        Pred, !.Acc, Result, !State)
                 ;
                     ( NextNextToken = token_left_curly_bracket
                     ; NextNextToken = token_left_square_bracket
@@ -692,8 +728,9 @@ do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_left_curly_bracket,
-        do_object_fold_state_members(Reader, at_start, Pred, !.Acc,
-            Result, !State)
+        NestingDepth = 1,
+        do_object_fold_state_members(Reader, NestingDepth, at_start, Pred,
+            !.Acc, Result, !State)
     ;
         ( Token = token_right_curly_bracket
         ; Token = token_left_square_bracket
@@ -719,19 +756,21 @@ do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, Error)
     ).
 
-:- pred do_object_fold_state_members(json.reader(Stream), object_where,
-    pred(string, json.value, A, A, State, State),
+:- pred do_object_fold_state_members(json.reader(Stream), nesting_depth,
+    object_where, pred(string, json.value, A, A, State, State),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode do_object_fold_state_members(in, in, in(pred(in, in, in, out, di, uo) is det),
-    in, out, di, uo) is det.
-:- mode do_object_fold_state_members(in, in, in(pred(in, in, in, out, di, uo) is cc_multi),
-    in, out, di, uo) is cc_multi.
+:- mode do_object_fold_state_members(in, in, in,
+    in(pred(in, in, in, out, di, uo) is det), in, out, di, uo) is det.
+:- mode do_object_fold_state_members(in, in, in,
+    in(pred(in, in, in, out, di, uo) is cc_multi), in, out, di, uo)
+    is cc_multi.
 
-do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
+do_object_fold_state_members(Reader, !.NestingDepth, Where, Pred, !.Acc,
+        Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_curly_bracket,
@@ -753,7 +792,8 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
         (
             ColonToken = token_colon,
             get_token(Reader, NextToken, !State),
-            do_get_value(Reader, NextToken, ValueResult, !State),
+            do_get_value(Reader, !.NestingDepth, NextToken, ValueResult,
+                !State),
             (
                 ValueResult = ok(Value),
                 Pred(Key, Value, !Acc, !State),
@@ -763,8 +803,8 @@ do_object_fold_state_members(Reader, Where, Pred, !.Acc, Result, !State) :-
                     Result = ok(!.Acc)
                 ;
                     NextNextToken = token_comma,
-                    do_object_fold_state_members(Reader, after_comma, Pred,
-                        !.Acc, Result, !State)
+                    do_object_fold_state_members(Reader, !.NestingDepth,
+                        after_comma, Pred, !.Acc, Result, !State)
                 ;
                     ( NextNextToken = token_left_curly_bracket
                     ; NextNextToken = token_left_square_bracket
@@ -854,8 +894,16 @@ do_array_fold(Reader, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_left_square_bracket,
-        do_array_fold_elements(Reader, at_start, Pred, !.Acc,
-            Result, !State)
+        NestingDepth = 1,
+        ( if below_nesting_depth_limit(Reader, NestingDepth) then
+            do_array_fold_elements(Reader, NestingDepth,  at_start, Pred,
+                !.Acc, Result, !State)
+        else
+            make_error_context(Reader, Context, !State),
+            ErrorDesc = maximum_nesting_depth_reached,
+            Error = json_error(Context, ErrorDesc),
+            Result = error(!.Acc, Error)
+        )
     ;
         ( Token = token_right_curly_bracket
         ; Token = token_left_curly_bracket
@@ -881,19 +929,20 @@ do_array_fold(Reader, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, Error)
     ).
 
-:- pred do_array_fold_elements(json.reader(Stream), array_where,
-    pred(json.value, A, A),
+:- pred do_array_fold_elements(json.reader(Stream), nesting_depth,
+    array_where, pred(json.value, A, A),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode do_array_fold_elements(in, in, in(pred(in, in, out) is det),
+:- mode do_array_fold_elements(in, in, in, in(pred(in, in, out) is det),
     in, out, di, uo) is det.
-:- mode do_array_fold_elements(in, in, in(pred(in, in, out) is cc_multi),
+:- mode do_array_fold_elements(in, in, in, in(pred(in, in, out) is cc_multi),
     in, out, di, uo) is cc_multi.
 
-do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
+do_array_fold_elements(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
+        !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_square_bracket,
@@ -918,7 +967,7 @@ do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
         ; Token = token_true
         ; Token = token_null
         ),
-        do_get_value(Reader, Token, ItemResult, !State),
+        do_get_value(Reader, !.NestingDepth, Token, ItemResult, !State),
         (
             ItemResult = ok(Item),
             Pred(Item, !Acc),
@@ -928,8 +977,8 @@ do_array_fold_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
                 Result = ok(!.Acc)
             ;
                 NextToken = token_comma,
-                do_array_fold_elements(Reader, after_comma, Pred,
-                    !.Acc, Result, !State)
+                do_array_fold_elements(Reader, !.NestingDepth, after_comma,
+                    Pred, !.Acc, Result, !State)
             ;
                 ( NextToken = token_left_curly_bracket
                 ; NextToken = token_left_square_bracket
@@ -987,8 +1036,9 @@ do_array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_left_square_bracket,
-        do_array_fold_state_elements(Reader, at_start, Pred, !.Acc,
-            Result, !State)
+        NestingDepth = 1,
+        do_array_fold_state_elements(Reader, NestingDepth, at_start, Pred,
+            !.Acc, Result, !State)
     ;
         ( Token = token_right_curly_bracket
         ; Token = token_left_curly_bracket
@@ -1014,19 +1064,20 @@ do_array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, Error)
     ).
 
-:- pred do_array_fold_state_elements(json.reader(Stream), array_where,
-    pred(json.value, A, A, State, State),
+:- pred do_array_fold_state_elements(json.reader(Stream), nesting_depth,
+    array_where, pred(json.value, A, A, State, State),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
-:- mode do_array_fold_state_elements(in, in, in(pred(in, in, out, di, uo) is det),
-    in, out, di, uo) is det.
-:- mode do_array_fold_state_elements(in, in, in(pred(in, in, out, di, uo) is cc_multi),
-    in, out, di, uo) is cc_multi.
+:- mode do_array_fold_state_elements(in, in, in,
+    in(pred(in, in, out, di, uo) is det), in, out, di, uo) is det.
+:- mode do_array_fold_state_elements(in, in, in,
+    in(pred(in, in, out, di, uo) is cc_multi), in, out, di, uo) is cc_multi.
 
-do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
+do_array_fold_state_elements(Reader, !.NestingDepth, Where, Pred, !.Acc,
+        Result, !State) :-
     get_token(Reader, Token, !State),
     (
         Token = token_right_square_bracket,
@@ -1051,7 +1102,7 @@ do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
         ; Token = token_true
         ; Token = token_null
         ),
-        do_get_value(Reader, Token, ItemResult, !State),
+        do_get_value(Reader, !.NestingDepth, Token, ItemResult, !State),
         (
             ItemResult = ok(Item),
             Pred(Item, !Acc, !State),
@@ -1061,8 +1112,8 @@ do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
                 Result = ok(!.Acc)
             ;
                 NextToken = token_comma,
-                do_array_fold_state_elements(Reader, after_comma, Pred,
-                    !.Acc, Result, !State)
+                do_array_fold_state_elements(Reader, !.NestingDepth, after_comma,
+                    Pred, !.Acc, Result, !State)
             ;
                 ( NextToken = token_left_curly_bracket
                 ; NextToken = token_left_square_bracket
@@ -1113,6 +1164,20 @@ do_array_fold_state_elements(Reader, Where, Pred, !.Acc, Result, !State) :-
     ;
         Token = token_error(TokenError),
         Result = error(!.Acc, TokenError)
+    ).
+
+%-----------------------------------------------------------------------------%
+
+:- pred below_nesting_depth_limit(json.reader(_)::in, nesting_depth::in)
+    is semidet.
+
+below_nesting_depth_limit(Reader, CurrentDepth) :-
+    MaxDepthParam = Reader ^ json_maximum_nesting_depth,
+    require_complete_switch [MaxDepthParam] (
+        MaxDepthParam = no_maximum_nesting_depth
+    ;
+        MaxDepthParam = maximum_nesting_depth(MaxDepth),
+        CurrentDepth < MaxDepth
     ).
 
 %-----------------------------------------------------------------------------%
