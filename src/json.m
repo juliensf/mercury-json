@@ -346,6 +346,13 @@
                 maximum_nesting_depth  :: maximum_nesting_depth
             ).
 
+    % The following function provides backwards compatibility with older
+    % versions of this library.  The reader parameters it returns do
+    % not impose a maximum nesting depth.
+    %
+:- func reader_params(allow_comments, allow_trailing_commas,
+    allow_repeated_members, allow_infinities) = reader_params.
+
     % Should the extension that allows comments in the JSON being read be
     % enabled?
     %
@@ -936,6 +943,15 @@
                 json_column_number         :: mutvar(int),
                 json_char_buffer           :: char_buffer
             ).
+
+reader_params(Comments, TrailingCommas, RepeatedMembers, Infinities) =
+    reader_params(
+        Comments,
+        TrailingCommas,
+        RepeatedMembers,
+        Infinities,
+        no_maximum_nesting_depth
+    ).
 
 :- func default_reader_params = reader_params.
 
