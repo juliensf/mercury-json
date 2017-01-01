@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016, Julien Fischer.
+% Copyright (C) 2013-2017, Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -155,7 +155,7 @@
 :- instance stream.error(json.error(Error)) <= stream.error(Error).
 
     % Exceptions of this type are thrown by some procedures in this module if a
-    % number of infinite magnitude or non-a-number value is encountered.
+    % number of infinite magnitude or a not-a-number value is encountered.
     % The argument may contain additional information.
     %
 :- type json.non_finite_number_error
