@@ -214,8 +214,8 @@
 % Procedures for working with JSON values.
 %
 
-    % The following are true iff the given value is a JSON value of the
-    % type specified by the predicate name.
+    % The following are true iff the given value is a JSON value of the type
+    % specified by the predicate name.
     %
 :- pred is_null(value::in) is semidet.
 :- pred is_bool(value::in) is semidet.
@@ -716,8 +716,8 @@
     %
 :- pred from_string(reader_params::in, string::in, value::out) is semidet.
 
-    % As above, but throw a software_error/1 exception if the string
-    % cannot be converted into a JSON value.
+    % As above, but throw a software_error/1 exception if the string cannot be
+    % converted into a JSON value.
     %
 :- func det_from_string(string) = value.
 :- func det_from_string(reader_params, string) = value.

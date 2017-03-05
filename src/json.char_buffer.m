@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2015 Julien Fischer.
+% Copyright (C) 2013-2017 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -12,17 +12,17 @@
 
 :- type char_buffer.
 
-:- impure pred char_buffer.init(char_buffer::out) is det.
+:- impure pred init(char_buffer::out) is det.
 
-:- pred char_buffer.add(char_buffer::in, char::in, S::di, S::uo) is det.
+:- pred add(char_buffer::in, char::in, S::di, S::uo) is det.
 
-:- func char_buffer.to_string(char_buffer::in, S::ui) = (string::out) is det.
+:- func to_string(char_buffer::in, S::ui) = (string::out) is det.
 
-:- func char_buffer.det_to_float(char_buffer::in, S::ui) = (float::out) is det.
+:- func det_to_float(char_buffer::in, S::ui) = (float::out) is det.
 
-:- pred char_buffer.last(char_buffer::in, char::out, S::ui) is semidet.
+:- pred last(char_buffer::in, char::out, S::ui) is semidet.
 
-:- pred char_buffer.reset(char_buffer::in, S::di, S::uo) is det.
+:- pred reset(char_buffer::in, S::di, S::uo) is det.
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
