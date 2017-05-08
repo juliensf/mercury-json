@@ -99,6 +99,7 @@ add_values_and_counts([], Bag, ok(Bag)).
 add_values_and_counts([VC | VCs], !.Bag, Result) :-
     VC = Value - Count,
     ( if Count > 0 then
+        % XXX POST 14.01 -- we should use bag.insert_duplicates/4 here.
         add_value_n_times(Count, Value, !Bag),
         add_values_and_counts(VCs, !.Bag, Result)
     else
@@ -650,7 +651,8 @@ version_array_from_json(Value) = Result :-
         (
             ListElemsResult = ok(RevElems),
             list.reverse(RevElems, Elems),
-            % XXX the version_array module does not have from_reverse_list.
+            % XXX POST 14.01 -- use version_array.from_reverse_list/1 and avoid
+            % the call to reverse above.
             Array = version_array.from_list(Elems),
             Result = ok(Array)
         ;
@@ -688,7 +690,7 @@ rational_from_json(Value) = Result :-
                 MaybeDenominator = integer_from_json(DenominatorValue),
                 (
                     MaybeDenominator = ok(Denominator),
-                    % XXX Post 14.01 -- use integer.is_zero/1.
+                    % XXX POST 14.01 -- use integer.is_zero/1 instead.
                     ( if Denominator = integer.zero then
                         Result = error("rational/0 with zero denominator")
                     else

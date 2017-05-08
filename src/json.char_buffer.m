@@ -96,7 +96,7 @@ typedef struct {
 
 ").
 
-    % XXX once we drop support for Mercury 14.01 we should use
+    % XXX POST 14.01 - once we drop support for Mercury 14.01 we should use
     % MR_GC_malloc_atomic instead of MR_GC_malloc below.
     %
 :- pragma foreign_proc("C",

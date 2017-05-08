@@ -90,9 +90,9 @@ do_resolve_token(RefTokens, Value0, Result) :-
         Result = Value0
     ;
         RefTokens = [RefToken | RefTokensPrime],
-        % XXX Mercury 14.01 doesn't support state variables in
-        % require_complete_switch scope heads -- for compatibility
-        % we avoid using state variables for Value here.
+        % XXX POST 14.01 -- Mercury 14.01 does not support state variables in
+        % require_complete_switch scope heads -- for compatibility we avoid
+        % using state variables for Value here.
         require_complete_switch [Value0] (
             Value0 = array(Elements),
             string.to_int(RefToken, Index),       % semidet.
