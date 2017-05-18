@@ -1,6 +1,9 @@
 include ../Make.options
 
-MCFLAGS = --use-grade-subdirs -O5 --intermodule-optimization
+# rotd-2017-05-17 (and quite a way back) generate invalid Erlang code for this
+# library; as a result we disable the erlang grade here.
+#
+MCFLAGS = --use-grade-subdirs -O5 --intermodule-optimization --libgrades-exclude erlang
 
 MCFLAGS-mercury_json = --no-warn-nothing-exported --no-warn-interface-imports
 
