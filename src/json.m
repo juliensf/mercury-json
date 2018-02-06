@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2017, Julien Fischer.
+% Copyright (C) 2013-2018, Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -44,136 +44,6 @@
 :- import_module stream.
 :- import_module unit.
 :- import_module version_array.
-
-%-----------------------------------------------------------------------------%
-%
-% JSON errors.
-%
-
-:- type json.context
-    --->    context(
-                stream_name   :: string,
-                line_number   :: int,
-                column_number :: int
-            ).
-
-    % This type describes errors that can occur while reading JSON data.
-    %
-:- type json.error(Error)
-    --->    stream_error(Error)
-            % An error has occurred in the underlying character stream.
-
-    ;       json_error(
-                error_context :: json.context,
-                error_desc    :: json.error_desc
-            ).
-
-:- type json.error_desc
-    --->    unexpected_eof(maybe(string))
-            % unexpected end-of-file: Msg
-
-    ;       syntax_error(string, maybe(string))
-            % syntax_error(Where, MaybeMsg)
-            % syntax error at 'Where': MaybeMsg
-
-    ;       invalid_character_escape(char)
-            % A character escape has been encountered for a charater
-            % that does not require escaping.
-
-    ;       unexpected_value(string, maybe(string))
-
-    ;       duplicate_object_member(string)
-            % duplicate_object_member(MemberName):
-            % An object has multiple members named MemberName.
-
-    ;       unterminated_multiline_comment
-            % EOF has been reached but we are inside a multiline comment.
-
-    ;       invalid_unicode_character(string)
-            % We have encountered an invalid Unicode escape, a code point
-            % that lies outside [0x0001, 0x10FFFF].
-            % The argument gives the hexadecimal digits of the code point
-            % involved.
-
-    ;       unpaired_leading_utf16_surrogate(string)
-    ;       unpaired_trailing_utf16_surrogate(string)
-            % An unpaired leading or trailing UTF-16 surrogate was encountered.
-            % The argument gives the hexadecimal digits of the code point
-            % involved.
-
-    ;       invalid_trailing_utf16_surrogate(string)
-            % A trailing UTF-16 surrogate was expected, but the code point
-            % encountered was outside the expected range for trailing
-            % surrogates: [0xDC00, 0XDFFF].
-            % The argument gives the hexadecimal digits of the code point
-            % encountered.
-
-    ;       null_character
-            % The null character (0x0000) was encountered.
-
-    ;       unescaped_control_character(int)
-            % unescaped_control_character(CodePoint):
-            % An unescaped control character in the range [0x0001, 0x001F]
-            % was encountered.
-
-    ;       illegal_start_character(char)
-            % A JSON value begins with an illegal character.  One of: '}', ']',
-            % ',' or ':'.
-
-    ;       illegal_unicode_escape_character(char)
-            % A character occurred inside a Unicode escape that is not a
-            % hexadecimal digit.
-
-    ;       non_finite_number(string)
-            % A number was read but after conversion to a float it was of
-            % infinite magnitude.
-
-    ;       illegal_negation(char)
-            % In a context where a number is expected, '-' seen but the
-            % following character (given by the argument) was not a digit.
-
-    ;       illegal_comment_start(char)
-            % We have just seen '/' and are expecting to see either '/'
-            % or '*' but instead saw character given in the argument.
-
-    ;       bad_signed_exponent(char, char)
-            % bad_signed_exponent(SignChar, Char):
-            % We have a signed exponent with the sign given by the SignChar,
-            % but the following character, Char, is not a decimal digit.
-
-    ;       bad_exponent(char, char)
-            % bad_exponent(ExpChar, Char):
-            % We have an exponent with the exponent beginning with ExpChar
-            % (either 'e' or 'E'), but the following character, Char, is
-            % not '+', '-' or a decimal digit.
-
-    ;       expected_eof(string)
-
-    ;       maximum_nesting_depth_reached.
-            % The maximum nesting depth limit has been reached.
-
-:- instance stream.error(json.error(Error)) <= stream.error(Error).
-
-    % Exceptions of this type are thrown by some procedures in this module if a
-    % number of infinite magnitude or a not-a-number value is encountered.
-    % The argument may contain additional information.
-    %
-:- type json.non_finite_number_error
-    --->    non_finite_number_error(string).
-
-%----------------------------------------------------------------------------%
-%
-% Wrappers for the standard stream result types.
-%
-
-:- type json.res(T, Error) == stream.res(T, json.error(Error)).
-
-:- type json.res(Error) == stream.res(json.error(Error)).
-
-:- type json.result(T, Error) == stream.result(T, json.error(Error)).
-
-:- type json.maybe_partial_res(T, Error) ==
-    stream.maybe_partial_res(T, json.error(Error)).
 
 %-----------------------------------------------------------------------------%
 %
@@ -288,8 +158,8 @@
     % Lookup Member in Object and return the underlying value if it is a JSON
     % value of the type specified by the predicate name.  If Member is not a
     % member of Object or if it is null the return DefaultValue.
-    % Calls error/1 if the member value is not a JSON value of the type specified
-    % by the predicate name or null.
+    % Calls error/1 if the member value is not a JSON value of the type
+    % specified by the predicate name or null.
     %
 :- func search_string_or_null(object, string, string) = string.
 :- func search_object_or_null(object, string, object) = object.
@@ -417,6 +287,136 @@
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON reader errors.
+%
+
+:- type json.context
+    --->    context(
+                stream_name   :: string,
+                line_number   :: int,
+                column_number :: int
+            ).
+
+    % This type describes errors that can occur while reading JSON data.
+    %
+:- type json.error(Error)
+    --->    stream_error(Error)
+            % An error has occurred in the underlying character stream.
+
+    ;       json_error(
+                error_context :: json.context,
+                error_desc    :: json.error_desc
+            ).
+
+:- type json.error_desc
+    --->    unexpected_eof(maybe(string))
+            % unexpected end-of-file: Msg
+
+    ;       syntax_error(string, maybe(string))
+            % syntax_error(Where, MaybeMsg)
+            % syntax error at 'Where': MaybeMsg
+
+    ;       invalid_character_escape(char)
+            % A character escape has been encountered for a charater
+            % that does not require escaping.
+
+    ;       unexpected_value(string, maybe(string))
+
+    ;       duplicate_object_member(string)
+            % duplicate_object_member(MemberName):
+            % An object has multiple members named MemberName.
+
+    ;       unterminated_multiline_comment
+            % EOF has been reached but we are inside a multiline comment.
+
+    ;       invalid_unicode_character(string)
+            % We have encountered an invalid Unicode escape, a code point
+            % that lies outside [0x0001, 0x10FFFF].
+            % The argument gives the hexadecimal digits of the code point
+            % involved.
+
+    ;       unpaired_leading_utf16_surrogate(string)
+    ;       unpaired_trailing_utf16_surrogate(string)
+            % An unpaired leading or trailing UTF-16 surrogate was encountered.
+            % The argument gives the hexadecimal digits of the code point
+            % involved.
+
+    ;       invalid_trailing_utf16_surrogate(string)
+            % A trailing UTF-16 surrogate was expected, but the code point
+            % encountered was outside the expected range for trailing
+            % surrogates: [0xDC00, 0XDFFF].
+            % The argument gives the hexadecimal digits of the code point
+            % encountered.
+
+    ;       null_character
+            % The null character (0x0000) was encountered.
+
+    ;       unescaped_control_character(int)
+            % unescaped_control_character(CodePoint):
+            % An unescaped control character in the range [0x0001, 0x001F]
+            % was encountered.
+
+    ;       illegal_start_character(char)
+            % A JSON value begins with an illegal character.  One of: '}', ']',
+            % ',' or ':'.
+
+    ;       illegal_unicode_escape_character(char)
+            % A character occurred inside a Unicode escape that is not a
+            % hexadecimal digit.
+
+    ;       non_finite_number(string)
+            % A number was read but after conversion to a float it was of
+            % infinite magnitude.
+
+    ;       illegal_negation(char)
+            % In a context where a number is expected, '-' seen but the
+            % following character (given by the argument) was not a digit.
+
+    ;       illegal_comment_start(char)
+            % We have just seen '/' and are expecting to see either '/'
+            % or '*' but instead saw character given in the argument.
+
+    ;       bad_signed_exponent(char, char)
+            % bad_signed_exponent(SignChar, Char):
+            % We have a signed exponent with the sign given by the SignChar,
+            % but the following character, Char, is not a decimal digit.
+
+    ;       bad_exponent(char, char)
+            % bad_exponent(ExpChar, Char):
+            % We have an exponent with the exponent beginning with ExpChar
+            % (either 'e' or 'E'), but the following character, Char, is
+            % not '+', '-' or a decimal digit.
+
+    ;       expected_eof(string)
+
+    ;       maximum_nesting_depth_reached.
+            % The maximum nesting depth limit has been reached.
+
+:- instance stream.error(json.error(Error)) <= stream.error(Error).
+
+    % Exceptions of this type are thrown by some procedures in this module if a
+    % number of infinite magnitude or a not-a-number value is encountered.
+    % The argument may contain additional information.
+    %
+:- type json.non_finite_number_error
+    --->    non_finite_number_error(string).
+
+%----------------------------------------------------------------------------%
+%
+% Wrappers for the standard stream result types.
+%
+
+:- type json.res(T, Error) == stream.res(T, json.error(Error)).
+
+:- type json.res(Error) == stream.res(json.error(Error)).
+
+:- type json.result(T, Error) == stream.result(T, json.error(Error)).
+
+:- type json.maybe_partial_res(T, Error) ==
+    stream.maybe_partial_res(T, json.error(Error)).
 
 %-----------------------------------------------------------------------------%
 %
@@ -671,7 +671,7 @@
 % Writing JSON to file streams.
 %
 
-% The following convenience predicate can be used to write JSON values to text
+% The following convenience predicates can be used to write JSON values to text
 % output streams.
 
     % Write a JSON value to the current output stream using the compact output
