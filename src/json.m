@@ -293,6 +293,9 @@
 % JSON reader errors.
 %
 
+    % The type describes the position within the underlying character stream at
+    % which an error occurred while reading JSON data using a reader.
+    %
 :- type json.context
     --->    context(
                 stream_name   :: string,
@@ -300,7 +303,8 @@
                 column_number :: int
             ).
 
-    % This type describes errors that can occur while reading JSON data.
+    % This type describes errors that can occur while reading JSON data using a
+    % reader.
     %
 :- type json.error(Error)
     --->    stream_error(Error)
@@ -320,7 +324,7 @@
             % syntax error at 'Where': MaybeMsg
 
     ;       invalid_character_escape(char)
-            % A character escape has been encountered for a charater
+            % A character escape has been encountered for a character
             % that does not require escaping.
 
     ;       unexpected_value(string, maybe(string))
@@ -426,7 +430,7 @@
 % The 'read' operations here read a value from the underlying stream using the
 % reader.  They return an error if there are any non-whitespace characters in
 % the stream after the value that has been read.  (Comments after the value are
-% also allowed if the reader allows comments.)
+% also allowed if the reader is configured to allow comments.)
 
     % read_value(Reader, Result, !State):
     % Read a JSON value from Reader.
