@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2015 Julien Fischer.
+% Copyright (C) 2013-2018 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -182,8 +182,9 @@ update_column_number(Reader, Char, !State) :-
     ).
 
 get_string_literal(Reader, Token, !State) :-
+    make_error_context(Reader, StartContext, !State),
     Buffer = Reader ^ json_char_buffer,
-    get_string_chars(Reader, Buffer, Result, !State),
+    get_string_chars(Reader, StartContext, Buffer, Result, !State),
     (
         Result = ok,
         String = char_buffer.to_string(Buffer, !.State),
@@ -195,14 +196,14 @@ get_string_literal(Reader, Token, !State) :-
     char_buffer.reset(Buffer, !State).
 
 :- pred get_string_chars(json.reader(Stream)::in,
-    char_buffer::in,
+    json.context::in, char_buffer::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.putback(Stream, char, State, Error)
     ).
 
-get_string_chars(Reader, Buffer, Result, !State) :-
+get_string_chars(Reader, StartContext, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.get(Stream, ReadResult, !State),
     (
@@ -214,7 +215,7 @@ get_string_chars(Reader, Buffer, Result, !State) :-
             get_escaped_char(Reader, Buffer, EscapedCharResult, !State),
             (
                 EscapedCharResult = ok,
-                get_string_chars(Reader, Buffer, Result, !State)
+                get_string_chars(Reader, StartContext, Buffer, Result, !State)
             ;
                 EscapedCharResult = error(Error),
                 Result = error(Error)
@@ -226,15 +227,14 @@ get_string_chars(Reader, Buffer, Result, !State) :-
             CodePoint >= 0x0000, CodePoint =< 0x001F
         then
             make_error_context(Reader, Context, !State),
-            ( if CodePoint = 0
-            then ErrorDesc = null_character
-            else ErrorDesc = unescaped_control_character(CodePoint)
-            ),
+            ErrorDesc =
+                string_contains_unescaped_control_character(StartContext,
+                    CodePoint),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
         else
             char_buffer.add(Buffer, Char, !State),
-            get_string_chars(Reader, Buffer, Result, !State)
+            get_string_chars(Reader, StartContext, Buffer, Result, !State)
         )
     ;
         ReadResult = eof,

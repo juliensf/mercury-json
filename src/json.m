@@ -356,12 +356,16 @@
             % encountered.
 
     ;       null_character
-            % The null character (0x0000) was encountered.
+            % The null character (0x0000) was encountered outside of
+            % a string; the case where it occurs inside a string is
+            % handled below.
 
-    ;       unescaped_control_character(int)
-            % unescaped_control_character(CodePoint):
-            % An unescaped control character in the range [0x0001, 0x001F]
-            % was encountered.
+    ;       string_contains_unescaped_control_character(json.context, int)
+            % An unescaped control character in the range [0x0000, 0x001F]
+            % was encountered inside a string.
+            % The first argument gives the context of the beginning of the
+            % string; the second is the codepoint of the unescaped control
+            % character encountered.
 
     ;       illegal_start_character(char)
             % A JSON value begins with an illegal character.  One of: '}', ']',
@@ -1618,12 +1622,19 @@ error_context_and_desc_to_string(Context, ErrorDesc) = Msg :-
             [s(ContextStr), s(What)], Msg)
     ;
         ErrorDesc = null_character,
-        string.format("%s: error: null character\n",
+        string.format("%s: error: NULL character encountered\n",
             [s(ContextStr)], Msg)
     ;
-        ErrorDesc = unescaped_control_character(CodePoint),
-        string.format("%s: error: unescaped control character: U+%04X\n",
-            [s(ContextStr), i(CodePoint)], Msg)
+        ErrorDesc = string_contains_unescaped_control_character(_StartContext,
+            CodePoint),
+        ( if to_char_name(CodePoint, CharName0) then
+            CharName = " (" ++ CharName0 ++ ")"
+        else
+            CharName = ""
+        ),
+        string.format(
+            "%s: error: string contains unescaped control character: U+%04X%s\n",
+            [s(ContextStr), i(CodePoint), s(CharName)], Msg)
     ;
         ErrorDesc = illegal_start_character(Char),
         string.format("%s: error: '%c' at start of JSON value\n",
@@ -1683,6 +1694,41 @@ describe_char(Char) = String :-
     else
         String = "'" ++ string.from_char(Char) ++ "'"
     ).
+
+:- pred to_char_name(int::in, string::out) is semidet.
+
+to_char_name(0x0000, "NULL").
+to_char_name(0x0001, "START OF HEADING").
+to_char_name(0x0002, "START OF TEXT").
+to_char_name(0x0003, "END OF TEXT").
+to_char_name(0x0004, "END OF TRANSMISSION").
+to_char_name(0x0005, "ENQUIRY").
+to_char_name(0x0006, "ACKNOWLEDGE").
+to_char_name(0x0007, "BELL").
+to_char_name(0x0008, "BACKSPACE").
+to_char_name(0x0009, "CHARACTER TABULATION").
+to_char_name(0x000A, "LINE FEED").
+to_char_name(0x000B, "LINE TABULATION").
+to_char_name(0x000C, "FORM FEED").
+to_char_name(0x000D, "CARRIAGE RETURN").
+to_char_name(0x000E, "SHIFT OUT").
+to_char_name(0x000F, "SHIFT IN").
+to_char_name(0x0010, "DATA LINK ESCAPE").
+to_char_name(0x0011, "DEVICE CONTROL ONE").
+to_char_name(0x0012, "DEVICE CONTROL TWO").
+to_char_name(0x0013, "DEVICE CONTROL THREE").
+to_char_name(0x0014, "DEVICE CONTROL FOUR").
+to_char_name(0x0015, "NEGATIVE ACKOWLEDGE").
+to_char_name(0x0016, "SYNCHRONOUS IDLE").
+to_char_name(0x0017, "END OF TRANSMISSION BLOCK").
+to_char_name(0x0018, "CANCEL").
+to_char_name(0x0019, "END OF MEDIUM").
+to_char_name(0x001A, "SUBSTITUTE").
+to_char_name(0x001B, "ESCAPE").
+to_char_name(0x001C, "INFORMATION SEPARATOR FOUR").
+to_char_name(0x001D, "INFORMATION SEPARATOR THREE").
+to_char_name(0x001E, "INFOMRATION SEPARATOR TWO").
+to_char_name(0x001F, "INFORMATION SEPARATOR ONE").
 
 %-----------------------------------------------------------------------------%
 
@@ -1778,39 +1824,45 @@ get_int(number(Number), Int) :-
     Int = truncate_to_int(Number).
 
 det_get_bool(Value) =
-    ( if get_bool(Value, Bool)
-    then Bool
-    else unexpected_type_error("json.det_get_bool", "Boolean", Value)
+    ( if get_bool(Value, Bool) then
+        Bool
+    else
+        unexpected_type_error("json.det_get_bool", "Boolean", Value)
     ).
 
 det_get_string(Value) =
-    ( if get_string(Value, String)
-    then String
-    else unexpected_type_error("json.det_get_string", "string", Value)
+    ( if get_string(Value, String) then
+        String
+    else
+        unexpected_type_error("json.det_get_string", "string", Value)
     ).
 
 det_get_number(Value) =
-    ( if get_number(Value, Number)
-    then Number
-    else unexpected_type_error("json.det_get_number", "number", Value)
+    ( if get_number(Value, Number) then
+        Number
+    else
+        unexpected_type_error("json.det_get_number", "number", Value)
     ).
 
 det_get_object(Value) =
-    ( if get_object(Value, Object)
-    then Object
-    else unexpected_type_error("json.det_get_object", "object", Value)
+    ( if get_object(Value, Object) then
+        Object
+    else
+        unexpected_type_error("json.det_get_object", "object", Value)
     ).
 
 det_get_array(Value) =
-    ( if get_array(Value, Array)
-    then Array
-    else unexpected_type_error("json.get_array", "array", Value)
+    ( if get_array(Value, Array) then
+        Array
+    else
+        unexpected_type_error("json.get_array", "array", Value)
     ).
 
 det_get_int(Value) =
-    ( if get_int(Value, Int)
-    then Int
-    else unexpected_type_error("json.get_int", "number", Value)
+    ( if get_int(Value, Int) then
+        Int
+    else
+        unexpected_type_error("json.get_int", "number", Value)
     ).
 
 :- func unexpected_type_error(string, string, json.value) = _ is erroneous.
@@ -1848,39 +1900,45 @@ lookup_int(Object, Member) = Int :-
     Int = det_get_int(Value).
 
 search_bool(Object, Member, Default) = Bool :-
-    ( if map.search(Object, Member, Value)
-    then Bool = det_get_bool(Value)
-    else Bool = Default
+    ( if map.search(Object, Member, Value) then
+        Bool = det_get_bool(Value)
+    else
+        Bool = Default
     ).
 
 search_string(Object, Member, Default) = String :-
-    ( if map.search(Object, Member, Value)
-    then String = det_get_string(Value)
-    else String = Default
+    ( if map.search(Object, Member, Value) then
+        String = det_get_string(Value)
+    else
+        String = Default
     ).
 
 search_number(Object, Member, Default) = Number :-
-    ( if map.search(Object, Member, Value)
-    then Number = det_get_number(Value)
-    else Number = Default
+    ( if map.search(Object, Member, Value) then
+        Number = det_get_number(Value)
+    else
+        Number = Default
     ).
 
 search_object(Object, Member, Default) = ObjectPrime :-
-    ( if map.search(Object, Member, Value)
-    then ObjectPrime = det_get_object(Value)
-    else ObjectPrime = Default
+    ( if map.search(Object, Member, Value) then
+        ObjectPrime = det_get_object(Value)
+    else
+        ObjectPrime = Default
     ).
 
 search_array(Object, Member, Default) = Array :-
-    ( if map.search(Object, Member, Value)
-    then Array = det_get_array(Value)
-    else Array = Default
+    ( if map.search(Object, Member, Value) then
+        Array = det_get_array(Value)
+    else
+        Array = Default
     ).
 
 search_int(Object, Member, Default) = Int :-
-    ( if map.search(Object, Member, Value)
-    then Int = det_get_int(Value)
-    else Int = Default
+    ( if map.search(Object, Member, Value) then
+        Int = det_get_int(Value)
+    else
+        Int = Default
     ).
 
 search_string_or_null(Object, Member, Default) = String :-
@@ -1923,9 +1981,10 @@ string_to_pointer(String, Pointer) :-
     Pointer = pointer(RefComps).
 
 det_string_to_pointer(String) =
-    ( if string_to_pointer(String, Pointer)
-    then Pointer
-    else func_error("json.det_string_to_pointer: string_to_pointer failed")
+    ( if string_to_pointer(String, Pointer) then
+        Pointer
+    else
+        func_error("json.det_string_to_pointer: string_to_pointer failed")
     ).
 
 pointer_to_string(Pointer) = String :-
@@ -1936,9 +1995,10 @@ resolve(Pointer, Doc, Value) :-
     pointer.do_resolve(Pointer, Doc, Value).
 
 det_resolve(Pointer, Doc) =
-    ( if pointer.do_resolve(Pointer, Doc, Value)
-    then Value
-    else func_error("json.det_resolve: resolve failed")
+    ( if pointer.do_resolve(Pointer, Doc, Value) then
+        Value
+    else
+        func_error("json.det_resolve: resolve failed")
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1976,9 +2036,10 @@ det_from_string(String) = Value :-
     Value = det_from_string(Params, String).
 
 det_from_string(Params, String) = Value :-
-    ( if json.from_string(Params, String, Value0)
-    then Value = Value0
-    else error("json.det_from_string: from_string failed")
+    ( if json.from_string(Params, String, Value0) then
+        Value = Value0
+    else
+        error("json.det_from_string: from_string failed")
     ).
 
 maybe_from_string(String) = Result :-
