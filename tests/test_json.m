@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016 Julien Fischer.
+% Copyright (C) 2013-2016, 2018 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -22,6 +22,7 @@
 :- implementation.
 
 :- import_module json.
+:- import_module test_from_string.
 :- import_module test_marshal.
 :- import_module test_pointer.
 :- import_module test_object_procs.
@@ -69,7 +70,8 @@ main(!IO) :-
                 RunUnmarshalingTests = yes,
                 RunObjectProcTests = yes,
                 RunValueProcTests = yes,
-                RunWriterTests = yes
+                RunWriterTests = yes,
+                RunFromStringTests = yes
             ;
                 NonOptionArgs = [_ | _],
                 some [!FilteredArgs] (
@@ -111,10 +113,16 @@ main(!IO) :-
                         RunWriterTests = no
                     ),
                     ( if list.member("streaming", !.FilteredArgs) then
-                        list.delete_all(!.FilteredArgs, "streamining", !:FilteredArgs),
+                        list.delete_all(!.FilteredArgs, "streaming", !:FilteredArgs),
                         RunStreamingTests = yes
                     else
                         RunStreamingTests = no
+                    ),
+                    ( if list.member("from_string", !.FilteredArgs) then
+                        list.delete_all(!.FilteredArgs, "from_string", !:FilteredArgs),
+                        RunFromStringTests = yes
+                    else
+                        RunFromStringTests = no
                     ),
                     MaybeGatherResult = ok(!.FilteredArgs)
                 )
@@ -181,6 +189,14 @@ main(!IO) :-
                         !:TotalTests = !.TotalTests + 1
                     ;
                         RunWriterTests = no
+                    ),
+                    (
+                        RunFromStringTests = yes,
+                        run_internal_tests(OptionTable, "from_string", test_from_string,
+                            !NumFailures, !IO),
+                        !:TotalTests = !.TotalTests + 1
+                    ;
+                        RunFromStringTests = no
                     ),
                     ( if !.NumFailures = 0 then
                         io.write_string("ALL TESTS PASSED\n", !IO)

@@ -1,0 +1,30 @@
+ Input: "null"
+Result: ok(null)
+ Input: "false"
+Result: ok(bool(no))
+ Input: "true"
+Result: ok(bool(yes))
+ Input: "0"
+Result: ok(number(0.0))
+ Input: "1.5"
+Result: ok(number(1.5))
+ Input: "[]"
+Result: ok(array([]))
+ Input: "{}"
+Result: ok(object(empty))
+ Input: """"
+Result: ok(string(""))
+ Input: ""foo""
+Result: ok(string("foo"))
+ Input: "["foo", "bar"]"
+Result: ok(array([string("foo"), string("bar")]))
+ Input: "{"foo": 561}"
+Result: ok(object(two("foo", number(561.0), empty, empty)))
+ Input: ""
+Result: error(context("<<string reader>>", 1, 0), unexpected_eof(no))
+ Input: """
+Result: error(context("<<string reader>>", 1, 1), unexpected_eof(yes("unterminated string literal")))
+ Input: "["
+Result: error(context("<<string reader>>", 1, 1), unexpected_eof(yes("array missing terminating \']\'")))
+ Input: "}"
+Result: error(context("<<string reader>>", 1, 1), illegal_start_character('}'))
