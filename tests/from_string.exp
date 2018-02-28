@@ -20,6 +20,8 @@ Result: ok(string("foo"))
 Result: ok(array([string("foo"), string("bar")]))
  Input: "{"foo": 561}"
 Result: ok(object(two("foo", number(561.0), empty, empty)))
+ Input: ""a𢭃b""
+Result: ok(string("a𢭃b"))
  Input: ""
 Result: error(context("<<string reader>>", 1, 0), unexpected_eof(no))
  Input: """

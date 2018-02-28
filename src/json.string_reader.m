@@ -94,7 +94,7 @@
     --->    string_reader(
                 reader_maybe_name   :: maybe(string),
                 reader_src          :: string,
-                reader_src_length   :: int,
+                reader_src_length   :: int,  % In code units.
                 reader_mutable_info
                 :: generic_mutvar(reader_mutable_info, string_reader_state)
             ).
@@ -104,11 +104,14 @@
                 rmi_line_number :: int,
                 % The current line number.
 
-                rmi_last_index  :: int
-                % The index of the last character we read from the source
-                % string.  A value of -1 indicates that we are at the
-                % beginning of the source string (either because no characters
-                % have been read, or we "ungot" ourselves to that point.)
+                rmi_next_index  :: int,
+                % The index of the code unit of the next chracter we read
+                % fro the source string.
+
+                rmi_putback_char :: int
+                % The code point of the putback character or -1 if there
+                % is no putback character.  The JSON parser only requires
+                % a single character of putback.
             ).
 
 %-----------------------------------------------------------------------------%
@@ -118,7 +121,7 @@ init_string_state(string_reader_state).
 init_string_reader(MaybeName, Src, Reader, !State) :-
     string.length(Src, SrcLen),
     InitLineNum = 1,
-    MutableInfo = reader_mutable_info(InitLineNum, -1),
+    MutableInfo = reader_mutable_info(InitLineNum, 0, -1),
     store.new_mutvar(MutableInfo, MutableInfoVar, !State),
     Reader = string_reader(MaybeName, Src, SrcLen, MutableInfoVar).
 
@@ -146,14 +149,21 @@ init_string_reader(MaybeName, Src, Reader, !State) :-
     string_reader_error)
 where [
     ( get(Reader, Result, !State) :-
-        Reader = string_reader(_MaybeName, Src, SrcLen, MutableInfoVar),
+        Reader = string_reader(_MaybeName, Src, _SrcLen, MutableInfoVar),
         store.get_mutvar(MutableInfoVar, MutableInfo0, !State),
-        MutableInfo0 = reader_mutable_info(LineNum, LastIndex),
-        NextIndex = LastIndex + 1,
-        ( if NextIndex < SrcLen then
-            Char = string.unsafe_index(Src, NextIndex),
+        MutableInfo0 = reader_mutable_info(LineNum, NextIndex, PutbackInt),
+        ( if PutbackInt > -1 then
+            char.det_from_int(PutbackInt, Char),
             LineNumPrime = ( if Char = '\n' then LineNum + 1 else LineNum ),
-            MutableInfo = reader_mutable_info(LineNumPrime, NextIndex),
+            MutableInfo = reader_mutable_info(LineNumPrime, NextIndex, -1),
+            store.set_mutvar(MutableInfoVar, MutableInfo, !State),
+            Result = ok(Char)
+        else if
+            string.index_next(Src, NextIndex, NextIndexPrime, Char)
+        then
+            LineNumPrime = ( if Char = '\n' then LineNum + 1 else LineNum ),
+            MutableInfo = reader_mutable_info(LineNumPrime, NextIndexPrime,
+                -1),
             store.set_mutvar(MutableInfoVar, MutableInfo, !State),
             Result = ok(Char)
         else
@@ -166,25 +176,22 @@ where [
         string_reader_error)
 where [
     ( unget(Reader, Char, !State) :-
-        Reader = string_reader(_MaybeName, Src, SrcLen, MutableInfoVar),
+        Reader = string_reader(_MaybeName, _Src, _SrcLen, MutableInfoVar),
         store.get_mutvar(MutableInfoVar, MutableInfo0, !State),
-        MutableInfo0 = reader_mutable_info(LineNum, LastIndex),
+        MutableInfo0 = reader_mutable_info(LineNum, NextIndex, PutbackInt),
         %
         % The JSON reader will only try to unget characters that were
         % the result of the last call to get/4.
         %
-        ( if LastIndex > -1, LastIndex < SrcLen then
-            LastChar = string.unsafe_index(Src, LastIndex),
-            ( if Char = LastChar
-            then LastIndexPrime = LastIndex - 1
-            else unexpected($file, $pred, "unget for different character")
-            )
+        ( if PutbackInt < 0 then
+            CodePoint = char.to_int(Char),
+            LineNumPrime = ( if Char = '\n' then LineNum - 1 else LineNum ),
+            MutableInfo = reader_mutable_info(LineNumPrime, NextIndex,
+                CodePoint),
+            store.set_mutvar(MutableInfoVar, MutableInfo, !State)
         else
-            unexpected($file, $pred, "unget for different character")
-        ),
-        LineNumPrime = ( if Char = '\n' then LineNum - 1 else LineNum ),
-        MutableInfo = reader_mutable_info(LineNumPrime, LastIndexPrime),
-        store.set_mutvar(MutableInfoVar, MutableInfo, !State)
+            unexpected($file, $pred, "multiple level of putback")
+        )
     )
 ].
 
@@ -192,13 +199,13 @@ where [
     ( get_line(Reader, LineNo, !State) :-
         MutableInfoVar = Reader ^ reader_mutable_info,
         store.get_mutvar(MutableInfoVar, MutableInfo0, !State),
-        MutableInfo0 = reader_mutable_info(LineNo, _)
+        MutableInfo0 = reader_mutable_info(LineNo, _, _)
     ),
     ( set_line(Reader, LineNo, !State) :-
         MutableInfoVar = Reader ^ reader_mutable_info,
         store.get_mutvar(MutableInfoVar, MutableInfo0, !State),
-        MutableInfo0 = reader_mutable_info(_, LastIndex),
-        MutableInfo = reader_mutable_info(LineNo, LastIndex),
+        MutableInfo0 = reader_mutable_info(_, NextIndex, Putback),
+        MutableInfo = reader_mutable_info(LineNo, NextIndex, Putback),
         store.set_mutvar(MutableInfoVar, MutableInfo, !State)
     )
 ].

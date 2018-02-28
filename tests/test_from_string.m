@@ -56,8 +56,8 @@ valid_test_strings = [
    "\"\"",
    "\"foo\"",
    "[\"foo\", \"bar\"]",
-   "{\"foo\": 561}"
-   %"\"a𢭃b\""   % XXX doesn't work.
+   "{\"foo\": 561}",
+   "\"a𢭃b\""
 ].
 
 :- func invalid_test_strings = list(string).
