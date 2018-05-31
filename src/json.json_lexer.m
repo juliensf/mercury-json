@@ -808,9 +808,9 @@ get_infinity(Reader, Buffer, Token, !State) :-
         Result = ok,
         InfinityStr = char_buffer.to_string(Buffer, !.State),
         ( if InfinityStr = "Infinity" then
-            Token = token_number(positive_infinity)
+            Token = token_number(float.infinity)
         else if InfinityStr = "-Infinity" then
-            Token = token_number(-positive_infinity)
+            Token = token_number(-float.infinity)
         else
             make_syntax_error(Reader, InfinityStr, no, Error, !State),
             Token = token_error(Error)
@@ -819,13 +819,6 @@ get_infinity(Reader, Buffer, Token, !State) :-
         Result = error(Error),
         Token = token_error(Error)
     ).
-
-    % XXX POST 14.01 -- for compatibility with Mercury 14.01.1 we get infinity
-    % this way.  With later versions we would just use float.infinity/0.
-    %
-:- func positive_infinity = float.
-
-positive_infinity = float.max + float.max.
 
 %-----------------------------------------------------------------------------%
 

@@ -99,23 +99,12 @@ add_values_and_counts([], Bag, ok(Bag)).
 add_values_and_counts([VC | VCs], !.Bag, Result) :-
     VC = Value - Count,
     ( if Count > 0 then
-        % XXX POST 14.01 -- we should use bag.insert_duplicates/4 here.
-        add_value_n_times(Count, Value, !Bag),
+        bag.det_insert_duplicates(Count, Value, !Bag),
         add_values_and_counts(VCs, !.Bag, Result)
     else
         string.format("value '%s' count is less than 1", [s(string(Value))],
             Msg),
         Result = error(Msg)
-    ).
-
-:- pred add_value_n_times(int::in, T::in, bag(T)::in, bag(T)::out) is det.
-
-add_value_n_times(N, Value, !Bag) :-
-    ( if N > 0 then
-        bag.insert(Value, !Bag),
-        add_value_n_times(N - 1, Value, !Bag)
-    else
-        true
     ).
 
 %-----------------------------------------------------------------------------%
@@ -654,10 +643,7 @@ version_array_from_json(Value) = Result :-
         unmarshal_list_elems(Values, [], ListElemsResult),
         (
             ListElemsResult = ok(RevElems),
-            list.reverse(RevElems, Elems),
-            % XXX POST 14.01 -- use version_array.from_reverse_list/1 and avoid
-            % the call to reverse above.
-            Array = version_array.from_list(Elems),
+            Array = version_array.from_reverse_list(RevElems),
             Result = ok(Array)
         ;
             ListElemsResult = error(Msg),
@@ -694,8 +680,7 @@ rational_from_json(Value) = Result :-
                 MaybeDenominator = integer_from_json(DenominatorValue),
                 (
                     MaybeDenominator = ok(Denominator),
-                    % XXX POST 14.01 -- use integer.is_zero/1 instead.
-                    ( if Denominator = integer.zero then
+                    ( if integer.is_zero(Denominator) then
                         Result = error("rational/0 with zero denominator")
                     else
                         Rational = rational.from_integers(Numerator, Denominator),

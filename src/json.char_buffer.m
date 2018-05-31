@@ -96,9 +96,6 @@ typedef struct {
 
 ").
 
-    % XXX POST 14.01 - once we drop support for Mercury 14.01 we should use
-    % MR_GC_malloc_atomic instead of MR_GC_malloc below.
-    %
 :- pragma foreign_proc("C",
     init(Buffer::out),
     [will_not_call_mercury, thread_safe, will_not_modify_trail],
@@ -107,7 +104,7 @@ typedef struct {
     Buffer->last_char = 0;
     Buffer->num_bytes = 0;
     Buffer->max_bytes = MJSON_INITIAL_BUFFER_SIZE;
-    Buffer->contents = MR_GC_malloc(sizeof(char) * MJSON_INITIAL_BUFFER_SIZE);
+    Buffer->contents = MR_GC_malloc_atomic(sizeof(char) * MJSON_INITIAL_BUFFER_SIZE);
 ").
 
 :- pragma foreign_proc("C",
