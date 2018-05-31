@@ -57,7 +57,8 @@ next_reference_token(PointerChars, !.NextTokenChars, !RevRefTokens) :-
             next_reference_token(PointerCharsPrime, [], !RevRefTokens)
         else
             !:NextTokenChars = [NextPointerChar | !.NextTokenChars],
-            next_reference_token(PointerCharsPrime, !.NextTokenChars, !RevRefTokens)
+            next_reference_token(PointerCharsPrime, !.NextTokenChars,
+                !RevRefTokens)
         )
     ).
 

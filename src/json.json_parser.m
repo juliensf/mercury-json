@@ -200,8 +200,8 @@ do_get_value(Reader, !.NestingDepth, Token, Result, !State) :-
 do_get_object(Reader, !.NestingDepth, Result, !State) :-
     !:NestingDepth = !.NestingDepth + 1,
     ( if below_nesting_depth_limit(Reader, !.NestingDepth) then
-        do_get_members(Reader, !.NestingDepth, at_start, map.init, MaybeMembers,
-            !State),
+        do_get_members(Reader, !.NestingDepth, at_start,
+            map.init, MaybeMembers, !State),
         (
             MaybeMembers = ok(Members),
             Object = object(Members),
@@ -265,7 +265,8 @@ do_get_members(Reader, !.NestingDepth, Where, !.Members, Result, !State) :-
                 ; NextToken = token_true
                 ; NextToken = token_null
                 ),
-                do_get_value(Reader, !.NestingDepth, NextToken, ValueResult, !State),
+                do_get_value(Reader, !.NestingDepth, NextToken, ValueResult,
+                    !State),
                 (
                     ValueResult = ok(Value),
                     RepeatedMembers = Reader ^ json_repeated_members,

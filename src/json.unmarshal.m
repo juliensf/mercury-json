@@ -103,7 +103,8 @@ add_values_and_counts([VC | VCs], !.Bag, Result) :-
         add_value_n_times(Count, Value, !Bag),
         add_values_and_counts(VCs, !.Bag, Result)
     else
-        string.format("value '%s' count is less than 1", [s(string(Value))], Msg),
+        string.format("value '%s' count is less than 1", [s(string(Value))],
+            Msg),
         Result = error(Msg)
     ).
 
@@ -418,7 +419,8 @@ array2d_from_json(Value) = Result :-
                 FirstRowValue = array(FirstRowValues),
                 (
                     FirstRowValues = [],
-                    check_array2d_rows_are_empty(1, RestRowValues, RowsAreEmptyResult),
+                    check_array2d_rows_are_empty(1, RestRowValues,
+                        RowsAreEmptyResult),
                     (
                         RowsAreEmptyResult = crr_all_empty,
                         % NOTE: the bounds of array2d.from_lists([]) differ
@@ -458,11 +460,13 @@ array2d_from_json(Value) = Result :-
                             !:Array2d = array2d.init(ExpectedNumRows,
                                 ExpectedNumCols, FirstElem),
                             array2d_unmarshal_elems(0/*Row*/, 1/*Col*/,
-                                ExpectedNumCols, OtherElemValues, !Array2d, FirstRowResult),
+                                ExpectedNumCols, OtherElemValues, !Array2d,
+                                FirstRowResult),
                             (
                                 FirstRowResult = ok,
-                                array2d_unmarshal_rows(1, ExpectedNumRows, ExpectedNumCols,
-                                    RestRowValues, !Array2d, RestRowsResult),
+                                array2d_unmarshal_rows(1, ExpectedNumRows,
+                                    ExpectedNumCols, RestRowValues, !Array2d,
+                                    RestRowsResult),
                                 (
                                     RestRowsResult = ok,
                                     Result = ok(!.Array2d)
@@ -561,8 +565,8 @@ array2d_unmarshal_rows(R, NumRows, NumCols, RowValues, !Array2d, Result) :-
                     RowResult),
                 (
                     RowResult = ok,
-                    array2d_unmarshal_rows(R + 1, NumRows, NumCols, RowValuesPrime,
-                        !Array2d, Result)
+                    array2d_unmarshal_rows(R + 1, NumRows, NumCols,
+                        RowValuesPrime, !Array2d, Result)
                 ;
                     RowResult = error(_),
                     Result = RowResult

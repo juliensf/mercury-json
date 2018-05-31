@@ -112,17 +112,20 @@ raw_put_object(Stream, AllowInfinities, MemberFilter, MembersMap, !State) :-
         MemberFilter = member_filter(FilterPred),
         map.foldr(maybe_filter_member(FilterPred), MembersMap, [], MembersList)
     ),
-    raw_put_members(Stream, AllowInfinities, MemberFilter, MembersList, !State),
+    raw_put_members(Stream, AllowInfinities, MemberFilter, MembersList,
+        !State),
     put(Stream, '}', !State).
 
 :- pred maybe_filter_member(pred(string, value)::in(pred(in, in) is semidet),
     string::in, value::in,
-    assoc_list(string, json.value)::in, assoc_list(string, json.value)::out) is det.
+    assoc_list(string, json.value)::in, assoc_list(string, json.value)::out)
+    is det.
 
 maybe_filter_member(FilterPred, Name, Value, !MembersList) :-
-    ( if FilterPred(Name, Value)
-    then true
-    else !:MembersList = [Name - Value | !.MembersList]
+    ( if FilterPred(Name, Value) then
+        true
+    else
+        !:MembersList = [Name - Value | !.MembersList]
     ).
 
 :- pred raw_put_members(Stream::in, allow_infinities::in,
@@ -301,9 +304,10 @@ put_number(Stream, AllowInfinities, Number, !State) :-
         NumberStr = string.from_float(Number)
     else
         Int = floor_to_int(Number),
-        ( if Number = float(Int)
-        then NumberStr = string.from_int(Int)
-        else NumberStr = string.from_float(Number)
+        ( if Number = float(Int) then
+            NumberStr = string.from_int(Int)
+        else
+            NumberStr = string.from_float(Number)
         )
     ),
     put(Stream, NumberStr, !State).

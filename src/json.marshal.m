@@ -66,9 +66,10 @@ bag_to_json(Bag) = Value :-
 int_to_json(Int) = number(float(Int)).
 
 float_to_json(Float) =
-    ( if is_nan_or_inf(Float)
-    then throw(non_finite_number_error("to_json/1"))
-    else number(Float)
+    ( if is_nan_or_inf(Float) then
+        throw(non_finite_number_error("to_json/1"))
+    else
+        number(Float)
     ).
 
 string_to_json(String) = string(String).

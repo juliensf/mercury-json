@@ -471,7 +471,8 @@ get_trailing_surrogate_and_combine(Reader, LeadingSurrogateStr,
                             make_error_context(Reader, Context0, !State),
                             Context = Context0 ^ column_number :=
                                 Context0 ^ column_number - 5,
-                            ErrorDesc = invalid_trailing_utf16_surrogate(HexString),
+                            ErrorDesc = invalid_trailing_utf16_surrogate(
+                                HexString),
                             Error = json_error(Context, ErrorDesc),
                             Result = error(Error)
                         )
@@ -939,9 +940,10 @@ consume_until_next_nl_or_eof(Reader, Result, !State) :-
     (
         ReadResult = ok(Char),
         update_column_number(Reader, Char, !State),
-        ( if Char = ('\n')
-        then Result = ok
-        else consume_until_next_nl_or_eof(Reader, Result, !State)
+        ( if Char = ('\n') then
+            Result = ok
+        else
+            consume_until_next_nl_or_eof(Reader, Result, !State)
         )
     ;
         ReadResult = eof,

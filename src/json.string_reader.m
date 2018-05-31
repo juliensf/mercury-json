@@ -106,7 +106,7 @@
 
                 rmi_next_index  :: int,
                 % The index of the code unit of the next chracter we read
-                % fro the source string.
+                % from the source string.
 
                 rmi_putback_char :: int
                 % The code point of the putback character or -1 if there
