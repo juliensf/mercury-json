@@ -612,7 +612,7 @@
 :- func writer_params(output_style::in, allow_infinities::in) =
     (writer_params::out(writer_params)) is det.
 
-:- inst json.writer_params
+:- inst json.writer_params for writer_params/0
     --->    writer_params(ground, ground, member_filter).
 
 :- type json.output_style
@@ -627,7 +627,7 @@
     --->    no_member_filter
     ;       member_filter(pred(string, value)).
 
-:- inst json.member_filter
+:- inst json.member_filter for member_filter/0
     --->    no_member_filter
     ;       member_filter(pred(in, in) is semidet).
 
