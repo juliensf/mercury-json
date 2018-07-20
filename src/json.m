@@ -157,7 +157,7 @@
     % search_<type>_or_null(Object, Member, DefaultValue) = Value:
     % Lookup Member in Object and return the underlying value if it is a JSON
     % value of the type specified by the predicate name.  If Member is not a
-    % member of Object or if it is null the return DefaultValue.
+    % member of Object or if it is null then return DefaultValue.
     % Calls error/1 if the member value is not a JSON value of the type
     % specified by the predicate name or null.
     %
@@ -409,7 +409,7 @@
     % number of infinite magnitude or a not-a-number value is encountered.
     % The argument may contain additional information.
     %
-:- type json.non_finite_number_error
+:- type non_finite_number_error
     --->    non_finite_number_error(string).
 
 %----------------------------------------------------------------------------%
@@ -623,11 +623,11 @@
     % member name and its corresponding value.  If the predicate succeeds then
     % the JSON writer will omit that member when the object is written.
     %
-:- type json.member_filter
+:- type member_filter
     --->    no_member_filter
     ;       member_filter(pred(string, value)).
 
-:- inst json.member_filter
+:- inst member_filter
     --->    no_member_filter
     ;       member_filter(pred(in, in) is semidet).
 
@@ -2059,8 +2059,8 @@ maybe_from_string(Params, String) = Result :-
     ;
         ParseResult = error(ParseError),
         (
-            % The only we can get a stream error here is if there is
-            % an internal error in the string reader.
+            % The only way we can get a stream error here is if there is an
+            % internal error in the string reader.
             ParseError = stream_error(StreamError),
             Msg = stream.error_message(StreamError),
             error("json.maybe_from_string: stream error: " ++ Msg)
