@@ -35,6 +35,8 @@
 :- import_module digraph.
 :- import_module float.
 :- import_module int.
+:- import_module int8.
+:- import_module int16.
 :- import_module integer.
 :- import_module list.
 :- import_module map.
@@ -68,6 +70,16 @@ test_marshaling(File, !IO) :-
     %test(File, int.max_int : int, !IO),
     % XXX disabled since it's machine specific.
     %test(File, int.min_int : int, !IO),
+
+    % Test int8s.
+    test(File, int8.min_int8, !IO),
+    test(File, 0i8, !IO),
+    test(File, int8.max_int8, !IO),
+
+    % Test int16s.
+    test(File, int16.min_int16, !IO),
+    test(File, 0i16, !IO),
+    test(File, int16.max_int16, !IO),
 
     % Test strings.
     test(File, "", !IO),

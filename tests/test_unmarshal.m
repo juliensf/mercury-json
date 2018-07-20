@@ -1,11 +1,11 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2016 Julien Fischer.
+% Copyright (C) 2016, 2018 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
-% Furthers test of JSON->Mercury conversion.
+% Further tests of JSON->Mercury conversion.
 %
 %-----------------------------------------------------------------------------%
 
@@ -28,6 +28,7 @@
 :- import_module bitmap.
 :- import_module bool.
 :- import_module digraph.
+:- import_module float.
 :- import_module integer.
 :- import_module list.
 :- import_module maybe.
@@ -38,6 +39,10 @@
 
 test_unmarshaling(File, !IO) :-
     test_unmarshal_ints(File, !IO),
+    test_unmarshal_int8s(File, !IO),
+    test_unmarshal_int16s(File, !IO),
+    test_unmarshal_uint8s(File, !IO),
+    test_unmarshal_uint16s(File, !IO),
     test_unmarshal_floats(File, !IO),
     test_unmarshal_chars(File, !IO),
     test_unmarshal_strings(File, !IO),
@@ -58,13 +63,66 @@ test_unmarshal_ints(File, !IO) :-
     do_unmarshal_test(File, null, _ : int, !IO),
     do_unmarshal_test(File, string("Hello"), _ : int, !IO).
 
+:- pred test_unmarshal_int8s(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_int8s(File, !IO) :-
+    do_unmarshal_test(File, null, _ : int8, !IO),
+    do_unmarshal_test(File, string("Hello"), _ : int8, !IO),
+    do_unmarshal_test(File, number(-129.0), _ : int8, !IO),
+    do_unmarshal_test(File, number(-128.0), _ : int8, !IO),
+    do_unmarshal_test(File, number(0.0), _ : int8, !IO),
+    do_unmarshal_test(File, number(127.0), _ : int8, !IO),
+    do_unmarshal_test(File, number(128.0), _ : int8, !IO),
+    do_unmarshal_test(File, array([number(-1.0), number(0.0), number(1.0)]),
+        _ : list(int8), !IO).
+
+:- pred test_unmarshal_int16s(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_int16s(File, !IO) :-
+    do_unmarshal_test(File, null, _ : int16, !IO),
+    do_unmarshal_test(File, string("Hello"), _ : int16, !IO),
+    do_unmarshal_test(File, number(-32769.0), _ : int16, !IO),
+    do_unmarshal_test(File, number(-32768.0), _ : int16, !IO),
+    do_unmarshal_test(File, number(32767.0), _ : int16, !IO),
+    do_unmarshal_test(File, number(32768.0), _ : int16, !IO),
+    do_unmarshal_test(File, array([number(-1.0), number(0.0), number(1.0)]),
+        _ : list(int16), !IO).
+
+:- pred test_unmarshal_uint8s(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_uint8s(File, !IO) :-
+    do_unmarshal_test(File, null, _ : uint8, !IO),
+    do_unmarshal_test(File, string("Hello"), _ : uint8, !IO),
+    do_unmarshal_test(File, number(-1.0), _ : uint8, !IO),
+    do_unmarshal_test(File, number(0.0), _ : uint8, !IO),
+    do_unmarshal_test(File, number(255.0), _ : uint8, !IO),
+    do_unmarshal_test(File, number(256.0), _ : uint8, !IO),
+    do_unmarshal_test(File, array([number(0.0), number(1.0), number(255.0)]),
+        _ : list(uint8), !IO).
+
+:- pred test_unmarshal_uint16s(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_uint16s(File, !IO) :-
+    do_unmarshal_test(File, null, _ : uint16, !IO),
+    do_unmarshal_test(File, string("Hello"), _ : uint16, !IO),
+    do_unmarshal_test(File, number(-1.0), _ : uint16, !IO),
+    do_unmarshal_test(File, number(0.0), _ : uint16, !IO),
+    do_unmarshal_test(File, number(32767.0), _ : uint16, !IO),
+    do_unmarshal_test(File, number(32768.0), _ : uint16, !IO),
+    do_unmarshal_test(File, array([number(0.0), number(1.0), number(32768.0)]),
+        _ : list(uint16), !IO).
+
 :- pred test_unmarshal_floats(io.text_output_stream::in, io::di, io::uo)
     is det.
 
 test_unmarshal_floats(File, !IO) :-
-    % XXX we should have a test for non-finite floats.
     do_unmarshal_test(File, null, _ : float, !IO),
-    do_unmarshal_test(File, string("5.61"), _ : float, !IO).
+    do_unmarshal_test(File, string("5.61"), _ : float, !IO),
+    do_unmarshal_test(File, number(float.infinity), _ : float, !IO).
 
 :- pred test_unmarshal_chars(io.text_output_stream::in, io::di, io::uo)
     is det.
@@ -273,7 +331,14 @@ test_unmarshal_digraphs(File, !IO) :-
 
 do_unmarshal_test(File, Value, Type, !IO) :-
     io.write_string(File, "JSON: ", !IO),
-    json.write_compact(File, Value, !IO),
+    ( if
+        Value = number(N),
+        is_infinite(N)
+    then
+        io.write_string(File, "infinity", !IO)
+    else
+        json.write_compact(File, Value, !IO)
+    ),
     io.nl(File, !IO),
     io.write_string(File, "TYPE: ", !IO),
     TypeDesc = type_of(Type),

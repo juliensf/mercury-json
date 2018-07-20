@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016 Julien Fischer.
+% Copyright (C) 2013-2016, 2018 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -17,6 +17,10 @@
 
 :- func bag_to_json(bag(T)) = json.value <= to_json(T).
 :- func int_to_json(int) = json.value.
+:- func int8_to_json(int8) = json.value.
+:- func int16_to_json(int16) = json.value.
+:- func uint8_to_json(uint8) = json.value.
+:- func uint16_to_json(uint16) = json.value.
 :- func float_to_json(float) = json.value.
 :- func string_to_json(string) = json.value.
 :- func char_to_json(char) = json.value.
@@ -54,7 +58,11 @@
 
 :- implementation.
 
+:- import_module int8.
+:- import_module int16.
 :- import_module exception.
+:- import_module uint8.
+:- import_module uint16.
 
 %-----------------------------------------------------------------------------%
 
@@ -64,6 +72,14 @@ bag_to_json(Bag) = Value :-
     Value = array(Values).
 
 int_to_json(Int) = number(float(Int)).
+
+int8_to_json(Int8) = number(float(to_int(Int8))).
+
+uint8_to_json(UInt8) = number(float(to_int(UInt8))).
+
+int16_to_json(Int16) = number(float(to_int(Int16))).
+
+uint16_to_json(UInt16) = number(float(to_int(UInt16))).
 
 float_to_json(Float) =
     ( if is_nan_or_inf(Float) then

@@ -10,6 +10,30 @@ Result Term: 0
        JSON: 561
 Result Term: 561
 
+ Orig. Term: -128
+       JSON: -128
+Result Term: -128
+
+ Orig. Term: 0
+       JSON: 0
+Result Term: 0
+
+ Orig. Term: 127
+       JSON: 127
+Result Term: 127
+
+ Orig. Term: -32768
+       JSON: -32768
+Result Term: -32768
+
+ Orig. Term: 0
+       JSON: 0
+Result Term: 0
+
+ Orig. Term: 32767
+       JSON: 32767
+Result Term: 32767
+
  Orig. Term: 
        JSON: ""
 Result Term: 

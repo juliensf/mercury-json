@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016 Julien Fischer.
+% Copyright (C) 2013-2018 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliens@gmail.com>
@@ -17,6 +17,10 @@
 
 :- func bag_from_json(value) = maybe_error(bag(T)) <= from_json(T).
 :- func int_from_json(value) = maybe_error(int).
+:- func int8_from_json(value) = maybe_error(int8).
+:- func int16_from_json(value) = maybe_error(int16).
+:- func uint8_from_json(value) = maybe_error(uint8).
+:- func uint16_from_json(value) = maybe_error(uint16).
 :- func float_from_json(value) = maybe_error(float).
 :- func char_from_json(value) = maybe_error(char).
 :- func string_from_json(value) = maybe_error(string).
@@ -65,7 +69,11 @@
 
 :- implementation.
 
+:- import_module int8.
+:- import_module int16.
 :- import_module type_desc.
+:- import_module uint8.
+:- import_module uint16.
 
 %-----------------------------------------------------------------------------%
 
@@ -119,9 +127,74 @@ int_from_json(Value) = Result :-
         Result = error(ErrorMsg)
     ).
 
+int8_from_json(Value) = Result :-
+    ( if Value = number(Number) then
+        Int = truncate_to_int(Number),
+        ( if int8.from_int(Int, Int8) then
+            Result = ok(Int8)
+        else
+            ErrorMsg = make_int_conv_bounds_error_msg("int8"),
+            Result = error(ErrorMsg)
+        )
+    else
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "number"),
+        Result = error(ErrorMsg)
+    ).
+
+int16_from_json(Value) = Result :-
+    ( if Value = number(Number) then
+        Int = truncate_to_int(Number),
+        ( if int16.from_int(Int, Int16) then
+            Result = ok(Int16)
+        else
+            ErrorMsg = make_int_conv_bounds_error_msg("int16"),
+            Result = error(ErrorMsg)
+        )
+    else
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "number"),
+        Result = error(ErrorMsg)
+    ).
+
+uint8_from_json(Value) = Result :-
+    ( if Value = number(Number) then
+        Int = truncate_to_int(Number),
+        ( if uint8.from_int(Int, UInt8) then
+            Result = ok(UInt8)
+        else
+            ErrorMsg = make_int_conv_bounds_error_msg("uint8"),
+            Result = error(ErrorMsg)
+        )
+    else
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "number"),
+        Result = error(ErrorMsg)
+    ).
+
+uint16_from_json(Value) = Result :-
+    ( if Value = number(Number) then
+        Int = truncate_to_int(Number),
+        ( if uint16.from_int(Int, UInt16) then
+            Result = ok(UInt16)
+        else
+            ErrorMsg = make_int_conv_bounds_error_msg("uint16"),
+            Result = error(ErrorMsg)
+        )
+    else
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "number"),
+        Result = error(ErrorMsg)
+    ).
+
 float_from_json(Value) = Result :-
     ( if Value = number(Number) then
-        Result = ok(Number)
+        ( if is_finite(Number) then
+            Result = ok(Number)
+        else
+            ErrorMsg = "conversion to float: number is not finite",
+            Result = error(ErrorMsg)
+        )
     else
         TypeDesc = type_desc_from_result(Result),
         ErrorMsg = make_conv_error_msg(TypeDesc, Value, "number"),
@@ -1324,6 +1397,12 @@ make_structure_error_msg(TypeDesc, ArgDesc, ExpectedDesc) = Msg :-
     TypeName = type_name(TypeDesc),
     string.format("conversion to %s: argument %s, expected %s",
         [s(TypeName), s(ArgDesc), s(ExpectedDesc)], Msg).
+
+:- func make_int_conv_bounds_error_msg(string) = string.
+
+make_int_conv_bounds_error_msg(IntType) = Msg :-
+    string.format("conversion to %s: number is out-of-bounds",
+        [s(IntType)], Msg).
 
 :- func type_desc_from_result(maybe_error(T)::unused) = (type_desc::out).
 

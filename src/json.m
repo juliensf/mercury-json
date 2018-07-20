@@ -207,7 +207,7 @@
     %
 :- type json.reader(Stream).
 
-:- type json.reader_params
+:- type reader_params
     --->    reader_params(
                 allow_comments         :: allow_comments,
                 allow_trailing_commas  :: allow_trailing_commas,
@@ -226,28 +226,28 @@
     % Should the extension that allows comments in the JSON being read be
     % enabled?
     %
-:- type json.allow_comments
+:- type allow_comments
     --->    allow_comments
     ;       do_not_allow_comments.
 
     % Should the extension that allows trailing commas in JSON objects and
     % arrays be enabled?
     %
-:- type json.allow_trailing_commas
+:- type allow_trailing_commas
     --->    allow_trailing_commas
     ;       do_not_allow_trailing_commas.
 
     % Should the extension that allows -Infinity and Infinity as numbers
     % be enabled?
     %
-:- type json.allow_infinities
+:- type allow_infinities
     --->    allow_infinities
     ;       do_not_allow_infinities.
 
     % Should we allow repeated object members in JSON objects?
     % (And if so, how should that situation be handled?)
     %
-:- type json.allow_repeated_members
+:- type allow_repeated_members
      --->   do_not_allow_repeated_members
             % Return an error if a repeated object member is encountered.
 
@@ -259,7 +259,7 @@
             % If any object members are repeated, keep the last one that we
             % encounter and discard any others.
 
-:- type json.maximum_nesting_depth
+:- type maximum_nesting_depth
     --->    no_maximum_nesting_depth
     ;       maximum_nesting_depth(int).
 
@@ -599,7 +599,7 @@
     %
 :- type json.writer(Stream).
 
-:- type json.writer_params
+:- type writer_params
     --->    writer_params(
                 output_style            :: output_style,
                 output_allow_infinities :: allow_infinities,
@@ -612,10 +612,10 @@
 :- func writer_params(output_style::in, allow_infinities::in) =
     (writer_params::out(writer_params)) is det.
 
-:- inst json.writer_params for writer_params/0
+:- inst writer_params for writer_params/0
     --->    writer_params(ground, ground, member_filter).
 
-:- type json.output_style
+:- type output_style
     --->    compact
     ;       pretty.
 
@@ -764,8 +764,12 @@
 %     Mercury Type      JSON
 %     ------------      ----
 %     int               number (cannot have a fractional part)
+%     int8              number (any fractional part is ignored)
+%     int16             number (any fractional part is ignored)
+%     uint8             number (any fractional part is ignored)
+%     uint16            number (any fractional part is ignored)
 %     string            string
-%     float##           number (only finite floats can be converted to JSON)
+%     float##           number (only finite floats can be converted)
 %     char              string (of length 1)
 %
 % Library Types
@@ -822,6 +826,10 @@
 
 :- instance to_json(bag(T)) <= to_json(T).
 :- instance to_json(int).
+:- instance to_json(int8).
+:- instance to_json(int16).
+:- instance to_json(uint8).
+:- instance to_json(uint16).
 :- instance to_json(float).
 :- instance to_json(string).
 :- instance to_json(char).
@@ -866,6 +874,10 @@
 
 :- instance from_json(bag(T)) <= from_json(T).
 :- instance from_json(int).
+:- instance from_json(int8).
+:- instance from_json(int16).
+:- instance from_json(uint8).
+:- instance from_json(uint16).
 :- instance from_json(float).
 :- instance from_json(char).
 :- instance from_json(string).
@@ -1297,6 +1309,18 @@ from_type(T) = to_json(T).
 :- instance to_json(int) where [
     func(to_json/1) is json.marshal.int_to_json
 ].
+:- instance to_json(int8) where [
+    func(to_json/1) is json.marshal.int8_to_json
+].
+:- instance to_json(int16) where [
+    func(to_json/1) is json.marshal.int16_to_json
+].
+:- instance to_json(uint8) where [
+    func(to_json/1) is json.marshal.uint8_to_json
+].
+:- instance to_json(uint16) where [
+    func(to_json/1) is json.marshal.uint16_to_json
+].
 :- instance to_json(float) where [
     func(to_json/1) is json.marshal.float_to_json
 ].
@@ -1398,6 +1422,18 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(int) where [
     func(from_json/1) is json.unmarshal.int_from_json
+].
+:- instance from_json(int8) where [
+    func(from_json/1) is json.unmarshal.int8_from_json
+].
+:- instance from_json(int16) where [
+    func(from_json/1) is json.unmarshal.int16_from_json
+].
+:- instance from_json(uint8) where [
+    func(from_json/1) is json.unmarshal.uint8_from_json
+].
+:- instance from_json(uint16) where [
+    func(from_json/1) is json.unmarshal.uint16_from_json
 ].
 :- instance from_json(float) where [
     func(from_json/1) is json.unmarshal.float_from_json

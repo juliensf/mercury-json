@@ -7,12 +7,132 @@ TYPE: int
 RESULT: ERROR: conversion to int: argument is string, expected number
 
 JSON: null
+TYPE: int8
+RESULT: ERROR: conversion to int8: argument is null, expected number
+
+JSON: "Hello"
+TYPE: int8
+RESULT: ERROR: conversion to int8: argument is string, expected number
+
+JSON: -129
+TYPE: int8
+RESULT: ERROR: conversion to int8: number is out-of-bounds
+
+JSON: -128
+TYPE: int8
+RESULT: OK: -128
+
+JSON: 0
+TYPE: int8
+RESULT: OK: 0
+
+JSON: 127
+TYPE: int8
+RESULT: OK: 127
+
+JSON: 128
+TYPE: int8
+RESULT: ERROR: conversion to int8: number is out-of-bounds
+
+JSON: [-1,0,1]
+TYPE: list.list(int8)
+RESULT: OK: [-1i8, 0i8, 1i8]
+
+JSON: null
+TYPE: int16
+RESULT: ERROR: conversion to int16: argument is null, expected number
+
+JSON: "Hello"
+TYPE: int16
+RESULT: ERROR: conversion to int16: argument is string, expected number
+
+JSON: -32769
+TYPE: int16
+RESULT: ERROR: conversion to int16: number is out-of-bounds
+
+JSON: -32768
+TYPE: int16
+RESULT: OK: -32768
+
+JSON: 32767
+TYPE: int16
+RESULT: OK: 32767
+
+JSON: 32768
+TYPE: int16
+RESULT: ERROR: conversion to int16: number is out-of-bounds
+
+JSON: [-1,0,1]
+TYPE: list.list(int16)
+RESULT: OK: [-1i16, 0i16, 1i16]
+
+JSON: null
+TYPE: uint8
+RESULT: ERROR: conversion to uint8: argument is null, expected number
+
+JSON: "Hello"
+TYPE: uint8
+RESULT: ERROR: conversion to uint8: argument is string, expected number
+
+JSON: -1
+TYPE: uint8
+RESULT: ERROR: conversion to uint8: number is out-of-bounds
+
+JSON: 0
+TYPE: uint8
+RESULT: OK: 0
+
+JSON: 255
+TYPE: uint8
+RESULT: OK: 255
+
+JSON: 256
+TYPE: uint8
+RESULT: ERROR: conversion to uint8: number is out-of-bounds
+
+JSON: [0,1,255]
+TYPE: list.list(uint8)
+RESULT: OK: [0u8, 1u8, 255u8]
+
+JSON: null
+TYPE: uint16
+RESULT: ERROR: conversion to uint16: argument is null, expected number
+
+JSON: "Hello"
+TYPE: uint16
+RESULT: ERROR: conversion to uint16: argument is string, expected number
+
+JSON: -1
+TYPE: uint16
+RESULT: ERROR: conversion to uint16: number is out-of-bounds
+
+JSON: 0
+TYPE: uint16
+RESULT: OK: 0
+
+JSON: 32767
+TYPE: uint16
+RESULT: OK: 32767
+
+JSON: 32768
+TYPE: uint16
+RESULT: OK: 32768
+
+JSON: [0,1,32768]
+TYPE: list.list(uint16)
+RESULT: OK: [0u16, 1u16, 32768u16]
+
+JSON: null
 TYPE: float
 RESULT: ERROR: conversion to float: argument is null, expected number
 
 JSON: "5.61"
 TYPE: float
 RESULT: ERROR: conversion to float: argument is string, expected number
+
+JSON: infinity
+TYPE: float
+RESULT: ERROR: conversion to float: number is not finite
 
 JSON: null
 TYPE: character
