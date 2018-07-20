@@ -34,6 +34,22 @@ Result Term: 0
        JSON: 32767
 Result Term: 32767
 
+ Orig. Term: 0
+       JSON: 0
+Result Term: 0
+
+ Orig. Term: 255
+       JSON: 255
+Result Term: 255
+
+ Orig. Term: 0
+       JSON: 0
+Result Term: 0
+
+ Orig. Term: 65535
+       JSON: 65535
+Result Term: 65535
+
  Orig. Term: 
        JSON: ""
 Result Term: 

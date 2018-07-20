@@ -53,6 +53,8 @@
 :- import_module set_ctree234.
 :- import_module stream.
 :- import_module string.
+:- import_module uint8.
+:- import_module uint16.
 :- import_module unit.
 :- import_module univ.
 :- import_module version_array.
@@ -81,6 +83,14 @@ test_marshaling(File, !IO) :-
     test(File, 0i16, !IO),
     test(File, int16.max_int16, !IO),
 
+    % Test uint8s.
+    test(File, 0u8, !IO),
+    test(File, uint8.max_uint8, !IO),
+
+    % Test uint16s.
+    test(File, 0u16, !IO),
+    test(File, uint16.max_uint16, !IO),
+
     % Test strings.
     test(File, "", !IO),
     test(File, "aaabbbccc", !IO),
@@ -89,10 +99,7 @@ test_marshaling(File, !IO) :-
     % Test floats.
     test(File, 3.141, !IO),
 
-    % XXX for compatibility with Mercury 14.01.1 we get infinity this way.
-    % With later versions we would just use float.infinity/0.
-    Infinity = float.max + float.max,
-    test(File, Infinity, !IO),     % Error.
+    test(File, float.infinity, !IO),     % Error.
 
     % Test chars.
     %
@@ -230,13 +237,8 @@ test_marshaling(File, !IO) :-
 
     % Test bitmaps.
     %
-    % XXX the bitmap module should provide det_from_string.
-    %
-    ( if Bitmap = bitmap.from_string("<24:10AFBD>") then
-        test(File, Bitmap, !IO)
-    else
-        true
-    ),
+    Bitmap = bitmap.det_from_string("<24:10AFBD>"),
+    test(File, Bitmap, !IO),
 
     % Test unit.
     %
