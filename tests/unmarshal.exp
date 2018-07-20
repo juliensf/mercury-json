@@ -67,6 +67,34 @@ TYPE: list.list(int16)
 RESULT: OK: [-1i16, 0i16, 1i16]
 
 JSON: null
+TYPE: int32
+RESULT: ERROR: conversion to int32: argument is null, expected number
+
+JSON: "Hello"
+TYPE: int32
+RESULT: ERROR: conversion to int32: argument is string, expected number
+
+JSON: -2147483649
+TYPE: int32
+RESULT: ERROR: conversion to int32: number is out-of-bounds
+
+JSON: -2147483648
+TYPE: int32
+RESULT: OK: -2147483648
+
+JSON: 2147483647
+TYPE: int32
+RESULT: OK: 2147483647
+
+JSON: 2147483648
+TYPE: int32
+RESULT: ERROR: conversion to int32: number is out-of-bounds
+
+JSON: [-1,0,1]
+TYPE: list.list(int32)
+RESULT: OK: [-1i32, 0i32, 1i32]
+
+JSON: null
 TYPE: uint8
 RESULT: ERROR: conversion to uint8: argument is null, expected number
 

@@ -41,6 +41,7 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_ints(File, !IO),
     test_unmarshal_int8s(File, !IO),
     test_unmarshal_int16s(File, !IO),
+    test_unmarshal_int32s(File, !IO),
     test_unmarshal_uint8s(File, !IO),
     test_unmarshal_uint16s(File, !IO),
     test_unmarshal_floats(File, !IO),
@@ -89,6 +90,19 @@ test_unmarshal_int16s(File, !IO) :-
     do_unmarshal_test(File, number(32768.0), _ : int16, !IO),
     do_unmarshal_test(File, array([number(-1.0), number(0.0), number(1.0)]),
         _ : list(int16), !IO).
+
+:- pred test_unmarshal_int32s(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_int32s(File, !IO) :-
+    do_unmarshal_test(File, null, _ : int32, !IO),
+    do_unmarshal_test(File, string("Hello"), _ : int32, !IO),
+    do_unmarshal_test(File, number(-2_147_483_649.0), _ : int32, !IO),
+    do_unmarshal_test(File, number(-2_147_483_648.0), _ : int32, !IO),
+    do_unmarshal_test(File, number(2_147_483_647.0), _ : int32, !IO),
+    do_unmarshal_test(File, number(2_147_483_648.0), _ : int32, !IO),
+    do_unmarshal_test(File, array([number(-1.0), number(0.0), number(1.0)]),
+        _ : list(int32), !IO).
 
 :- pred test_unmarshal_uint8s(io.text_output_stream::in, io::di, io::uo)
     is det.

@@ -19,6 +19,7 @@
 :- func int_to_json(int) = json.value.
 :- func int8_to_json(int8) = json.value.
 :- func int16_to_json(int16) = json.value.
+:- func int32_to_json(int32) = json.value.
 :- func uint8_to_json(uint8) = json.value.
 :- func uint16_to_json(uint16) = json.value.
 :- func float_to_json(float) = json.value.
@@ -60,6 +61,7 @@
 
 :- import_module int8.
 :- import_module int16.
+:- import_module int32.
 :- import_module exception.
 :- import_module uint8.
 :- import_module uint16.
@@ -75,9 +77,11 @@ int_to_json(Int) = number(float(Int)).
 
 int8_to_json(Int8) = number(float(to_int(Int8))).
 
-uint8_to_json(UInt8) = number(float(to_int(UInt8))).
-
 int16_to_json(Int16) = number(float(to_int(Int16))).
+
+int32_to_json(Int32) = number(float(to_int(Int32))).
+
+uint8_to_json(UInt8) = number(float(to_int(UInt8))).
 
 uint16_to_json(UInt16) = number(float(to_int(UInt16))).
 

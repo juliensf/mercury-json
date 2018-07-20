@@ -37,6 +37,7 @@
 :- import_module int.
 :- import_module int8.
 :- import_module int16.
+:- import_module int32.
 :- import_module integer.
 :- import_module list.
 :- import_module map.
@@ -82,6 +83,11 @@ test_marshaling(File, !IO) :-
     test(File, int16.min_int16, !IO),
     test(File, 0i16, !IO),
     test(File, int16.max_int16, !IO),
+
+    % Test int32s.
+    test(File, int32.min_int32, !IO),
+    test(File, 0i32, !IO),
+    test(File, int32.max_int32, !IO),
 
     % Test uint8s.
     test(File, 0u8, !IO),
