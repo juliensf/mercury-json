@@ -46,6 +46,18 @@ Result Term: 0
        JSON: 2147483647
 Result Term: 2147483647
 
+ Orig. Term: -9223372036854775808
+       JSON: "-9223372036854775808"
+Result Term: -9223372036854775808
+
+ Orig. Term: 0
+       JSON: "0"
+Result Term: 0
+
+ Orig. Term: 9223372036854775807
+       JSON: "9223372036854775807"
+Result Term: 9223372036854775807
+
  Orig. Term: 0
        JSON: 0
 Result Term: 0
@@ -61,6 +73,14 @@ Result Term: 0
  Orig. Term: 65535
        JSON: 65535
 Result Term: 65535
+
+ Orig. Term: 0
+       JSON: "0"
+Result Term: 0
+
+ Orig. Term: 18446744073709551615
+       JSON: "18446744073709551615"
+Result Term: 18446744073709551615
 
  Orig. Term: 
        JSON: ""

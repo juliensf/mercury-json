@@ -95,6 +95,38 @@ TYPE: list.list(int32)
 RESULT: OK: [-1i32, 0i32, 1i32]
 
 JSON: null
+TYPE: int64
+RESULT: ERROR: conversion to int64: argument is null, expected string
+
+JSON: 561
+TYPE: int64
+RESULT: ERROR: conversion to int64: argument is number, expected string
+
+JSON: "Hello"
+TYPE: int64
+RESULT: ERROR: conversion to int64: cannot convert string to int64
+
+JSON: "-9223372036854775809"
+TYPE: int64
+RESULT: ERROR: conversion to int64: number is out-of-bounds
+
+JSON: "-9223372036854775808"
+TYPE: int64
+RESULT: OK: -9223372036854775808
+
+JSON: "9223372036854775807"
+TYPE: int64
+RESULT: OK: 9223372036854775807
+
+JSON: "9223372036854775808"
+TYPE: int64
+RESULT: ERROR: conversion to int64: number is out-of-bounds
+
+JSON: ["-1","0","1"]
+TYPE: list.list(int64)
+RESULT: OK: [-1i64, 0i64, 1i64]
+
+JSON: null
 TYPE: uint8
 RESULT: ERROR: conversion to uint8: argument is null, expected number
 
@@ -149,6 +181,38 @@ RESULT: OK: 32768
 JSON: [0,1,32768]
 TYPE: list.list(uint16)
 RESULT: OK: [0u16, 1u16, 32768u16]
+
+JSON: null
+TYPE: uint64
+RESULT: ERROR: conversion to uint64: argument is null, expected string
+
+JSON: 561
+TYPE: uint64
+RESULT: ERROR: conversion to uint64: argument is number, expected string
+
+JSON: "Hello"
+TYPE: uint64
+RESULT: ERROR: conversion to uint64: cannot convert string to uint64
+
+JSON: "-1"
+TYPE: uint64
+RESULT: ERROR: conversion to uint64: number is out-of-bounds
+
+JSON: "0"
+TYPE: uint64
+RESULT: OK: 0
+
+JSON: "18446744073709551615"
+TYPE: uint64
+RESULT: OK: 18446744073709551615
+
+JSON: "18446744073709551616"
+TYPE: uint64
+RESULT: ERROR: conversion to uint64: number is out-of-bounds
+
+JSON: ["0","1"]
+TYPE: list.list(uint64)
+RESULT: OK: [0u64, 1u64]
 
 JSON: null
 TYPE: float

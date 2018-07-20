@@ -20,8 +20,10 @@
 :- func int8_from_json(value) = maybe_error(int8).
 :- func int16_from_json(value) = maybe_error(int16).
 :- func int32_from_json(value) = maybe_error(int32).
+:- func int64_from_json(value) = maybe_error(int64).
 :- func uint8_from_json(value) = maybe_error(uint8).
 :- func uint16_from_json(value) = maybe_error(uint16).
+:- func uint64_from_json(value) = maybe_error(uint64).
 :- func float_from_json(value) = maybe_error(float).
 :- func char_from_json(value) = maybe_error(char).
 :- func string_from_json(value) = maybe_error(string).
@@ -174,6 +176,26 @@ int32_from_json(Value) = Result :-
         Result = error(ErrorMsg)
     ).
 
+int64_from_json(Value) = Result :-
+    ( if Value = string(NumberStr) then
+        ( if integer.from_string(NumberStr, Number) then
+            ( if integer.to_int64(Number, Int64) then
+                Result = ok(Int64)
+            else
+                ErrorMsg = make_int_conv_bounds_error_msg("int64"),
+                Result = error(ErrorMsg)
+            )
+        else
+            TypeDesc = type_desc_from_result(Result),
+            ErrorMsg = make_string_conv_error_msg(TypeDesc, "int64"),
+            Result = error(ErrorMsg)
+        )
+    else
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
+    ).
+
 uint8_from_json(Value) = Result :-
     ( if Value = number(Number) then
         Int = truncate_to_int(Number),
@@ -201,6 +223,26 @@ uint16_from_json(Value) = Result :-
     else
         TypeDesc = type_desc_from_result(Result),
         ErrorMsg = make_conv_error_msg(TypeDesc, Value, "number"),
+        Result = error(ErrorMsg)
+    ).
+
+uint64_from_json(Value) = Result :-
+    ( if Value = string(NumberStr) then
+        ( if integer.from_string(NumberStr, Number) then
+            ( if integer.to_uint64(Number, UInt64) then
+                Result = ok(UInt64)
+            else
+                ErrorMsg = make_int_conv_bounds_error_msg("uint64"),
+                Result = error(ErrorMsg)
+            )
+        else
+            TypeDesc = type_desc_from_result(Result),
+            ErrorMsg = make_string_conv_error_msg(TypeDesc, "uint64"),
+            Result = error(ErrorMsg)
+        )
+    else
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
         Result = error(ErrorMsg)
     ).
 
@@ -276,7 +318,7 @@ bool_from_json(Value) = Result :-
 integer_from_json(Value) = Result :-
     (
         Value = string(String),
-        ( if Integer : integer = integer.from_string(String) then
+        ( if integer.from_string(String, Integer) then
             Result = ok(Integer)
         else
             TypeDesc = type_desc_from_result(Result),

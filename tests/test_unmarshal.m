@@ -42,8 +42,10 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_int8s(File, !IO),
     test_unmarshal_int16s(File, !IO),
     test_unmarshal_int32s(File, !IO),
+    test_unmarshal_int64s(File, !IO),
     test_unmarshal_uint8s(File, !IO),
     test_unmarshal_uint16s(File, !IO),
+    test_unmarshal_uint64s(File, !IO),
     test_unmarshal_floats(File, !IO),
     test_unmarshal_chars(File, !IO),
     test_unmarshal_strings(File, !IO),
@@ -104,6 +106,20 @@ test_unmarshal_int32s(File, !IO) :-
     do_unmarshal_test(File, array([number(-1.0), number(0.0), number(1.0)]),
         _ : list(int32), !IO).
 
+:- pred test_unmarshal_int64s(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_int64s(File, !IO) :-
+    do_unmarshal_test(File, null, _ : int64, !IO),
+    do_unmarshal_test(File, number(561.0), _ : int64, !IO),
+    do_unmarshal_test(File, string("Hello"), _ : int64, !IO),
+    do_unmarshal_test(File, string("-9223372036854775809"), _ : int64, !IO),
+    do_unmarshal_test(File, string("-9223372036854775808"), _ : int64, !IO),
+    do_unmarshal_test(File, string("9223372036854775807"), _ : int64, !IO),
+    do_unmarshal_test(File, string("9223372036854775808"), _ : int64, !IO),
+    do_unmarshal_test(File, array([string("-1"), string("0"), string("1")]),
+        _ : list(int64), !IO).
+
 :- pred test_unmarshal_uint8s(io.text_output_stream::in, io::di, io::uo)
     is det.
 
@@ -129,6 +145,20 @@ test_unmarshal_uint16s(File, !IO) :-
     do_unmarshal_test(File, number(32768.0), _ : uint16, !IO),
     do_unmarshal_test(File, array([number(0.0), number(1.0), number(32768.0)]),
         _ : list(uint16), !IO).
+
+:- pred test_unmarshal_uint64s(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_uint64s(File, !IO) :-
+    do_unmarshal_test(File, null, _ : uint64, !IO),
+    do_unmarshal_test(File, number(561.0), _ : uint64, !IO),
+    do_unmarshal_test(File, string("Hello"), _ : uint64, !IO),
+    do_unmarshal_test(File, string("-1"), _ : uint64, !IO),
+    do_unmarshal_test(File, string("0"), _ : uint64, !IO),
+    do_unmarshal_test(File, string("18446744073709551615"), _ : uint64, !IO),
+    do_unmarshal_test(File, string("18446744073709551616"), _ : uint64, !IO),
+    do_unmarshal_test(File, array([string("0"), string("1")]),
+        _ : list(uint64), !IO).
 
 :- pred test_unmarshal_floats(io.text_output_stream::in, io::di, io::uo)
     is det.

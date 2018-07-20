@@ -38,6 +38,7 @@
 :- import_module int8.
 :- import_module int16.
 :- import_module int32.
+:- import_module int64.
 :- import_module integer.
 :- import_module list.
 :- import_module map.
@@ -56,6 +57,7 @@
 :- import_module string.
 :- import_module uint8.
 :- import_module uint16.
+:- import_module uint64.
 :- import_module unit.
 :- import_module univ.
 :- import_module version_array.
@@ -89,6 +91,11 @@ test_marshaling(File, !IO) :-
     test(File, 0i32, !IO),
     test(File, int32.max_int32, !IO),
 
+    % Test int64s.
+    test(File, int64.min_int64, !IO),
+    test(File, 0i64, !IO),
+    test(File, int64.max_int64, !IO),
+
     % Test uint8s.
     test(File, 0u8, !IO),
     test(File, uint8.max_uint8, !IO),
@@ -96,6 +103,10 @@ test_marshaling(File, !IO) :-
     % Test uint16s.
     test(File, 0u16, !IO),
     test(File, uint16.max_uint16, !IO),
+
+    % Test uint64s.
+    test(File, 0u64, !IO),
+    test(File, uint64.max_uint64, !IO),
 
     % Test strings.
     test(File, "", !IO),
