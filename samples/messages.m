@@ -1,7 +1,7 @@
 %---------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et wm=0 tw=0
 %---------------------------------------------------------------------------%
-% Copyright (C) 2016, Julien Fischer.
+% Copyright (C) 2016, 2018 Julien Fischer.
 % See the file COPYING for license details.
 %---------------------------------------------------------------------------%
 %
@@ -165,7 +165,7 @@ do_http_get_request(MR_String uri)
 
     struct Response response;
 
-    // The repsonse is initially empty -- the callback will grow it as
+    // The response is initially empty -- the callback will grow it as
     // required.
     //
     response.data = MR_GC_malloc(1);
