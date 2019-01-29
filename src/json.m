@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2018, Julien Fischer.
+% Copyright (C) 2013-2019, Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -1727,7 +1727,7 @@ to_char_name(0x001A, "SUBSTITUTE").
 to_char_name(0x001B, "ESCAPE").
 to_char_name(0x001C, "INFORMATION SEPARATOR FOUR").
 to_char_name(0x001D, "INFORMATION SEPARATOR THREE").
-to_char_name(0x001E, "INFOMRATION SEPARATOR TWO").
+to_char_name(0x001E, "INFORMATION SEPARATOR TWO").
 to_char_name(0x001F, "INFORMATION SEPARATOR ONE").
 
 %-----------------------------------------------------------------------------%
