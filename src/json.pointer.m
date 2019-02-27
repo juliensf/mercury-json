@@ -85,29 +85,26 @@ do_resolve(Pointer, Value, Result) :-
 
 :- pred do_resolve_token(list(string)::in, value::in, value::out) is semidet.
 
-do_resolve_token(RefTokens, Value0, Result) :-
+do_resolve_token(RefTokens, !.Value, Result) :-
     (
         RefTokens = [],
-        Result = Value0
+        Result = !.Value
     ;
         RefTokens = [RefToken | RefTokensPrime],
-        % XXX POST 14.01 -- Mercury 14.01 does not support state variables in
-        % require_complete_switch scope heads -- for compatibility we avoid
-        % using state variables for Value here.
-        require_complete_switch [Value0] (
-            Value0 = array(Elements),
-            string.to_int(RefToken, Index),       % semidet.
-            list.index0(Elements, Index, Value),  % semidet.
-            do_resolve_token(RefTokensPrime, Value, Result)
+        require_complete_switch [!.Value] (
+            !.Value = array(Elements),
+            string.to_int(RefToken, Index),         % semidet.
+            list.index0(Elements, Index, !:Value),  % semidet.
+            do_resolve_token(RefTokensPrime, !.Value, Result)
         ;
-            Value0 = object(Members),
-            map.search(Members, RefToken, Value), % semidet.
-            do_resolve_token(RefTokensPrime, Value, Result)
+            !.Value = object(Members),
+            map.search(Members, RefToken, !:Value), % semidet.
+            do_resolve_token(RefTokensPrime, !.Value, Result)
         ;
-            ( Value0 = null
-            ; Value0 = bool(_)
-            ; Value0 = number(_)
-            ; Value0 = string(_)
+            ( !.Value = null
+            ; !.Value = bool(_)
+            ; !.Value = number(_)
+            ; !.Value = string(_)
             ),
             false
         )
