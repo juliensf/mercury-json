@@ -364,7 +364,7 @@
             % An unescaped control character in the range [0x0000, 0x001F]
             % was encountered inside a string.
             % The first argument gives the context of the beginning of the
-            % string; the second is the codepoint of the unescaped control
+            % string; the second is the code point of the unescaped control
             % character encountered.
 
     ;       illegal_start_character(char)
@@ -380,12 +380,12 @@
             % infinite magnitude.
 
     ;       illegal_negation(char)
-            % In a context where a number is expected, '-' seen but the
+            % In a context where a number is expected, '-' was seen but the
             % following character (given by the argument) was not a digit.
 
     ;       illegal_comment_start(char)
             % We have just seen '/' and are expecting to see either '/'
-            % or '*' but instead saw character given in the argument.
+            % or '*' but instead saw the character given in the argument.
 
     ;       bad_signed_exponent(char, char)
             % bad_signed_exponent(SignChar, Char):
@@ -1781,7 +1781,7 @@ to_char_name(0x0011, "DEVICE CONTROL ONE").
 to_char_name(0x0012, "DEVICE CONTROL TWO").
 to_char_name(0x0013, "DEVICE CONTROL THREE").
 to_char_name(0x0014, "DEVICE CONTROL FOUR").
-to_char_name(0x0015, "NEGATIVE ACKOWLEDGE").
+to_char_name(0x0015, "NEGATIVE ACKNOWLEDGE").
 to_char_name(0x0016, "SYNCHRONOUS IDLE").
 to_char_name(0x0017, "END OF TRANSMISSION BLOCK").
 to_char_name(0x0018, "CANCEL").
