@@ -200,6 +200,16 @@
 
 %-----------------------------------------------------------------------------%
 %
+% JSON media (MIME) type.
+%
+
+    % Return the IANA registered media type for JSON.
+    % The string returned does not include a character encoding.
+    %
+:- func media_type = string.
+
+%-----------------------------------------------------------------------------%
+%
 % JSON reader.
 %
 
@@ -2063,6 +2073,10 @@ det_resolve(Pointer, Doc) =
     else
         func_error("json.det_resolve: resolve failed")
     ).
+
+%-----------------------------------------------------------------------------%
+
+media_type = "application/json".
 
 %-----------------------------------------------------------------------------%
 
