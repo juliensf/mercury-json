@@ -48,6 +48,12 @@ To run the regression test suite, do:
 The [samples](samples) directory contains some example programs that
 demonstrate different features of the library.
 
+## MERCURY 14.01.X COMPATIBILITY
+
+The code on the master branch is **not** compatible with Mercury 14.01.X.
+If you require a version of 'mercury_json' that works with Mercury 14.01.X,
+then checkout the mercury\_14\_01 branch.
+
 ## AUTHOR
 
 Julien Fischer <juliensf@gmail.com>
