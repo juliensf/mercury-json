@@ -154,13 +154,21 @@ test_file_stream_writers(File, !IO) :-
 
 test_writer_params = [
     writer_params(compact, do_not_allow_infinities, escape_solidus, no_member_filter),
+    writer_params(compact, do_not_allow_infinities, do_not_escape_solidus, no_member_filter),
     writer_params(compact, allow_infinities, escape_solidus, no_member_filter),
+    writer_params(compact, allow_infinities, do_not_escape_solidus, no_member_filter),
     writer_params(compact, do_not_allow_infinities, escape_solidus, member_filter(filter_foo)),
+    writer_params(compact, do_not_allow_infinities, do_not_escape_solidus, member_filter(filter_foo)),
     writer_params(compact, allow_infinities, escape_solidus, member_filter(filter_foo)),
+    writer_params(compact, allow_infinities, do_not_escape_solidus, member_filter(filter_foo)),
     writer_params(pretty, do_not_allow_infinities, escape_solidus, no_member_filter),
+    writer_params(pretty, do_not_allow_infinities, do_not_escape_solidus, no_member_filter),
     writer_params(pretty, allow_infinities, escape_solidus, no_member_filter),
+    writer_params(pretty, allow_infinities, do_not_escape_solidus, no_member_filter),
     writer_params(pretty, do_not_allow_infinities, escape_solidus, member_filter(filter_foo)),
-    writer_params(pretty, allow_infinities, escape_solidus, member_filter(filter_foo))
+    writer_params(pretty, do_not_allow_infinities, do_not_escape_solidus, member_filter(filter_foo)),
+    writer_params(pretty, allow_infinities, escape_solidus, member_filter(filter_foo)),
+    writer_params(pretty, allow_infinities, do_not_escape_solidus, member_filter(filter_foo))
 ].
 
 :- pred filter_foo(string::in, value::in) is semidet.
@@ -190,7 +198,8 @@ test_documents = [
     json.det_make_object([
         "foo" - bool(yes),
         "bar" - bool(no)
-    ])
+    ]),
+    string("https://github.com/juliensf/mercury-json")
 ].
 
 %-----------------------------------------------------------------------------%

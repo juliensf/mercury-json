@@ -17,6 +17,29 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
 
 {"bar":false,"foo":true}
 
+"https:\/\/github.com\/juliensf\/mercury-json"
+
+*** Testing writer(compact, do_not_allow_infinities, do_not_escape_solidus, no_member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+EXCP (non_finite_number_error("put_number: inf or -inf"))
+
+""
+
+"foo"
+
+[1,2,3,4,5,6]
+
+{"bar":false,"foo":true}
+
+"https://github.com/juliensf/mercury-json"
+
 *** Testing writer(compact, allow_infinities, escape_solidus, no_member_filter) ***
 null
 
@@ -35,6 +58,29 @@ Infinity
 [1,2,3,4,5,6]
 
 {"bar":false,"foo":true}
+
+"https:\/\/github.com\/juliensf\/mercury-json"
+
+*** Testing writer(compact, allow_infinities, do_not_escape_solidus, no_member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+Infinity
+
+""
+
+"foo"
+
+[1,2,3,4,5,6]
+
+{"bar":false,"foo":true}
+
+"https://github.com/juliensf/mercury-json"
 
 *** Testing writer(compact, do_not_allow_infinities, escape_solidus, member_filter) ***
 null
@@ -55,6 +101,29 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
 
 {"bar":false}
 
+"https:\/\/github.com\/juliensf\/mercury-json"
+
+*** Testing writer(compact, do_not_allow_infinities, do_not_escape_solidus, member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+EXCP (non_finite_number_error("put_number: inf or -inf"))
+
+""
+
+"foo"
+
+[1,2,3,4,5,6]
+
+{"bar":false}
+
+"https://github.com/juliensf/mercury-json"
+
 *** Testing writer(compact, allow_infinities, escape_solidus, member_filter) ***
 null
 
@@ -73,6 +142,29 @@ Infinity
 [1,2,3,4,5,6]
 
 {"bar":false}
+
+"https:\/\/github.com\/juliensf\/mercury-json"
+
+*** Testing writer(compact, allow_infinities, do_not_escape_solidus, member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+Infinity
+
+""
+
+"foo"
+
+[1,2,3,4,5,6]
+
+{"bar":false}
+
+"https://github.com/juliensf/mercury-json"
 
 *** Testing writer(pretty, do_not_allow_infinities, escape_solidus, no_member_filter) ***
 null
@@ -103,6 +195,39 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
   "foo" : true
 }
 
+"https:\/\/github.com\/juliensf\/mercury-json"
+
+*** Testing writer(pretty, do_not_allow_infinities, do_not_escape_solidus, no_member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+EXCP (non_finite_number_error("put_number: inf or -inf"))
+
+""
+
+"foo"
+
+[
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+]
+
+{
+  "bar" : false,
+  "foo" : true
+}
+
+"https://github.com/juliensf/mercury-json"
+
 *** Testing writer(pretty, allow_infinities, escape_solidus, no_member_filter) ***
 null
 
@@ -132,6 +257,39 @@ Infinity
   "foo" : true
 }
 
+"https:\/\/github.com\/juliensf\/mercury-json"
+
+*** Testing writer(pretty, allow_infinities, do_not_escape_solidus, no_member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+Infinity
+
+""
+
+"foo"
+
+[
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+]
+
+{
+  "bar" : false,
+  "foo" : true
+}
+
+"https://github.com/juliensf/mercury-json"
+
 *** Testing writer(pretty, do_not_allow_infinities, escape_solidus, member_filter) ***
 null
 
@@ -160,6 +318,38 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
   "bar" : false
 }
 
+"https:\/\/github.com\/juliensf\/mercury-json"
+
+*** Testing writer(pretty, do_not_allow_infinities, do_not_escape_solidus, member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+EXCP (non_finite_number_error("put_number: inf or -inf"))
+
+""
+
+"foo"
+
+[
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+]
+
+{
+  "bar" : false
+}
+
+"https://github.com/juliensf/mercury-json"
+
 *** Testing writer(pretty, allow_infinities, escape_solidus, member_filter) ***
 null
 
@@ -187,6 +377,38 @@ Infinity
 {
   "bar" : false
 }
+
+"https:\/\/github.com\/juliensf\/mercury-json"
+
+*** Testing writer(pretty, allow_infinities, do_not_escape_solidus, member_filter) ***
+null
+
+true
+
+false
+
+3.141
+
+Infinity
+
+""
+
+"foo"
+
+[
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+]
+
+{
+  "bar" : false
+}
+
+"https://github.com/juliensf/mercury-json"
 //
 //This is an EOL comment
 /**//*This is a mutli
