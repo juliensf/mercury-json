@@ -601,9 +601,10 @@
 
 :- type json.writer_params
     --->    writer_params(
-                output_style            :: output_style,
-                output_allow_infinities :: allow_infinities,
-                output_member_filter    :: member_filter
+                output_style             :: output_style,
+                output_allow_infinities  :: allow_infinities,
+                output_escape_solidus    :: escape_solidus,
+                output_member_filter     :: member_filter
             ).
 
     % This function provides backwards compatibility with older versions of
@@ -612,12 +613,20 @@
 :- func writer_params(output_style::in, allow_infinities::in) =
     (writer_params::out(writer_params)) is det.
 
-:- inst json.writer_params
-    --->    writer_params(ground, ground, member_filter).
+:- inst writer_params
+    --->    writer_params(ground, ground, ground, member_filter).
 
 :- type json.output_style
     --->    compact
     ;       pretty.
+
+    % Should we escape the SOLIDUS (forward slash) character ('/') in the
+    % output? Such an escape is optional for in JSON, but may be required
+    % when embedding JSON in other contexts.
+    %
+:- type escape_solidus
+    --->    escape_solidus
+    ;       do_not_escape_solidus.
 
     % A member filter is a semidet predicate whose two arguments are an object
     % member name and its corresponding value.  If the predicate succeeds then
@@ -1190,34 +1199,38 @@ array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
                 json_writer_stream     :: Stream,
                 json_output_style      :: output_style,
                 json_output_infinities :: allow_infinities,
+                json_escape_solidus    :: escape_solidus,
                 json_member_filter     :: member_filter
             ).
 
+:- inst json.writer for json.writer/1
+    --->    json_writer(ground, ground, ground, ground, member_filter).
+
 init_writer(Stream, Writer, !State) :-
     Writer = json_writer(Stream, compact, do_not_allow_infinities,
-        no_member_filter).
+        escape_solidus, no_member_filter).
 
 init_writer(Stream, Parameters, Writer, !State) :-
-    Parameters = writer_params(OutputStyle, AllowInfinities, MemberFilter),
-    Writer = json_writer(Stream, OutputStyle, AllowInfinities, MemberFilter).
+    Parameters = writer_params(OutputStyle, AllowInfinities, EscapeSolidus,
+        MemberFilter),
+    Writer = json_writer(Stream, OutputStyle, AllowInfinities, EscapeSolidus,
+        MemberFilter).
 
 writer_params(OutputStyle, AllowInfinities) =
-    writer_params(OutputStyle, AllowInfinities, no_member_filter).
+    writer_params(OutputStyle, AllowInfinities, escape_solidus,
+        no_member_filter).
 
 %-----------------------------------------------------------------------------%
 
 put_value(Writer, Value, !State) :-
-    Writer = json_writer(Stream, OutputStyle, AllowInfinities,
-        MemberFilter0),
-    cast_member_filter_to_pred(MemberFilter0, MemberFilter),
+    cast_writer(Writer, WriterPrime),
+    OutputStyle = Writer ^ json_output_style,
     (
         OutputStyle = compact,
-        writer.raw_put_value(Stream, AllowInfinities, MemberFilter,
-            Value, !State)
+        writer.raw_put_value(WriterPrime, Value, !State)
     ;
         OutputStyle = pretty,
-        writer.pretty_put_value(Stream, AllowInfinities, MemberFilter,
-            Value, !State)
+        writer.pretty_put_value(WriterPrime, Value, !State)
     ).
 
 put_comment(Writer, Comment, !State) :-
@@ -1230,32 +1243,32 @@ put_comment(Writer, Comment, !State) :-
         writer.put_multiline_comment(Stream, String, !State)
     ).
 
-:- pred cast_member_filter_to_pred(member_filter::in,
-    member_filter::out(member_filter)) is det.
+:- pred cast_writer(json.writer(Stream)::in,
+    json.writer(Stream)::out(json.writer)) is det.
 
 :- pragma foreign_proc("C",
-    cast_member_filter_to_pred(A::in, B::out(member_filter)),
+    cast_writer(A::in, B::out(json.writer)),
     [promise_pure, will_not_call_mercury, thread_safe, will_not_modify_trail],
 "
     B = A;
 ").
 
 :- pragma foreign_proc("Java",
-    cast_member_filter_to_pred(A::in, B::out(member_filter)),
+    cast_writer(A::in, B::out(json.writer)),
     [promise_pure, will_not_call_mercury, thread_safe],
 "
     B = A;
 ").
 
 :- pragma foreign_proc("C#",
-    cast_member_filter_to_pred(A::in, B::out(member_filter)),
+    cast_writer(A::in, B::out(json.writer)),
     [promise_pure, will_not_call_mercury, thread_safe],
 "
     B = A;
 ").
 
 :- pragma foreign_proc("Erlang",
-    cast_member_filter_to_pred(A::in, B::out(member_filter)),
+    cast_writer(A::in, B::out(json.writer)),
     [promise_pure, will_not_call_mercury, thread_safe],
 "
     B = A
@@ -1275,12 +1288,14 @@ write_pretty(Value, !IO) :-
     write_pretty(File, Value, !IO).
 
 write_compact(File, Value, !IO) :-
-    Params = writer_params(compact, do_not_allow_infinities, no_member_filter),
+    Params = writer_params(compact, do_not_allow_infinities,
+        do_not_escape_solidus, no_member_filter),
     init_writer(File, Params, Writer, !IO),
     put_value(Writer, Value, !IO).
 
 write_pretty(File, Value, !IO) :-
-    Params = writer_params(pretty, do_not_allow_infinities, no_member_filter),
+    Params = writer_params(pretty, do_not_allow_infinities,
+        do_not_escape_solidus, no_member_filter),
     init_writer(File, Params, Writer, !IO),
     put_value(Writer, Value, !IO).
 

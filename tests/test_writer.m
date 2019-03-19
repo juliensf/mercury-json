@@ -44,7 +44,8 @@ test_writer(File, !IO) :-
 
 test_writers(_, [], !IO).
 test_writers(File, [Params | OtherParams], !IO) :-
-    Params = writer_params(Style, AllowInfinities, MemberFilter),
+    Params = writer_params(Style, AllowInfinities, EscapeSolidus,
+        MemberFilter),
     (
         MemberFilter = no_member_filter,
         MemberFilterStr = "no_member_filter"
@@ -52,8 +53,9 @@ test_writers(File, [Params | OtherParams], !IO) :-
         MemberFilter = member_filter(_),
         MemberFilterStr = "member_filter"
     ),
-    io.format(File, "*** Testing writer(%s, %s, %s) ***\n",
-        [s(string(Style)), s(string(AllowInfinities)), s(MemberFilterStr)], !IO),
+    io.format(File, "*** Testing writer(%s, %s, %s, %s) ***\n",
+        [s(string(Style)), s(string(AllowInfinities)),
+        s(string(EscapeSolidus)), s(MemberFilterStr)], !IO),
     test_writer(File, Params, test_documents, !IO),
     (
         OtherParams = []
@@ -151,14 +153,14 @@ test_file_stream_writers(File, !IO) :-
 :- func test_writer_params = (list(writer_params)::out(list(writer_params))).
 
 test_writer_params = [
-    writer_params(compact, do_not_allow_infinities, no_member_filter),
-    writer_params(compact, allow_infinities, no_member_filter),
-    writer_params(compact, do_not_allow_infinities, member_filter(filter_foo)),
-    writer_params(compact, allow_infinities, member_filter(filter_foo)),
-    writer_params(pretty, do_not_allow_infinities, no_member_filter),
-    writer_params(pretty, allow_infinities, no_member_filter),
-    writer_params(pretty, do_not_allow_infinities, member_filter(filter_foo)),
-    writer_params(pretty, allow_infinities, member_filter(filter_foo))
+    writer_params(compact, do_not_allow_infinities, escape_solidus, no_member_filter),
+    writer_params(compact, allow_infinities, escape_solidus, no_member_filter),
+    writer_params(compact, do_not_allow_infinities, escape_solidus, member_filter(filter_foo)),
+    writer_params(compact, allow_infinities, escape_solidus, member_filter(filter_foo)),
+    writer_params(pretty, do_not_allow_infinities, escape_solidus, no_member_filter),
+    writer_params(pretty, allow_infinities, escape_solidus, no_member_filter),
+    writer_params(pretty, do_not_allow_infinities, escape_solidus, member_filter(filter_foo)),
+    writer_params(pretty, allow_infinities, escape_solidus, member_filter(filter_foo))
 ].
 
 :- pred filter_foo(string::in, value::in) is semidet.

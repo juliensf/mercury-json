@@ -1,4 +1,4 @@
-*** Testing writer(compact, do_not_allow_infinities, no_member_filter) ***
+*** Testing writer(compact, do_not_allow_infinities, escape_solidus, no_member_filter) ***
 null
 
 true
@@ -17,7 +17,7 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
 
 {"bar":false,"foo":true}
 
-*** Testing writer(compact, allow_infinities, no_member_filter) ***
+*** Testing writer(compact, allow_infinities, escape_solidus, no_member_filter) ***
 null
 
 true
@@ -36,7 +36,7 @@ Infinity
 
 {"bar":false,"foo":true}
 
-*** Testing writer(compact, do_not_allow_infinities, member_filter) ***
+*** Testing writer(compact, do_not_allow_infinities, escape_solidus, member_filter) ***
 null
 
 true
@@ -55,7 +55,7 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
 
 {"bar":false}
 
-*** Testing writer(compact, allow_infinities, member_filter) ***
+*** Testing writer(compact, allow_infinities, escape_solidus, member_filter) ***
 null
 
 true
@@ -74,7 +74,7 @@ Infinity
 
 {"bar":false}
 
-*** Testing writer(pretty, do_not_allow_infinities, no_member_filter) ***
+*** Testing writer(pretty, do_not_allow_infinities, escape_solidus, no_member_filter) ***
 null
 
 true
@@ -103,7 +103,7 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
   "foo" : true
 }
 
-*** Testing writer(pretty, allow_infinities, no_member_filter) ***
+*** Testing writer(pretty, allow_infinities, escape_solidus, no_member_filter) ***
 null
 
 true
@@ -132,7 +132,7 @@ Infinity
   "foo" : true
 }
 
-*** Testing writer(pretty, do_not_allow_infinities, member_filter) ***
+*** Testing writer(pretty, do_not_allow_infinities, escape_solidus, member_filter) ***
 null
 
 true
@@ -160,7 +160,7 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
   "bar" : false
 }
 
-*** Testing writer(pretty, allow_infinities, member_filter) ***
+*** Testing writer(pretty, allow_infinities, escape_solidus, member_filter) ***
 null
 
 true
