@@ -621,7 +621,7 @@
     ;       pretty.
 
     % Should we escape the SOLIDUS (forward slash) character ('/') in the
-    % output? Such an escape is optional for in JSON, but may be required
+    % output?  Such an escape is optional for in JSON, but may be required
     % when embedding JSON in other contexts.
     %
 :- type escape_solidus
@@ -1208,7 +1208,7 @@ array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
 
 init_writer(Stream, Writer, !State) :-
     Writer = json_writer(Stream, compact, do_not_allow_infinities,
-        escape_solidus, no_member_filter).
+        do_not_escape_solidus, no_member_filter).
 
 init_writer(Stream, Parameters, Writer, !State) :-
     Parameters = writer_params(OutputStyle, AllowInfinities, EscapeSolidus,
