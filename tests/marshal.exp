@@ -282,7 +282,7 @@ Result Term: bag(four(apple, 1, lemon, 3, pear, 2, empty, empty, empty, empty))
 Result Term: [bool(yes), bool(no), null, number(5.61)]
 
  Orig. Term: pointer(["foo", "/bar", "12", "-", "~~~/"])
-       JSON: "\/foo\/~1bar\/12\/-\/~0~0~0~1"
+       JSON: "/foo/~1bar/12/-/~0~0~0~1"
 Result Term: pointer(["foo", "/bar", "12", "-", "~~~/"])
 
 to_string(null) = "null"

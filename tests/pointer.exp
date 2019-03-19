@@ -1,6 +1,6 @@
 Testing JSON pointer resolution using resolve/3:
 TEST POINTER: ""
-RESULT: {"":0," ":7,"a\/b":1,"c%d":2,"e^f":3,"foo":["bar","baz"],"g|h":4,"i\\j":5,"k\"l":6,"m~n":8}
+RESULT: {"":0," ":7,"a/b":1,"c%d":2,"e^f":3,"foo":["bar","baz"],"g|h":4,"i\\j":5,"k\"l":6,"m~n":8}
 TEST POINTER: "/foo"
 RESULT: ["bar","baz"]
 TEST POINTER: "/foo/0"
@@ -34,7 +34,7 @@ RESULT: <<cannot resolve pointer>>
 
 Testing JSON pointer resolution using det_resolve/2:
 TEST POINTER: ""
-RESULT: {"":0," ":7,"a\/b":1,"c%d":2,"e^f":3,"foo":["bar","baz"],"g|h":4,"i\\j":5,"k\"l":6,"m~n":8}
+RESULT: {"":0," ":7,"a/b":1,"c%d":2,"e^f":3,"foo":["bar","baz"],"g|h":4,"i\\j":5,"k\"l":6,"m~n":8}
 TEST POINTER: "/foo"
 RESULT: ["bar","baz"]
 TEST POINTER: "/foo/0"
