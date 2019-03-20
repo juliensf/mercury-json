@@ -1203,7 +1203,7 @@ array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
                 json_member_filter     :: member_filter
             ).
 
-:- inst json.writer for json.writer/1
+:- inst json.writer
     --->    json_writer(ground, ground, ground, ground, member_filter).
 
 init_writer(Stream, Writer, !State) :-
