@@ -31,6 +31,7 @@
 :- import_module float.
 :- import_module integer.
 :- import_module list.
+:- import_module map.
 :- import_module maybe.
 :- import_module pair.
 :- import_module type_desc.
@@ -55,7 +56,8 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_lists(File, !IO),
     test_unmarshal_arrays(File, !IO),
     test_unmarshal_array2ds(File, !IO),
-    test_unmarshal_digraphs(File, !IO).
+    test_unmarshal_digraphs(File, !IO),
+    test_unmarshal_maps(File, !IO).
 
 %-----------------------------------------------------------------------------%
 
@@ -367,6 +369,25 @@ test_unmarshal_digraphs(File, !IO) :-
             "vertices" - array([null, string("B")]),
             "edges"    - array([])
         ]), _ : digraph(string), !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_maps(io.text_output_stream::in, io::di, io::uo) is det.
+
+test_unmarshal_maps(File, !IO) :-
+
+    % Test empty map.
+    %
+    do_unmarshal_test(File, array([]), _ : map(int, int), !IO),
+
+    % Regression test for githun issue #4: the type of the expected value in
+    % the error message was incorrectly reported to be "object" when it should
+    % have read array.
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "foo" - array([string("a"), string("b")]),
+            "bar" - array([string("c")])
+        ]), _ : map(string, list(string)), !IO).
 
 %-----------------------------------------------------------------------------%
 

@@ -386,3 +386,11 @@ JSON: {"edges":[],"vertices":[null,"B"]}
 TYPE: digraph.digraph(string)
 RESULT: ERROR: conversion to string: argument is null, expected string
 
+JSON: []
+TYPE: tree234.tree234(int, int)
+RESULT: OK: empty
+
+JSON: {"bar":["c"],"foo":["a","b"]}
+TYPE: tree234.tree234(string, list.list(string))
+RESULT: ERROR: conversion to tree234.tree234(string, list.list(string)): argument is object, expected array
+

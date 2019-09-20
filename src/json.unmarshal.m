@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2018 Julien Fischer.
+% Copyright (C) 2013-2019 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliens@gmail.com>
@@ -1128,7 +1128,7 @@ map_from_json(Value) = Result :-
         ; Value = object(_)
         ),
         TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
         Result = error(ErrorMsg)
     ).
 
@@ -1178,7 +1178,7 @@ rbtree_from_json(Value) = Result :-
         ; Value = object(_)
         ),
         TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
         Result = error(ErrorMsg)
     ).
 
@@ -1193,9 +1193,10 @@ bimap_from_json(Value) = Result :-
         unmarshal_list_of_pairs("key", "value", Elems, [], MaybeKVs),
         (
             MaybeKVs = ok(KVs),
-            ( if bimap.from_assoc_list(KVs, Bimap)
-            then Result = ok(Bimap)
-            else Result = error("cannot create bimap: not a bijection")
+            ( if bimap.from_assoc_list(KVs, Bimap) then
+                Result = ok(Bimap)
+            else
+                Result = error("cannot create bimap: not a bijection")
             )
         ;
             MaybeKVs = error(Msg),
@@ -1209,7 +1210,7 @@ bimap_from_json(Value) = Result :-
         ; Value = object(_)
         ),
         TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "object"),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
         Result = error(ErrorMsg)
     ).
 
@@ -1221,9 +1222,10 @@ bimap_from_json(Value) = Result :-
 unit_from_json(Value) = Result :-
     (
         Value = string(UnitStr),
-        ( if UnitStr = "unit"
-        then Result = ok(unit)
-        else Result = error("string is not a unit/0 value")
+        ( if UnitStr = "unit" then
+            Result = ok(unit)
+        else
+            Result = error("string is not a unit/0 value")
         )
     ;
         ( Value = null
@@ -1412,9 +1414,10 @@ add_edges([Edge | Edges], !.Digraph, Result) :-
 json_pointer_from_json(Value) = Result :-
     (
         Value = string(PointerStr),
-        ( if json.string_to_pointer(PointerStr, Pointer)
-        then Result = ok(Pointer)
-        else Result = error("string is not a JSON pointer")
+        ( if json.string_to_pointer(PointerStr, Pointer) then
+            Result = ok(Pointer)
+        else
+            Result = error("string is not a JSON pointer")
         )
     ;
         ( Value = null
