@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2016, 2018 Julien Fischer.
+% Copyright (C) 2016, 2018-2019 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -25,6 +25,7 @@
 
 :- import_module array.
 :- import_module array2d.
+:- import_module bimap.
 :- import_module bitmap.
 :- import_module bool.
 :- import_module digraph.
@@ -34,6 +35,7 @@
 :- import_module map.
 :- import_module maybe.
 :- import_module pair.
+:- import_module rbtree.
 :- import_module type_desc.
 
 %-----------------------------------------------------------------------------%
@@ -57,7 +59,9 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_arrays(File, !IO),
     test_unmarshal_array2ds(File, !IO),
     test_unmarshal_digraphs(File, !IO),
-    test_unmarshal_maps(File, !IO).
+    test_unmarshal_maps(File, !IO),
+    test_unmarshal_bimaps(File, !IO),
+    test_unmarshal_rbtrees(File, !IO).
 
 %-----------------------------------------------------------------------------%
 
@@ -380,7 +384,7 @@ test_unmarshal_maps(File, !IO) :-
     %
     do_unmarshal_test(File, array([]), _ : map(int, int), !IO),
 
-    % Regression test for githun issue #4: the type of the expected value in
+    % Regression test for github issue #4: the type of the expected value in
     % the error message was incorrectly reported to be "object" when it should
     % have read array.
     do_unmarshal_test(File,
@@ -388,6 +392,46 @@ test_unmarshal_maps(File, !IO) :-
             "foo" - array([string("a"), string("b")]),
             "bar" - array([string("c")])
         ]), _ : map(string, list(string)), !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_bimaps(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_bimaps(File, !IO) :-
+
+    % Test empty bimap.
+    %
+    do_unmarshal_test(File, array([]), _ : bimap(int, int), !IO),
+
+    % Regression test for github issue #4: the type of the expected value in
+    % the error message was incorrectly reported to be "object" when it should
+    % have read array.
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "foo" - array([string("a"), string("b")]),
+            "bar" - array([string("c")])
+        ]), _ : bimap(string, list(string)), !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_rbtrees(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_rbtrees(File, !IO) :-
+
+    % Test empty rbtree.
+    %
+    do_unmarshal_test(File, array([]), _ : rbtree(int, int), !IO),
+
+    % Regression test for github issue #4: the type of the expected value in
+    % the error message was incorrectly reported to be "object" when it should
+    % have read array.
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "foo" - array([string("a"), string("b")]),
+            "bar" - array([string("c")])
+        ]), _ : rbtree(string, list(string)), !IO).
 
 %-----------------------------------------------------------------------------%
 
