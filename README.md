@@ -46,8 +46,8 @@ demonstrate different features of the library.
 ## MERCURY 14.01.X COMPATIBILITY
 
 The code on the master branch is **not** compatible with Mercury 14.01.X.
-If you require a version of 'mercury_json' that works with Mercury 14.01.X,
-then checkout the mercury\_14\_01 branch.
+If you require a version of `mercury_json` that works with Mercury 14.01.X,
+then checkout the `mercury_14_01` branch.
 
 ## AUTHOR
 
