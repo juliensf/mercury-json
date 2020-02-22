@@ -1,8 +1,7 @@
 # Mercury-JSON
 
-'mercury_json' is a [Mercury](http://www.mercurylang.org) library for reading
+`mercury_json` is a [Mercury](http://www.mercurylang.org) library for reading
 and writing [JSON](http://www.json.org) from character streams.
-
 
 ## FEATURES
 
@@ -14,12 +13,10 @@ and writing [JSON](http://www.json.org) from character streams.
 * marshaling and unmarshaling of Mercury data to and from JSON
 * user configurable maximum nesting depth limit
 
-
 ## LICENSE
 
-'mercury_json' is licensed under a simple 2-clause BSD style license.  See the
+`mercury_json` is licensed under a simple 2-clause BSD style license.  See the
 file [COPYING](COPYING) for details.
-
 
 ## INSTALLATION
 
@@ -28,14 +25,12 @@ with your system, then do:
 
     $ make install
 
-
 You can also override values in [Make.options](Make.options) on the command
 line, for example
 
     $ make INSTALL_PREFIX=/foo/bar install
 
-causes the library to be installed in the directory **/foo/bar**.
-
+causes the library to be installed in the directory `/foo/bar`.
 
 ## TESTING
 
