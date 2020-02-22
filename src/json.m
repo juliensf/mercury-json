@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2019, Julien Fischer.
+% Copyright (C) 2013-2020, Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -28,6 +28,7 @@
 :- import_module digraph.
 :- import_module integer.
 :- import_module io.
+:- import_module kv_list.
 :- import_module list.
 :- import_module map.
 :- import_module maybe.
@@ -815,6 +816,7 @@
 %                         each object has two members: "source" and "dest"
 %     duration/0        string (as per calendar.duration_to_string/1)
 %     integer/0         string (decimal representation)
+%     kv_list/2         array of objects with two members: "key" and "value"
 %     list/1            array
 %     map/2             array of objects with two members: "key" and "value"
 %     maybe/1           null for 'no' or object with one member: "yes"
@@ -860,6 +862,7 @@
 :- instance to_json(char).
 :- instance to_json(bool).
 :- instance to_json(integer).
+:- instance to_json(kv_list(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(date).
 :- instance to_json(duration).
 :- instance to_json(pair(A, B)) <= (to_json(A), to_json(B)).
@@ -911,6 +914,7 @@
 :- instance from_json(string).
 :- instance from_json(bool).
 :- instance from_json(integer).
+:- instance from_json(kv_list(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(date).
 :- instance from_json(duration).
 :- instance from_json(pair(A, B)) <= (from_json(A), from_json(B)).
@@ -1379,6 +1383,9 @@ from_type(T) = to_json(T).
 :- instance to_json(integer) where [
     func(to_json/1) is json.marshal.integer_to_json
 ].
+:- instance to_json(kv_list(K, V)) <= (to_json(K), to_json(V)) where [
+    func(to_json/1) is json.marshal.kv_list_to_json
+].
 :- instance to_json(date) where [
     func(to_json/1) is json.marshal.date_time_to_json
 ].
@@ -1501,6 +1508,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(integer) where [
     func(from_json/1) is json.unmarshal.integer_from_json
+].
+:- instance from_json(kv_list(K, V)) <= (from_json(K), from_json(V)) where [
+    func(from_json/1) is json.unmarshal.kv_list_from_json
 ].
 :- instance from_json(date) where [
     func(from_json/1) is json.unmarshal.date_time_from_json

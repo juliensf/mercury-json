@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2014-2016 Julien Fischer.
+% Copyright (C) 2014-2016, 2018, 2020 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -40,6 +40,7 @@
 :- import_module int32.
 :- import_module int64.
 :- import_module integer.
+:- import_module kv_list.
 :- import_module list.
 :- import_module map.
 :- import_module maybe.
@@ -202,6 +203,10 @@ test_marshaling(File, !IO) :-
     %
     AssocList = [apple - "Apple", orange - "Orange", lemon - "Lemon"],
     test(File, AssocList, !IO),
+
+    % Test kv_lists
+    KVList = assoc_list_to_kv_list(AssocList),
+    test(File, KVList, !IO),
 
     % Test maps.
     %

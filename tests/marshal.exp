@@ -209,6 +209,10 @@ Result Term: tree(3, 4, tree(2, 2, tree(1, 1, empty, empty), empty), tree(4, 1, 
        JSON: [{"fst":"apple","snd":"Apple"},{"fst":"orange","snd":"Orange"},{"fst":"lemon","snd":"Lemon"}]
 Result Term: [apple - "Apple", orange - "Orange", lemon - "Lemon"]
 
+ Orig. Term: kv_cons(apple, "Apple", kv_cons(orange, "Orange", kv_cons(lemon, "Lemon", kv_nil)))
+       JSON: [{"key":"apple","value":"Apple"},{"key":"orange","value":"Orange"},{"key":"lemon","value":"Lemon"}]
+Result Term: kv_cons(apple, "Apple", kv_cons(orange, "Orange", kv_cons(lemon, "Lemon", kv_nil)))
+
  Orig. Term: four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty)
        JSON: [{"key":"apple","value":"Apple"},{"key":"orange","value":"Orange"},{"key":"lemon","value":"Lemon"}]
 Result Term: four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty, empty, empty, empty)

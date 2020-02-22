@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2019 Julien Fischer.
+% Copyright (C) 2013-2020 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliens@gmail.com>
@@ -29,6 +29,8 @@
 :- func string_from_json(value) = maybe_error(string).
 :- func bool_from_json(value) = maybe_error(bool).
 :- func integer_from_json(value) = maybe_error(integer).
+:- func kv_list_from_json(value) = maybe_error(kv_list(K, V))
+    <= (from_json(K), from_json(V)).
 :- func date_time_from_json(value) = maybe_error(date).
 :- func duration_from_json(value) = maybe_error(duration).
 :- func bitmap_from_json(value) = maybe_error(bitmap).
@@ -334,6 +336,36 @@ integer_from_json(Value) = Result :-
         ),
         TypeDesc = type_desc_from_result(Result),
         ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> kv_list/2 type.
+%
+
+kv_list_from_json(Value) = Result :-
+    (
+        Value = array(Elems),
+        unmarshal_list_of_pairs("key", "value", Elems, [], MaybeKVs),
+        (
+            MaybeKVs = ok(RevKVs),
+            list.reverse(RevKVs, KVs),
+            KVList = assoc_list_to_kv_list(KVs),
+            Result = ok(KVList)
+        ;
+            MaybeKVs = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = number(_)
+        ; Value = string(_)
+        ; Value = object(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
         Result = error(ErrorMsg)
     ).
 

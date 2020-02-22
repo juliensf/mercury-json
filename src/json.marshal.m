@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016, 2018 Julien Fischer.
+% Copyright (C) 2013-2016, 2018, 2020 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -29,6 +29,8 @@
 :- func char_to_json(char) = json.value.
 :- func bool_to_json(bool) = json.value.
 :- func integer_to_json(integer) = json.value.
+:- func kv_list_to_json(kv_list(K, V)) = json.value
+    <= (to_json(K), to_json(V)).
 :- func date_time_to_json(date) = json.value.
 :- func duration_to_json(duration) = json.value.
 :- func pair_to_json(pair(A, B)) = json.value <= (to_json(A), to_json(B)).
@@ -107,6 +109,22 @@ bool_to_json(Bool) = bool(Bool).
 integer_to_json(Integer) = Value :-
     IntegerString : string = integer.to_string(Integer),
     Value = string(IntegerString).
+
+kv_list_to_json(List) = Value :-
+    kv_list.foldl(kv_elem_to_json, List, [], RevValues),
+    list.reverse(RevValues, Values),
+    Value = array(Values).
+
+:- pred kv_elem_to_json(K::in, V::in,
+    list(json.value)::in, list(json.value)::out)
+    is det <= (to_json(K), to_json(V)).
+
+kv_elem_to_json(K, V, !Values) :-
+    Value = json.det_make_object([
+        "key" - to_json(K),
+        "value" - to_json(V)
+    ]),
+    !:Values = [Value | !.Values].
 
 date_time_to_json(DateTime) = string(date_to_string(DateTime)).
 
