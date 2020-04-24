@@ -143,6 +143,7 @@ get_token(Reader, Token, !State) :-
         Token = token_error(stream_error(StreamError))
     ).
 
+:- pragma inline(is_whitespace/1).
 :- pred is_whitespace(char::in) is semidet.
 
 is_whitespace('\n').
