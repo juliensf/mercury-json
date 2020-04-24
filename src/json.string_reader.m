@@ -67,6 +67,8 @@
 :- instance input(string_reader, string_reader_state).
 :- instance reader(string_reader, char, string_reader_state,
     string_reader_error).
+:- instance unboxed_reader(string_reader, char, string_reader_state,
+    string_reader_error).
 :- instance putback(string_reader, char, string_reader_state,
     string_reader_error).
 :- instance line_oriented(string_reader, string_reader_state).
@@ -167,6 +169,35 @@ where [
             store.set_mutvar(MutableInfoVar, MutableInfo, !State),
             Result = ok(Char)
         else
+            Result = eof
+        )
+    )
+].
+
+:- instance unboxed_reader(string_reader, char, string_reader_state,
+    string_reader_error)
+where [
+    ( unboxed_get(Reader, Result, Char, !State) :-
+        Reader = string_reader(_MaybeName, Src, _SrcLen, MutableInfoVar),
+        store.get_mutvar(MutableInfoVar, MutableInfo0, !State),
+        MutableInfo0 = reader_mutable_info(LineNum, NextIndex, PutbackInt),
+        ( if PutbackInt > -1 then
+            char.det_from_int(PutbackInt, Char),
+            LineNumPrime = ( if Char = '\n' then LineNum + 1 else LineNum ),
+            MutableInfo = reader_mutable_info(LineNumPrime, NextIndex, -1),
+            store.set_mutvar(MutableInfoVar, MutableInfo, !State),
+            Result = ok
+        else if
+            string.index_next(Src, NextIndex, NextIndexPrime, Char0)
+        then
+            LineNumPrime = ( if Char = '\n' then LineNum + 1 else LineNum ),
+            MutableInfo = reader_mutable_info(LineNumPrime, NextIndexPrime,
+                -1),
+            store.set_mutvar(MutableInfoVar, MutableInfo, !State),
+            Char = Char0,
+            Result = ok
+        else
+            Char = '0',
             Result = eof
         )
     )

@@ -29,6 +29,7 @@
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -42,9 +43,9 @@
 :- implementation.
 
 get_token(Reader, Token, !State) :-
-    stream.get(Reader ^ json_reader_stream, ReadResult, !State),
+    stream.unboxed_get(Reader ^ json_reader_stream, ReadResult, Char, !State),
     (
-        ReadResult = ok(Char),
+        ReadResult = ok,
         update_column_number(Reader, Char, !State),
         ( if
             json_lexer.is_whitespace(Char)
@@ -178,7 +179,7 @@ update_column_number(Reader, Char, !State) :-
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
+        stream.unboxed_reader(Stream, char, State, Error)
     ).
 
 get_string_literal(Reader, Token, !State) :-
@@ -200,14 +201,14 @@ get_string_literal(Reader, Token, !State) :-
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
+        stream.unboxed_reader(Stream, char, State, Error)
     ).
 
 get_string_chars(Reader, StartContext, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, ReadResult, !State),
+    stream.unboxed_get(Stream, ReadResult, Char, !State),
     (
-        ReadResult = ok(Char),
+        ReadResult = ok,
         update_column_number(Reader, Char, !State),
         ( if
             Char = ('\\')
@@ -251,14 +252,14 @@ get_string_chars(Reader, StartContext, Buffer, Result, !State) :-
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
+        stream.unboxed_reader(Stream, char, State, Error)
     ).
 
 get_escaped_char(Reader, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, ReadResult, !State),
+    stream.unboxed_get(Stream, ReadResult, Char, !State),
     (
-        ReadResult = ok(Char),
+        ReadResult = ok,
         update_column_number(Reader, Char, !State),
         ( if escaped_json_char(Char, EscapedChar) then
             char_buffer.add(Buffer, EscapedChar, !State),
@@ -299,7 +300,7 @@ escaped_json_char('t', '\t').
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
+        stream.unboxed_reader(Stream, char, State, Error)
     ).
 
 get_escaped_unicode_char(Reader, Buffer, Result, !State) :-
@@ -361,15 +362,15 @@ get_escaped_unicode_char(Reader, Buffer, Result, !State) :-
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
+        stream.unboxed_reader(Stream, char, State, Error)
     ).
 
 get_hex_digits(Reader, !.N, !HexDigits, Result, !State) :-
     ( if !.N > 0 then
         Stream = Reader ^ json_reader_stream,
-        stream.get(Stream, ReadResult, !State),
+        stream.unboxed_get(Stream, ReadResult, Char, !State),
         (
-            ReadResult = ok(Char),
+            ReadResult = ok,
             update_column_number(Reader, Char, !State),
             ( if char.is_hex_digit(Char) then
                 !:HexDigits = [Char | !.HexDigits],
@@ -436,20 +437,20 @@ is_trailing_surrogate(Code) :-
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
+        stream.unboxed_reader(Stream, char, State, Error)
     ).
 
 get_trailing_surrogate_and_combine(Reader, LeadingSurrogateStr,
         LeadingSurrogate, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, ReadResult, !State),
+    stream.unboxed_get(Stream, ReadResult, Char, !State),
     (
-        ReadResult = ok(Char),
+        ReadResult = ok,
         update_column_number(Reader, Char, !State),
         ( if Char = ('\\') then
-            stream.get(Stream, ReadResultPrime, !State),
+            stream.unboxed_get(Stream, ReadResultPrime, CharPrime, !State),
             (
-                ReadResultPrime = ok(CharPrime),
+                ReadResultPrime = ok,
                 update_column_number(Reader, CharPrime, !State),
                 ( if CharPrime = 'u' then
                     get_hex_digits(Reader, 4, [], HexDigits, HexDigitsResult,
@@ -528,14 +529,15 @@ combine_utf16_surrogates(Lead, Tail) =
     token(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
 get_negative_number(Reader, Buffer, Token, !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, GetResult, !State),
+    stream.unboxed_get(Stream, GetResult, Char, !State),
     (
-        GetResult = ok(Char),
+        GetResult = ok,
         update_column_number(Reader, Char, !State),
         ( if char.is_digit(Char) then
             char_buffer.add(Buffer, Char, !State),
@@ -565,6 +567,7 @@ get_negative_number(Reader, Buffer, Token, !State) :-
     token(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -596,14 +599,15 @@ get_number(Reader, Buffer, Token, !State) :-
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
 get_number_chars(Reader, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, GetResult, !State),
+    stream.unboxed_get(Stream, GetResult, Char, !State),
     (
-        GetResult = ok(Char),
+        GetResult = ok,
         ( if
             char.is_digit(Char)
         then
@@ -656,14 +660,15 @@ get_number_chars(Reader, Buffer, Result, !State) :-
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
 get_frac(Reader, Where, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, GetResult, !State),
+    stream.unboxed_get(Stream, GetResult, Char, !State),
     (
-        GetResult = ok(Char),
+        GetResult = ok,
         ( if
             char.is_digit(Char)
         then
@@ -720,14 +725,15 @@ get_frac(Reader, Where, Buffer, Result, !State) :-
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
 get_exp(Reader, Where, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, GetResult, !State),
+    stream.unboxed_get(Stream, GetResult, Char, !State),
     (
-        GetResult = ok(Char),
+        GetResult = ok,
         ( if
             Where = exp_start,
             ( Char = ('-')
@@ -799,6 +805,7 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
     token(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -826,6 +833,7 @@ get_infinity(Reader, Buffer, Token, !State) :-
     char_buffer::in, token(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -849,14 +857,15 @@ get_keyword(Reader, Buffer, Token, !State) :-
     stream.res(json.error(Error))::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
 get_keyword_chars(Reader, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, ReadResult, !State),
+    stream.unboxed_get(Stream, ReadResult, Char, !State),
     (
-        ReadResult = ok(Char),
+        ReadResult = ok,
         ( if char.is_lower(Char) then
             update_column_number(Reader, Char, !State),
             char_buffer.add(Buffer, Char, !State),
@@ -890,14 +899,14 @@ is_keyword("null", token_null).
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
+        stream.unboxed_reader(Stream, char, State, Error)
     ).
 
 consume_comment(Reader, StartCommentContext, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, ReadResult, !State),
+    stream.unboxed_get(Stream, ReadResult, Char, !State),
     (
-        ReadResult = ok(Char),
+        ReadResult = ok,
         update_column_number(Reader, Char, !State),
         ( if Char = ('/') then
             consume_until_next_nl_or_eof(Reader, Result, !State)
@@ -923,15 +932,13 @@ consume_comment(Reader, StartCommentContext, Result, !State) :-
 
 :- pred consume_until_next_nl_or_eof(json.reader(Stream)::in,
     json.res(Error)::out, State::di, State::uo) is det
-    <= (
-        stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
-    ).
+    <= stream.unboxed_reader(Stream, char, State, Error).
 
 consume_until_next_nl_or_eof(Reader, Result, !State) :-
-    stream.get(Reader ^ json_reader_stream, ReadResult, !State),
+    stream.unboxed_get(Reader ^ json_reader_stream, ReadResult,
+        Char, !State),
     (
-        ReadResult = ok(Char),
+        ReadResult = ok,
         update_column_number(Reader, Char, !State),
         ( if Char = ('\n') then
             Result = ok
@@ -953,17 +960,14 @@ consume_until_next_nl_or_eof(Reader, Result, !State) :-
 :- pred consume_multiline_comment(json.reader(Stream)::in,
     json.context::in, last_multiline_comment_char::in,
     json.res(Error)::out, State::di, State::uo) is det
-    <= (
-        stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
-    ).
+    <= stream.unboxed_reader(Stream, char, State, Error).
 
 consume_multiline_comment(Reader, StartCommentContext, LastCharKind, Result,
         !State) :-
     Stream = Reader ^ json_reader_stream,
-    stream.get(Stream, ReadResult, !State),
+    stream.unboxed_get(Stream, ReadResult, Char, !State),
     (
-        ReadResult = ok(Char),
+        ReadResult = ok,
         update_column_number(Reader, Char, !State),
         ( if
             LastCharKind = char_star,

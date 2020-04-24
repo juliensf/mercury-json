@@ -17,6 +17,7 @@
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -26,6 +27,7 @@
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -38,6 +40,7 @@
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode do_object_fold(in, in(pred(in, in, in, out) is det),
@@ -50,6 +53,7 @@
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode do_object_fold_state(in, in(pred(in, in, in, out, di, uo) is det),
@@ -66,6 +70,7 @@
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode do_array_fold(in, in(pred(in, in, out) is det),
@@ -78,6 +83,7 @@
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode do_array_fold_state(in, in(pred(in, in, out, di, uo) is det),
@@ -194,6 +200,7 @@ do_get_value(Reader, !.NestingDepth, Token, Result, !State) :-
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -231,6 +238,7 @@ do_get_object(Reader, !.NestingDepth, Result, !State) :-
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -428,6 +436,7 @@ do_get_members(Reader, !.NestingDepth, Where, !.Members, Result, !State) :-
     json.result(json.value, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -463,6 +472,7 @@ do_get_array(Reader, !.NestingDepth, Result, !State) :-
     json.result(list(json.value), Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -602,6 +612,7 @@ do_object_fold(Reader, Pred, !.Acc, Result, !State) :-
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode do_object_fold_members(in, in, in, in(pred(in, in, in, out) is det),
@@ -762,6 +773,7 @@ do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode do_object_fold_state_members(in, in, in,
@@ -935,6 +947,7 @@ do_array_fold(Reader, Pred, !.Acc, Result, !State) :-
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode do_array_fold_elements(in, in, in, in(pred(in, in, out) is det),
@@ -1070,6 +1083,7 @@ do_array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode do_array_fold_state_elements(in, in, in,

@@ -284,6 +284,7 @@
         is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -296,6 +297,7 @@
         State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -454,6 +456,7 @@
     json.result(json.value, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -464,6 +467,7 @@
     json.result(json.object, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -474,6 +478,7 @@
     json.result(json.array, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -494,6 +499,7 @@
     json.result(json.value, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -504,6 +510,7 @@
     json.result(json.object, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -514,6 +521,7 @@
     json.result(json.array, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -528,6 +536,7 @@
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode object_fold(in, in(pred(in, in, in, out) is det),
@@ -542,6 +551,7 @@
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode object_fold_state(in, in(pred(in, in, in, out, di, uo) is det),
@@ -560,6 +570,7 @@
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode array_fold(in, in(pred(in, in, out) is det),
@@ -574,6 +585,7 @@
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 :- mode array_fold_state(in, in(pred(in, in, out, di, uo) is det),
@@ -598,6 +610,7 @@
     json.error(Error))
     <= (
         stream.line_oriented(Stream, io),
+        stream.unboxed_reader(Stream, char, io, Error),
         stream.putback(Stream, char, io, Error)
     ).
 
@@ -1599,7 +1612,7 @@ to_type(V) = from_json(V).
     json.error(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
+        stream.unboxed_reader(Stream, char, State, Error)
     ).
 
 make_unexpected_eof_error(Reader, MaybeMsg, Error, !State) :-
@@ -1610,6 +1623,7 @@ make_unexpected_eof_error(Reader, MaybeMsg, Error, !State) :-
     maybe(string)::in, json.error(Error)::out, State::di, State::uo)
     is det <= (
         stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
         stream.putback(Stream, char, State, Error)
     ).
 
@@ -1621,7 +1635,7 @@ make_syntax_error(Reader, Where, MaybeMsg, Error, !State) :-
     json.context::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
-        stream.putback(Stream, char, State, Error)
+        stream.unboxed_reader(Stream, char, State, Error)
     ).
 
 make_error_context(Reader, Context, !State) :-
@@ -1862,6 +1876,7 @@ value_desc(array(_)) = "array".
     json.error(Error))
     <= (
         stream.line_oriented(Stream, io),
+        stream.unboxed_reader(Stream, char, io, Error),
         stream.putback(Stream, char, io, Error)
     ) where
 [
