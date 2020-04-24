@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2014-2016, Julien Fischer.
+% Copyright (C) 2014-2016, 2020 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -73,7 +73,8 @@ main_2(!IO) :-
                 MaybeInputFile, Continue, !IO),
             (
                 Continue = yes,
-                pretty_print_json(Params, MaybeInputFile, !IO)
+                getopt.lookup_bool_option(OptionTable, print, PrintOutput),
+                pretty_print_json(PrintOutput, Params, MaybeInputFile, !IO)
             ;
                 Continue = no
             )
@@ -172,10 +173,10 @@ handle_args_and_options(OptionTable, Args, ReaderParams, MaybeInputFile,
     ReaderParams = reader_params(AllowComments, AllowTrailingCommas,
         RepeatedMembers, AllowInfinities, MaxNestDepth).
 
-:- pred pretty_print_json(json.reader_params::in,
+:- pred pretty_print_json(bool::in, json.reader_params::in,
     maybe(io.text_input_stream)::in, io::di, io::uo) is det.
 
-pretty_print_json(ReaderParams, MaybeInputFile, !IO) :-
+pretty_print_json(PrintOutput, ReaderParams, MaybeInputFile, !IO) :-
     (
         MaybeInputFile = yes(InputFile)
     ;
@@ -200,16 +201,22 @@ pretty_print_json(ReaderParams, MaybeInputFile, !IO) :-
         % The reader has returned a JSON value.
         %
         ValueResult = ok(Value),
+        (
+            PrintOutput = yes,
 
-        % Initialise a JSON writer and attach it to the standard output stream.
-        % Set up the writer to pretty print the JSON output.  If the reader
-        % was set up to allow infinities in the JSON, then also allow them in
-        % the writer.
-        %
-        io.stdout_stream(Stdout, !IO),
-        WriterParams = writer_params(pretty, ReaderParams ^ allow_infinities),
-        json.init_writer(Stdout, WriterParams, Writer, !IO),
-        json.put_value(Writer, Value, !IO)
+            % Initialise a JSON writer and attach it to the standard output
+            % stream.  Set up the writer to pretty print the JSON output.
+            % If the reader was set up to allow infinities in the JSON, then
+            % also allow them in the writer.
+            %
+            io.stdout_stream(Stdout, !IO),
+            WriterParams = writer_params(pretty,
+                ReaderParams ^ allow_infinities),
+            json.init_writer(Stdout, WriterParams, Writer, !IO),
+            json.put_value(Writer, Value, !IO)
+        ;
+            PrintOutput = no
+        )
     ;
         (
             % The input stream was empty.
@@ -239,11 +246,13 @@ pretty_print_json(ReaderParams, MaybeInputFile, !IO) :-
     ;       allow_trailing_commas
     ;       allow_comments
     ;       repeated_members
-    ;       maximum_nesting_depth.
+    ;       maximum_nesting_depth
+    ;       print.
 
 :- pred short_option(char::in, option::out) is semidet.
 
 short_option('h', help).
+short_option('p', print).
 
 :- pred long_option(string::in, option::out) is semidet.
 
@@ -253,6 +262,7 @@ long_option("allow-trailing-commas", allow_trailing_commas).
 long_option("allow-comments",        allow_comments).
 long_option("repeated-members",      repeated_members).
 long_option("maximum-nesting-depth", maximum_nesting_depth).
+long_option("print",                 print).
 
 :- pred option_default(option::out, option_data::out) is multi.
 
@@ -262,6 +272,7 @@ option_default(allow_trailing_commas, bool(no)).
 option_default(allow_comments, bool(no)).
 option_default(repeated_members, string("none")).
 option_default(maximum_nesting_depth, maybe_int(no)).
+option_default(print, bool(yes)).
 
 :- pred string_to_repeated_members(string::in,
     allow_repeated_members::out) is semidet.
@@ -305,7 +316,9 @@ usage(!IO) :-
         "--max-nesting-depth <n>",
         "--maximum-nesting-depth <n>",
         "\tAbort if the nesting depth reaches <n>.",
-        "\tDefault is no maximum nesting depth limit."
+        "\tDefault is no maximum nesting depth limit.",
+        "-p-, --no-print",
+        "\tParse the input only and do not print the resulting JSON."
     ], !IO).
 
 :- pred write_tabbed_lines(io.text_output_stream::in, list(string)::in,
