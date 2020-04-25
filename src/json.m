@@ -32,6 +32,7 @@
 :- import_module list.
 :- import_module map.
 :- import_module maybe.
+:- import_module one_or_more.
 :- import_module pair.
 :- import_module pqueue.
 :- import_module queue.
@@ -834,6 +835,7 @@
 %     map/2             array of objects with two members: "key" and "value"
 %     maybe/1           null for 'no' or object with one member: "yes"
 %     maybe_error/2     object with one member: either "ok" or "error"
+%     one_or_more/1     non-empty array
 %     pair/2            object with two members: "fst" and "snd"
 %     pqueue/2          array of objects with two members: "key" and "value"
 %     queue/1           array
@@ -885,6 +887,7 @@
 :- instance to_json(array2d(T)) <= to_json(T).
 :- instance to_json(version_array(T)) <= to_json(T).
 :- instance to_json(bitmap).
+:- instance to_json(one_or_more(T)) <= to_json(T).
 :- instance to_json(pqueue(K, V)) <= (to_json(K), to_json(V)).
 :- instance to_json(rational).
 :- instance to_json(set_ordlist(T)) <= to_json(T).
@@ -937,6 +940,7 @@
 :- instance from_json(array2d(T)) <= from_json(T).
 :- instance from_json(version_array(T)) <= from_json(T).
 :- instance from_json(bitmap).
+:- instance from_json(one_or_more(T)) <= from_json(T).
 :- instance from_json(pqueue(K, V)) <= (from_json(K), from_json(V)).
 :- instance from_json(rational).
 :- instance from_json(set_ordlist(T)) <= from_json(T).
@@ -1426,6 +1430,9 @@ from_type(T) = to_json(T).
 :- instance to_json(bitmap) where [
     func(to_json/1) is json.marshal.bitmap_to_json
 ].
+:- instance to_json(one_or_more(T)) <= to_json(T) where [
+    func(to_json/1) is json.marshal.one_or_more_to_json
+].
 :- instance to_json(pqueue(K, V)) <= (to_json(K), to_json(V)) where [
     func(to_json/1) is json.marshal.pqueue_to_json
 ].
@@ -1554,6 +1561,9 @@ from_type(T) = to_json(T).
 ].
 :- instance from_json(bitmap) where [
     func(from_json/1) is json.unmarshal.bitmap_from_json
+].
+:- instance from_json(one_or_more(T)) <= from_json(T) where [
+    func(from_json/1) is json.unmarshal.one_or_more_from_json
 ].
 :- instance from_json(pqueue(K, V)) <= (from_json(K), from_json(V)) where [
     func(from_json/1) is json.unmarshal.pqueue_from_json

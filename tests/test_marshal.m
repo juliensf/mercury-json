@@ -44,6 +44,7 @@
 :- import_module list.
 :- import_module map.
 :- import_module maybe.
+:- import_module one_or_more.
 :- import_module pair.
 :- import_module pqueue.
 :- import_module queue.
@@ -315,6 +316,14 @@ test_marshaling(File, !IO) :-
     %
     Pointer = json.det_string_to_pointer("/foo/~1bar/12/-/~~~~1"),
     test(File, Pointer, !IO),
+
+    % Test one_or_mores.
+    %
+    OnlyOne = one_or_more(561, []),
+    test(File, OnlyOne, !IO),
+
+    MoreThanOne = one_or_more(561, [562, 563]),
+    test(File, MoreThanOne, !IO),
 
     % Test conversion to strings.
     %

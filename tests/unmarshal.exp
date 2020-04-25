@@ -410,3 +410,15 @@ JSON: {"bar":["c"],"foo":["a","b"]}
 TYPE: rbtree.rbtree(string, list.list(string))
 RESULT: ERROR: conversion to rbtree.rbtree(string, list.list(string)): argument is object, expected array
 
+JSON: []
+TYPE: one_or_more.one_or_more(string)
+RESULT: ERROR: conversion to one_or_more.one_or_more(string): expected non-empty array
+
+JSON: ["a"]
+TYPE: one_or_more.one_or_more(string)
+RESULT: OK: one_or_more("a", [])
+
+JSON: ["a","b","c"]
+TYPE: one_or_more.one_or_more(string)
+RESULT: OK: one_or_more("a", ["b", "c"])
+

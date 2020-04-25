@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2016, 2018-2019 Julien Fischer.
+% Copyright (C) 2016, 2018-2020 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -34,6 +34,7 @@
 :- import_module list.
 :- import_module map.
 :- import_module maybe.
+:- import_module one_or_more.
 :- import_module pair.
 :- import_module rbtree.
 :- import_module type_desc.
@@ -61,7 +62,8 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_digraphs(File, !IO),
     test_unmarshal_maps(File, !IO),
     test_unmarshal_bimaps(File, !IO),
-    test_unmarshal_rbtrees(File, !IO).
+    test_unmarshal_rbtrees(File, !IO),
+    test_unmarshal_one_or_mores(File, !IO).
 
 %-----------------------------------------------------------------------------%
 
@@ -432,6 +434,27 @@ test_unmarshal_rbtrees(File, !IO) :-
             "foo" - array([string("a"), string("b")]),
             "bar" - array([string("c")])
         ]), _ : rbtree(string, list(string)), !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_one_or_mores(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_one_or_mores(File, !IO) :-
+
+    % Test empty array.
+    %
+    do_unmarshal_test(File, array([]), _ : one_or_more(string), !IO),
+
+    % Test singleton one_or_more.
+    %
+    do_unmarshal_test(File, array([string("a")]), _ : one_or_more(string),
+        !IO),
+
+    % Test one_or_more with > 1 items.
+    %
+    do_unmarshal_test(File, array([string("a"), string("b"), string("c")]),
+        _ : one_or_more(string), !IO).
 
 %-----------------------------------------------------------------------------%
 

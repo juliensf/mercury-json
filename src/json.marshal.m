@@ -40,6 +40,7 @@
 :- func array2d_to_json(array2d(T)) = json.value <= to_json(T).
 :- func version_array_to_json(version_array(T)) = json.value <= to_json(T).
 :- func bitmap_to_json(bitmap) = json.value.
+:- func one_or_more_to_json(one_or_more(T)) = json.value <= to_json(T).
 :- func rational_to_json(rational) = json.value.
 :- func set_ordlist_to_json(set_ordlist(T)) = json.value <= to_json(T).
 :- func set_unordlist_to_json(set_unordlist(T)) = json.value <= to_json(T).
@@ -251,6 +252,10 @@ version_array_to_values(Array, Min, I, !Values) :-
 bitmap_to_json(Bitmap) = Value :-
     String = bitmap.to_string(Bitmap),
     Value = string(String).
+
+one_or_more_to_json(OneOrMore) = Value :-
+    List = one_or_more_to_list(OneOrMore),
+    Value = list_to_json(List).
 
 rational_to_json(Rational) = Value :-
     Numerator = rational.numer(Rational),

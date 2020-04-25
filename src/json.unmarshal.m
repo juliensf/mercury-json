@@ -34,6 +34,8 @@
 :- func date_time_from_json(value) = maybe_error(date).
 :- func duration_from_json(value) = maybe_error(duration).
 :- func bitmap_from_json(value) = maybe_error(bitmap).
+:- func one_or_more_from_json(value) = maybe_error(one_or_more(T))
+    <= from_json(T).
 :- func list_from_json(value) = maybe_error(list(T)) <= from_json(T).
 :- func cord_from_json(value) = maybe_error(cord(T)) <= from_json(T).
 :- func array_from_json(value) = maybe_error(array(T)) <= from_json(T).
@@ -447,6 +449,43 @@ bitmap_from_json(Value) = Result :-
         ),
         TypeDesc = type_desc_from_result(Result),
         ErrorMsg = make_conv_error_msg(TypeDesc, Value, "string"),
+        Result = error(ErrorMsg)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON -> one_or_more/1 types.
+%
+
+one_or_more_from_json(Value) = Result :-
+    (
+        Value = array(Values),
+        unmarshal_list_elems(Values, [], ListElemsResult),
+        (
+            ListElemsResult = ok(RevElems),
+            list.reverse(RevElems, Elems),
+            ( if list_to_one_or_more(Elems, OneOrMore) then
+                Result = ok(OneOrMore)
+            else
+                TypeDesc = type_desc_from_result(Result),
+                TypeName = type_name(TypeDesc),
+                string.format("conversion to %s: expected non-empty array",
+                    [s(TypeName)], Msg),
+                Result = error(Msg)
+            )
+        ;
+            ListElemsResult = error(Msg),
+            Result = error(Msg)
+        )
+    ;
+        ( Value = null
+        ; Value = bool(_)
+        ; Value = string(_)
+        ; Value = number(_)
+        ; Value = object(_)
+        ),
+        TypeDesc = type_desc_from_result(Result),
+        ErrorMsg = make_conv_error_msg(TypeDesc, Value, "array"),
         Result = error(ErrorMsg)
     ).
 

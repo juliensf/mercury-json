@@ -289,6 +289,14 @@ Result Term: [bool(yes), bool(no), null, number(5.61)]
        JSON: "/foo/~1bar/12/-/~0~0~0~1"
 Result Term: pointer(["foo", "/bar", "12", "-", "~~~/"])
 
+ Orig. Term: one_or_more(561, [])
+       JSON: [561]
+Result Term: one_or_more(561, [])
+
+ Orig. Term: one_or_more(561, [562, 563])
+       JSON: [561,562,563]
+Result Term: one_or_more(561, [562, 563])
+
 to_string(null) = "null"
 to_string(bool(no)) = "false"
 to_string(bool(yes)) = "true"
