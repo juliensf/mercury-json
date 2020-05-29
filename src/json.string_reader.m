@@ -107,7 +107,7 @@
                 % The current line number.
 
                 rmi_next_index  :: int,
-                % The index of the code unit of the next chracter we read
+                % The index of the code unit of the next character we read
                 % from the source string.
 
                 rmi_putback_char :: int
