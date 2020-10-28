@@ -646,8 +646,8 @@
     ;       pretty.
 
     % Should we escape the SOLIDUS (forward slash) character ('/') in the
-    % output?  Such an escape is optional for in JSON, but may be required
-    % when embedding JSON in other contexts.
+    % output?  Such an escape is optional in JSON, but may be required when
+    % embedding JSON in other contexts.
     %
 :- type escape_solidus
     --->    escape_solidus
