@@ -1319,13 +1319,6 @@ put_comment(Writer, Comment, !State) :-
     B = A;
 ").
 
-:- pragma foreign_proc("Erlang",
-    cast_writer(A::in, B::out(json.writer)),
-    [promise_pure, will_not_call_mercury, thread_safe],
-"
-    B = A
-").
-
 %-----------------------------------------------------------------------------%
 %
 % Writing JSON values to file streams.

@@ -35,7 +35,7 @@
 :- import_module char.
 :- import_module dir.
 :- import_module int.
-:- import_module getopt_io.
+:- import_module getopt.
 :- import_module list.
 :- import_module require.
 :- import_module stream.
@@ -50,11 +50,11 @@ main(!IO) :-
         long_option,
         (pred(O::out, D::out) is multi :- option_defaults(O, D))
     ),
-    getopt_io.process_options(OptionOps, Args, NonOptionArgs, OptionResult,
+    getopt.process_options_io(OptionOps, Args, NonOptionArgs, OptionResult,
         !IO),
     (
         OptionResult = ok(OptionTable),
-        getopt_io.lookup_bool_option(OptionTable, help, Help),
+        getopt.lookup_bool_option(OptionTable, help, Help),
         (
             Help = yes,
             help(!IO)
@@ -213,7 +213,8 @@ main(!IO) :-
             )
         )
     ;
-        OptionResult = error(Msg),
+        OptionResult = error(OptionError),
+        Msg = option_error_to_string(OptionError),
         bad_cmdline(Msg, !IO)
     ).
 
