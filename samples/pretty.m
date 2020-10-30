@@ -80,7 +80,8 @@ main_2(!IO) :-
             )
         )
     ;
-        MaybeOptionTable = error(OptionErrorMsg),
+        MaybeOptionTable = error(OptionError),
+        OptionErrorMsg = option_error_to_string(OptionError),
         string.format("error: %s.\n", [s(OptionErrorMsg)], ErrorMsg),
         print_error(ErrorMsg, !IO)
     ).
