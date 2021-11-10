@@ -176,7 +176,8 @@
 
     % string_to_pointer(String, Pointer):
     % Convert a string to a JSON pointer.
-    % Fails if String is not a valid JSON pointer.
+    % Fails if String is not a valid JSON pointer using the syntax from
+    % RFC 6901.
     %
 :- pred string_to_pointer(string::in, pointer::out) is semidet.
 
@@ -186,6 +187,9 @@
     %
 :- func det_string_to_pointer(string) = pointer.
 
+    % pointer_to_string(Pointer) = String:
+    % String is the string representation of Pointer.
+    %
 :- func pointer_to_string(pointer) = string.
 
     % resolve(Pointer, Value, Result):
@@ -278,7 +282,7 @@
     % init_reader(Stream, Reader, !State):
     % Reader is a new JSON reader using Stream as a character stream and using
     % the default reader parameters.  With the default parameters the reader
-    % will conform to the RFC 7159 definition of JSON and have a maximum
+    % will conform to the RFC 8259 definition of JSON and have a maximum
     % nesting depth of 64 levels.
     %
 :- pred init_reader(Stream::in, reader(Stream)::out, State::di, State::uo)

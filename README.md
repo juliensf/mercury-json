@@ -5,7 +5,7 @@ and writing [JSON](http://www.json.org) from character streams.
 
 ## FEATURES
 
-* conforms to [RFC 7159](http://www.rfc-editor.org/rfc/rfc7159.txt)
+* conforms to [RFC 8259](https://www.rfc-editor.org/rfc/rfc8259.txt)
 * optionally allows single and multiline comments in JSON
 * optionally allows single trailing commas in JSON objects and arrays
 * optionally allows numbers to be -Infinity / Infinity
