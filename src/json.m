@@ -365,7 +365,7 @@
     ;       invalid_trailing_utf16_surrogate(string)
             % A trailing UTF-16 surrogate was expected, but the code point
             % encountered was outside the expected range for trailing
-            % surrogates: [0xDC00, 0XDFFF].
+            % surrogates: [0xDC00, 0xDFFF].
             % The argument gives the hexadecimal digits of the code point
             % encountered.
 
