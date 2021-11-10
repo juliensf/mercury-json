@@ -341,7 +341,7 @@
             % A character escape has been encountered for a character
             % that does not require escaping.
 
-    ;       unexpected_value(string, maybe(string))
+    ;       unexpected_value(string, string)
 
     ;       duplicate_object_member(string)
             % duplicate_object_member(MemberName):
@@ -1093,7 +1093,7 @@ read_object(Reader, Result, !State) :-
             ),
             Msg = "value must be an object",
             ValueDesc = value_desc(Value),
-            ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+            ErrorDesc = unexpected_value(ValueDesc, Msg),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
         )
@@ -1124,7 +1124,7 @@ read_array(Reader, Result, !State) :-
             ),
             Msg = "value must be an array",
             ValueDesc = value_desc(Value),
-            ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+            ErrorDesc = unexpected_value(ValueDesc, Msg),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
         )
@@ -1170,7 +1170,7 @@ get_object(Reader, Result, !State) :-
                 ),
                 Msg = "value must be an object",
                 ValueDesc = value_desc(Value),
-                ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+                ErrorDesc = unexpected_value(ValueDesc, Msg),
                 Error = json_error(Context, ErrorDesc),
                 Result = error(Error)
             )
@@ -1206,7 +1206,7 @@ get_array(Reader, Result, !State) :-
                 ),
                 Msg = "value must be an array",
                 ValueDesc = value_desc(Value),
-                ErrorDesc = unexpected_value(ValueDesc, yes(Msg)),
+                ErrorDesc = unexpected_value(ValueDesc, Msg),
                 Error = json_error(Context, ErrorDesc),
                 Result = error(Error)
             )
@@ -1700,16 +1700,9 @@ error_context_and_desc_to_string(Context, ErrorDesc) = Msg :-
         string.format("%s: error: invalid character escape: '\\%c'\n",
             [s(ContextStr), c(What)], Msg)
     ;
-        ErrorDesc = unexpected_value(What, MaybeExtraMsg),
-        (
-            MaybeExtraMsg = no,
-            string.format("%s: error: unexpected %s value\n",
-                [s(ContextStr), s(What)], Msg)
-        ;
-            MaybeExtraMsg = yes(ExtraMsg),
-            string.format("%s: error: unexpected %s value: %s\n",
-                [s(ContextStr), s(What), s(ExtraMsg)], Msg)
-        )
+        ErrorDesc = unexpected_value(What, ExtraMsg),
+        string.format("%s: error: unexpected %s value: %s\n",
+            [s(ContextStr), s(What), s(ExtraMsg)], Msg)
     ;
         ErrorDesc = duplicate_object_member(Name),
         string.format(
