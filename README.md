@@ -6,8 +6,8 @@ and writing [JSON](http://www.json.org) from character streams.
 ## FEATURES
 
 * conforms to [RFC 7159](http://www.rfc-editor.org/rfc/rfc7159.txt)
-* optionally allows comments in JSON
-* optionally allows trailing commas in JSON objects and arrays
+* optionally allows single and multiline comments in JSON
+* optionally allows single trailing commas in JSON objects and arrays
 * optionally allows numbers to be -Infinity / Infinity
 * user configurable behaviour for handling repeated object members
 * marshaling and unmarshaling of Mercury data to and from JSON

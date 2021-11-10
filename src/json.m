@@ -242,8 +242,8 @@
     --->    allow_comments
     ;       do_not_allow_comments.
 
-    % Should the extension that allows trailing commas in JSON objects and
-    % arrays be enabled?
+    % Should the extension that allows a single trailing comma in JSON objects
+    % and arrays be enabled?
     %
 :- type allow_trailing_commas
     --->    allow_trailing_commas
