@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2020, Julien Fischer.
+% Copyright (C) 2013-2021, Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -413,6 +413,8 @@
             % not '+', '-' or a decimal digit.
 
     ;       expected_eof(string)
+            % After reading a value we were expecting to reach EOF; instead we
+            % found the item given in the argument.
 
     ;       maximum_nesting_depth_reached.
             % The maximum nesting depth limit has been reached.
