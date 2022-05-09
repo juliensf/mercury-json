@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2021, Julien Fischer.
+% Copyright (C) 2013-2022, Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -163,9 +163,13 @@
     % Calls error/1 if the member value is not a JSON value of the type
     % specified by the predicate name or null.
     %
+:- func search_bool_or_null(object, string, bool) = bool.
 :- func search_string_or_null(object, string, string) = string.
+:- func search_number_or_null(object, string, float) = float.
 :- func search_object_or_null(object, string, object) = object.
 :- func search_array_or_null(object, string, array) = array.
+
+:- func search_int_or_null(object, string, int) = int.
 
 %-----------------------------------------------------------------------------%
 %
@@ -2014,6 +2018,8 @@ lookup_int(Object, Member) = Int :-
     Value = lookup(Object, Member),
     Int = det_get_int(Value).
 
+%-----------------------------------------------------------------------------%
+
 search_bool(Object, Member, Default) = Bool :-
     ( if map.search(Object, Member, Value) then
         Bool = det_get_bool(Value)
@@ -2056,12 +2062,34 @@ search_int(Object, Member, Default) = Int :-
         Int = Default
     ).
 
+%-----------------------------------------------------------------------------%
+
+search_bool_or_null(Object, Member, Default) = String :-
+    ( if
+        map.search(Object, Member, Value),
+        Value \= null
+    then
+        String = det_get_bool(Value)
+    else
+        String = Default
+    ).
+
 search_string_or_null(Object, Member, Default) = String :-
     ( if
         map.search(Object, Member, Value),
         Value \= null
     then
         String = det_get_string(Value)
+    else
+        String = Default
+    ).
+
+search_number_or_null(Object, Member, Default) = String :-
+    ( if
+        map.search(Object, Member, Value),
+        Value \= null
+    then
+        String = det_get_number(Value)
     else
         String = Default
     ).
@@ -2084,6 +2112,16 @@ search_array_or_null(Object, Member, Default) = Array :-
         Array = det_get_array(Value)
     else
         Array = Default
+    ).
+
+search_int_or_null(Object, Member, Default) = String :-
+    ( if
+        map.search(Object, Member, Value),
+        Value \= null
+    then
+        String = det_get_int(Value)
+    else
+        String = Default
     ).
 
 %-----------------------------------------------------------------------------%
