@@ -1,0 +1,1 @@
+bad_comment_start3.json:2:0: error: expected '/' or '*' after '/' in comment start, got U+000A

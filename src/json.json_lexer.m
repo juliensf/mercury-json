@@ -924,7 +924,8 @@ consume_comment(Reader, StartCommentContext, Result, !State) :-
         )
     ;
         ReadResult = eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected '/' or '*' after '/' in comment start",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(Error)
     ;
         ReadResult = error(Error),

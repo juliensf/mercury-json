@@ -1,0 +1,1 @@
+bad_comment_start4.json:1:1: error: unexpected end-of-file: expected '/' or '*' after '/' in comment start
