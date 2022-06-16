@@ -342,7 +342,7 @@
             % unexpected end-of-file: Msg
 
     ;       syntax_error(string, maybe(string))
-            % syntax_error(Where, MaybeMsg)
+            % syntax_error(Where, MaybeMsg):
             % syntax error at 'Where': MaybeMsg
 
     ;       invalid_character_escape(char)
@@ -350,6 +350,8 @@
             % that does not require escaping.
 
     ;       unexpected_value(string, string)
+            % unexpected_value(ActualMsg, ExpectedMsg):
+            % A JSON value of a type that was not expected was encountered.
 
     ;       duplicate_object_member(string)
             % duplicate_object_member(MemberName):
