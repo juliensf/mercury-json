@@ -24,9 +24,17 @@ Result: ok(object(two("foo", number(561.0), empty, empty)))
 Result: ok(string("a𢭃b"))
  Input: ""
 Result: error(context("<<string reader>>", 1, 0), unexpected_eof(no))
+ Input: " "
+Result: error(context("<<string reader>>", 1, 1), unexpected_eof(no))
+ Input: "	"
+Result: error(context("<<string reader>>", 1, 1), unexpected_eof(no))
  Input: """
 Result: error(context("<<string reader>>", 1, 1), unexpected_eof(yes("unterminated string literal")))
  Input: "["
 Result: error(context("<<string reader>>", 1, 1), unexpected_eof(yes("array missing terminating \']\'")))
  Input: "}"
 Result: error(context("<<string reader>>", 1, 1), illegal_start_character('}'))
+ Input: "nu"
+Result: error(context("<<string reader>>", 1, 2), syntax_error("nu", no))
+ Input: "t"
+Result: error(context("<<string reader>>", 1, 1), syntax_error("t", no))
