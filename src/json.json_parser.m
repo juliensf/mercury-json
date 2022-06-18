@@ -707,7 +707,8 @@ do_object_fold_members(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_eof,
-            make_unexpected_eof_error(Reader, no, Error, !State),
+            Msg = "expected ':'",
+            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_error(Error),
@@ -730,7 +731,8 @@ do_object_fold_members(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected string literal or '}'",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -870,7 +872,8 @@ do_object_fold_state_members(Reader, !.NestingDepth, Where, Pred, !.Acc,
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_eof,
-            make_unexpected_eof_error(Reader, no, Error, !State),
+            Msg = "expected ':'",
+            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_error(Error),
@@ -893,7 +896,8 @@ do_object_fold_state_members(Reader, !.NestingDepth, Where, Pred, !.Acc,
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected string literal or '}'",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -937,7 +941,8 @@ do_array_fold(Reader, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected '['",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -1073,7 +1078,8 @@ do_array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected '['",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
