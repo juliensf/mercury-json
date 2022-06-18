@@ -1799,14 +1799,22 @@ error_context_and_desc_to_string(Context, ErrorDesc) = Msg :-
 :- func describe_char(char) = string.
 
 describe_char(Char) = String :-
-    ( if
+    ( if describe_escaped_char(Char, EscapedCharString) then
+        String = EscapedCharString
+    else if
         char.to_int(Char, CodePoint),
         CodePoint >= 0x0000, CodePoint =< 0x001F
     then
         string.format("U+%04X", [i(CodePoint)], String)
     else
-        String = "'" ++ string.from_char(Char) ++ "'"
+        string.format("'%s'", [s(string.from_char(Char))], String)
     ).
+
+:- pred describe_escaped_char(char::in, string::out) is semidet.
+
+describe_escaped_char('\n', "'\\n'").
+describe_escaped_char('\t', "'\\t'").
+describe_escaped_char('\r', "'\\r'").
 
 :- pred to_char_name(int::in, string::out) is semidet.
 

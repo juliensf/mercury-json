@@ -1,1 +1,1 @@
-unicode_escape_ctrl_char.json:2:0: error: character in Unicode escape is not a hexadecimal digit: U+000A
+unicode_escape_ctrl_char.json:2:0: error: character in Unicode escape is not a hexadecimal digit: '\n'

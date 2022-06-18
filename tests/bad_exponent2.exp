@@ -1,1 +1,1 @@
-bad_exponent2.json:2:0: error: expected '+', '-' or a decimal digit after 'e' in exponent, got U+000A
+bad_exponent2.json:2:0: error: expected '+', '-' or a decimal digit after 'e' in exponent, got '\n'
