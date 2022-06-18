@@ -182,7 +182,8 @@ do_get_value(Reader, !.NestingDepth, Token, Result, !State) :-
         Result = error(Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected a non-empty JSON text",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(Error)
     ;
         Token = token_error(TokenError),

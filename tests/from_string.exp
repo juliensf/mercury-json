@@ -23,11 +23,11 @@ Result: ok(object(two("foo", number(561.0), empty, empty)))
  Input: ""a𢭃b""
 Result: ok(string("a𢭃b"))
  Input: ""
-Result: error(context("<<string reader>>", 1, 0), unexpected_eof(no))
+Result: error(context("<<string reader>>", 1, 0), unexpected_eof(yes("expected a non-empty JSON text")))
  Input: " "
-Result: error(context("<<string reader>>", 1, 1), unexpected_eof(no))
+Result: error(context("<<string reader>>", 1, 1), unexpected_eof(yes("expected a non-empty JSON text")))
  Input: "	"
-Result: error(context("<<string reader>>", 1, 1), unexpected_eof(no))
+Result: error(context("<<string reader>>", 1, 1), unexpected_eof(yes("expected a non-empty JSON text")))
  Input: """
 Result: error(context("<<string reader>>", 1, 1), unexpected_eof(yes("unterminated string literal")))
  Input: "["
