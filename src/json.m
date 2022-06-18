@@ -338,7 +338,7 @@
             ).
 
 :- type json.error_desc
-    --->    unexpected_eof(maybe(string))
+    --->    unexpected_eof(string)
             % unexpected end-of-file: Msg
 
     ;       syntax_error(string, maybe(string))
@@ -1623,16 +1623,16 @@ to_type(V) = from_json(V).
 
 %-----------------------------------------------------------------------------%
 
-:- pred make_unexpected_eof_error(json.reader(Stream)::in, maybe(string)::in,
+:- pred make_unexpected_eof_error(json.reader(Stream)::in, string::in,
     json.error(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
     ).
 
-make_unexpected_eof_error(Reader, MaybeMsg, Error, !State) :-
+make_unexpected_eof_error(Reader, Msg, Error, !State) :-
     make_error_context(Reader, Context, !State),
-    Error = json_error(Context, unexpected_eof(MaybeMsg)).
+    Error = json_error(Context, unexpected_eof(Msg)).
 
 :- pred make_syntax_error(json.reader(Stream)::in, string::in,
     maybe(string)::in, json.error(Error)::out, State::di, State::uo)
@@ -1686,16 +1686,9 @@ error_context_and_desc_to_string(Context, ErrorDesc) = Msg :-
     string.format("%s:%d:%d", [s(StreamName), i(LineNo), i(ColNo)],
         ContextStr),
     (
-        ErrorDesc = unexpected_eof(MaybeExtraMsg),
-        (
-            MaybeExtraMsg = no,
-            string.format("%s: error: unexpected end-of-file\n",
-                [s(ContextStr)], Msg)
-        ;
-            MaybeExtraMsg = yes(ExtraMsg),
-            string.format("%s: error: unexpected end-of-file: %s\n",
-                [s(ContextStr), s(ExtraMsg)], Msg)
-        )
+        ErrorDesc = unexpected_eof(ExtraMsg),
+        string.format("%s: error: unexpected end-of-file: %s\n",
+            [s(ContextStr), s(ExtraMsg)], Msg)
     ;
         ErrorDesc = syntax_error(Where, MaybeExtraMsg),
         (

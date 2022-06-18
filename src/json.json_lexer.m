@@ -241,7 +241,7 @@ get_string_chars(Reader, StartContext, Buffer, Result, !State) :-
     ;
         ReadResult = eof,
         Msg = "unterminated string literal",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(Error)
     ;
         ReadResult = error(StreamError),
@@ -276,7 +276,7 @@ get_escaped_char(Reader, Buffer, Result, !State) :-
     ;
         ReadResult = eof,
         Msg = "expected escape character or Unicode escape after '\\'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(Error)
     ;
         ReadResult = error(StreamError),
@@ -388,7 +388,7 @@ get_hex_digits(Reader, !.N, !HexDigits, Result, !State) :-
             % XXX it's also an unterminated string literal -- what's
             % the more useful error message?
             Msg = "incomplete Unicode escape",
-            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            make_unexpected_eof_error(Reader, Msg, Error, !State),
             Result = error(Error)
         ;
             ReadResult = error(StreamError),
@@ -557,7 +557,7 @@ get_negative_number(Reader, Buffer, Token, !State) :-
     ;
         GetResult = eof,
         Msg = "expected decimal digit after '-'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Token = token_error(Error)
     ;
         GetResult = error(StreamError),
@@ -644,7 +644,7 @@ get_number_chars(Reader, Buffer, Result, !State) :-
             Result = ok
         else
             Msg = "expected '.', 'e', 'E' or decimal digit",
-            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            make_unexpected_eof_error(Reader, Msg, Error, !State),
             Result = error(Error)
         )
     ;
@@ -691,7 +691,7 @@ get_frac(Reader, Where, Buffer, Result, !State) :-
             (
                 Where = frac_start,
                 Msg = "expected decimal digit after '.'",
-                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+                make_unexpected_eof_error(Reader, Msg, Error, !State),
                 Result = error(Error)
             ;
                 Where = frac_digit,
@@ -707,7 +707,7 @@ get_frac(Reader, Where, Buffer, Result, !State) :-
         ;
             Where = frac_start,
             Msg = "expected decimal digit after '.'",
-            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            make_unexpected_eof_error(Reader, Msg, Error, !State),
             Result = error(Error)
         )
     ;
@@ -788,7 +788,7 @@ get_exp(Reader, Where, Buffer, Result, !State) :-
                 Where = exp_sign,
                 Msg = "expected a digit"
             ),
-            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            make_unexpected_eof_error(Reader, Msg, Error, !State),
             Result = error(Error)
         ;
             Where = exp_digit,
@@ -925,7 +925,7 @@ consume_comment(Reader, StartCommentContext, Result, !State) :-
     ;
         ReadResult = eof,
         Msg = "expected '/' or '*' after '/' in comment start",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(Error)
     ;
         ReadResult = error(Error),

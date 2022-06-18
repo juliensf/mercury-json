@@ -183,7 +183,7 @@ do_get_value(Reader, !.NestingDepth, Token, Result, !State) :-
     ;
         Token = token_eof,
         Msg = "expected a non-empty JSON text",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(Error)
     ;
         Token = token_error(TokenError),
@@ -323,8 +323,8 @@ do_get_members(Reader, !.NestingDepth, Where, !.Members, Result, !State) :-
                         ;
                             NextNextToken = token_eof,
                             Msg = "expected '}' or ','",
-                            make_unexpected_eof_error(Reader, yes(Msg),
-                                Error, !State),
+                            make_unexpected_eof_error(Reader, Msg, Error,
+                                !State),
                             Result = error(Error)
                         ;
                             NextNextToken = token_error(TokenError),
@@ -372,7 +372,7 @@ do_get_members(Reader, !.NestingDepth, Where, !.Members, Result, !State) :-
             ;
                 NextToken = token_eof,
                 Msg = "expected a value after ':'",
-                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+                make_unexpected_eof_error(Reader, Msg, Error, !State),
                 Result = error(Error)
             ;
                 NextToken = token_error(Error),
@@ -397,7 +397,7 @@ do_get_members(Reader, !.NestingDepth, Where, !.Members, Result, !State) :-
         ;
             ColonToken = token_eof,
             Msg = "expected ':' after object member name",
-            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            make_unexpected_eof_error(Reader, Msg, Error, !State),
             Result = error(Error)
         ;
             ColonToken = token_error(Error),
@@ -421,7 +421,7 @@ do_get_members(Reader, !.NestingDepth, Where, !.Members, Result, !State) :-
     ;
         Token = token_eof,
         Msg = "object missing terminating '}'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(Error)
     ;
         Token = token_error(Error),
@@ -532,7 +532,7 @@ do_get_array_items(Reader, !.NestingDepth, Where, !.Items, Result, !State) :-
             ;
                 NextToken = token_eof,
                 Msg = "array missing terminating ']'",
-                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+                make_unexpected_eof_error(Reader, Msg, Error, !State),
                 Result = error(Error)
             ;
                 NextToken = token_error(TokenError),
@@ -557,7 +557,7 @@ do_get_array_items(Reader, !.NestingDepth, Where, !.Items, Result, !State) :-
     ;
         Token = token_eof,
         Msg = "array missing terminating ']'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(Error)
     ;
         Token = token_error(TokenError),
@@ -602,7 +602,7 @@ do_object_fold(Reader, Pred, !.Acc, Result, !State) :-
     ;
         Token = token_eof,
         Msg = "expected '{'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -677,7 +677,7 @@ do_object_fold_members(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
                 ;
                     NextNextToken = token_eof,
                     Msg = "expected '}' or ','",
-                    make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+                    make_unexpected_eof_error(Reader, Msg, Error, !State),
                     Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_error(TokenError),
@@ -709,7 +709,7 @@ do_object_fold_members(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
         ;
             ColonToken = token_eof,
             Msg = "expected ':'",
-            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            make_unexpected_eof_error(Reader, Msg, Error, !State),
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_error(Error),
@@ -733,7 +733,7 @@ do_object_fold_members(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
     ;
         Token = token_eof,
         Msg = "expected string literal or '}'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -766,7 +766,7 @@ do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     ;
         Token = token_eof,
         Msg = "expected '{'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -842,7 +842,7 @@ do_object_fold_state_members(Reader, !.NestingDepth, Where, Pred, !.Acc,
                 ;
                     NextNextToken = token_eof,
                     Msg = "expected '}' or ','",
-                    make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+                    make_unexpected_eof_error(Reader, Msg, Error, !State),
                     Result = error(!.Acc, Error)
                 ;
                     NextNextToken = token_error(TokenError),
@@ -874,7 +874,7 @@ do_object_fold_state_members(Reader, !.NestingDepth, Where, Pred, !.Acc,
         ;
             ColonToken = token_eof,
             Msg = "expected ':'",
-            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            make_unexpected_eof_error(Reader, Msg, Error, !State),
             Result = error(!.Acc, Error)
         ;
             ColonToken = token_error(Error),
@@ -898,7 +898,7 @@ do_object_fold_state_members(Reader, !.NestingDepth, Where, Pred, !.Acc,
     ;
         Token = token_eof,
         Msg = "expected string literal or '}'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -943,7 +943,7 @@ do_array_fold(Reader, Pred, !.Acc, Result, !State) :-
     ;
         Token = token_eof,
         Msg = "expected '['",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -1019,7 +1019,7 @@ do_array_fold_elements(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
             ;
                 NextToken = token_eof,
                 Msg = "array missing terminating ']'",
-                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+                make_unexpected_eof_error(Reader, Msg, Error, !State),
                 Result = error(!.Acc, Error)
             ;
                 NextToken = token_error(TokenError),
@@ -1028,7 +1028,7 @@ do_array_fold_elements(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
         ;
             ItemResult = eof,
             Msg = "expected a value",
-            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            make_unexpected_eof_error(Reader, Msg, Error, !State),
             Result = error(!.Acc, Error)
         ;
             ItemResult = error(Error),
@@ -1047,7 +1047,7 @@ do_array_fold_elements(Reader, !.NestingDepth, Where, Pred, !.Acc, Result,
     ;
         Token = token_eof,
         Msg = "array missing terminating ']'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(TokenError),
@@ -1080,7 +1080,7 @@ do_array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     ;
         Token = token_eof,
         Msg = "expected '['",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -1156,7 +1156,7 @@ do_array_fold_state_elements(Reader, !.NestingDepth, Where, Pred, !.Acc,
             ;
                 NextToken = token_eof,
                 Msg = "array missing terminating ']'",
-                make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+                make_unexpected_eof_error(Reader, Msg, Error, !State),
                 Result = error(!.Acc, Error)
             ;
                 NextToken = token_error(TokenError),
@@ -1165,7 +1165,7 @@ do_array_fold_state_elements(Reader, !.NestingDepth, Where, Pred, !.Acc,
         ;
             ItemResult = eof,
             Msg = "expected a value",
-            make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+            make_unexpected_eof_error(Reader, Msg, Error, !State),
             Result = error(!.Acc, Error)
         ;
             ItemResult = error(Error),
@@ -1183,7 +1183,7 @@ do_array_fold_state_elements(Reader, !.NestingDepth, Where, Pred, !.Acc,
     ;
         Token = token_eof,
         Msg = "array missing terminating ']'",
-        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
+        make_unexpected_eof_error(Reader, Msg, Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(TokenError),
