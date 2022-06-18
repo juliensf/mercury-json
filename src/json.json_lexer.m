@@ -130,9 +130,8 @@ get_token(Reader, Token, !State) :-
             Error = json_error(Context, null_character),
             Token = token_error(Error)
         else
-            make_error_context(Reader, Context, !State),
-            Error = json_error(Context,
-                syntax_error(string.from_char(Char), no)),
+            make_syntax_error(Reader, string.from_char(Char), no, Error,
+                !State),
             Token = token_error(Error)
         )
     ;
@@ -820,7 +819,8 @@ get_infinity(Reader, Buffer, Token, !State) :-
         else if InfinityStr = "-Infinity" then
             Token = token_number(-float.infinity)
         else
-            make_syntax_error(Reader, InfinityStr, no, Error, !State),
+            Msg = "expected an infinity literal",
+            make_syntax_error(Reader, InfinityStr, yes(Msg), Error, !State),
             Token = token_error(Error)
         )
     ;
@@ -846,7 +846,8 @@ get_keyword(Reader, Buffer, Token, !State) :-
         ( if is_keyword(Keyword, Token0) then
             Token = Token0
         else
-            make_syntax_error(Reader, Keyword, no, Error, !State),
+            Msg = "expected a literal name",
+            make_syntax_error(Reader, Keyword, yes(Msg), Error, !State),
             Token = token_error(Error)
         )
     ;

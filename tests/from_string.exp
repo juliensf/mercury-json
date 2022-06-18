@@ -35,6 +35,6 @@ Result: error(context("<<string reader>>", 1, 1), unexpected_eof("array missing 
  Input: "}"
 Result: error(context("<<string reader>>", 1, 1), illegal_start_character('}'))
  Input: "nu"
-Result: error(context("<<string reader>>", 1, 2), syntax_error("nu", no))
+Result: error(context("<<string reader>>", 1, 2), syntax_error("nu", yes("expected a literal name")))
  Input: "t"
-Result: error(context("<<string reader>>", 1, 1), syntax_error("t", no))
+Result: error(context("<<string reader>>", 1, 1), syntax_error("t", yes("expected a literal name")))
