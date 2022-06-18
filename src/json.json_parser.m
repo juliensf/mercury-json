@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016 Julien Fischer.
+% Copyright (C) 2013-2016, 2018, 2020, 2022 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -600,7 +600,8 @@ do_object_fold(Reader, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected '{'",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
@@ -761,7 +762,8 @@ do_object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
         Result = error(!.Acc, Error)
     ;
         Token = token_eof,
-        make_unexpected_eof_error(Reader, no, Error, !State),
+        Msg = "expected '{'",
+        make_unexpected_eof_error(Reader, yes(Msg), Error, !State),
         Result = error(!.Acc, Error)
     ;
         Token = token_error(Error),
