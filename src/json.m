@@ -97,8 +97,8 @@
 :- pred is_array(value::in) is semidet.
 
     % The following are true iff the given value is a JSON value of the type
-    % specified by the predicate name.  They return the underlying value.
-    % The are false if the given value is not a JSON value of the type
+    % specified by the predicate name. They return the underlying value.
+    % They are false if the given value is not a JSON value of the type
     % specified by the predicate name.
     %
 :- pred get_bool(value::in, bool::out) is semidet.
@@ -144,7 +144,7 @@
 
     % search_<type>(Object, Member, DefaultValue) = Value:
     % Lookup Member in Object and return the underlying value if it is a JSON
-    % value of the type specified by the predicate name.  Calls error/1 if the
+    % value of the type specified by the predicate name. Calls error/1 if the
     % member value is not a JSON value of the type specified by the predicate
     % name.  If Member is not a member of Object, return DefaultValue.
     %
@@ -158,7 +158,7 @@
 
     % search_<type>_or_null(Object, Member, DefaultValue) = Value:
     % Lookup Member in Object and return the underlying value if it is a JSON
-    % value of the type specified by the predicate name.  If Member is not a
+    % value of the type specified by the predicate name. If Member is not a
     % member of Object or if it is null then return DefaultValue.
     % Calls error/1 if the member value is not a JSON value of the type
     % specified by the predicate name or null.
@@ -237,7 +237,7 @@
             ).
 
     % The following function provides backwards compatibility with older
-    % versions of this library.  The reader parameters it returns do
+    % versions of this library. The reader parameters it returns do
     % not impose a maximum nesting depth.
     %
 :- func reader_params(allow_comments, allow_trailing_commas,
@@ -285,7 +285,7 @@
 
     % init_reader(Stream, Reader, !State):
     % Reader is a new JSON reader using Stream as a character stream and using
-    % the default reader parameters.  With the default parameters the reader
+    % the default reader parameters. With the default parameters the reader
     % will conform to the RFC 8259 definition of JSON and have a maximum
     % nesting depth of 64 levels.
     %
@@ -315,8 +315,8 @@
 % JSON reader errors.
 %
 
-    % The type describes the position within the underlying character stream at
-    % which an error occurred while reading JSON data using a reader.
+    % This type describes the position within the underlying character stream
+    % at which an error occurred while reading JSON data using a reader.
     %
 :- type json.context
     --->    context(
@@ -392,7 +392,7 @@
             % character encountered.
 
     ;       illegal_start_character(char)
-            % A JSON value begins with an illegal character.  One of: '}', ']',
+            % A JSON value begins with an illegal character. One of: '}', ']',
             % ',' or ':'.
 
     ;       illegal_unicode_escape_character(char)
@@ -458,8 +458,8 @@
 %
 
 % The 'read' operations here read a value from the underlying stream using the
-% reader.  They return an error if there are any non-whitespace characters in
-% the stream after the value that has been read.  (Comments after the value are
+% reader. They return an error if there are any non-whitespace characters in
+% the stream after the value that has been read. (Comments after the value are
 % also allowed if the reader is configured to allow comments.)
 
     % read_value(Reader, Result, !State):
@@ -501,7 +501,7 @@
 %
 
 % The 'get' operations here read a value from the underlying stream using the
-% reader.  In contrast to the 'read' operations above they do not examine the
+% reader. In contrast to the 'read' operations above they do not examine the
 % underlying character stream any further once a value has been read.  The
 % 'get' operations can be used read a stream of JSON values.
 
@@ -658,7 +658,7 @@
     ;       pretty.
 
     % Should we escape the SOLIDUS (forward slash) character ('/') in the
-    % output?  Such an escape is optional in JSON, but may be required when
+    % output? Such an escape is optional in JSON, but may be required when
     % embedding JSON in other contexts.
     %
 :- type escape_solidus
@@ -666,7 +666,7 @@
     ;       do_not_escape_solidus.
 
     % A member filter is a semidet predicate whose two arguments are an object
-    % member name and its corresponding value.  If the predicate succeeds then
+    % member name and its corresponding value. If the predicate succeeds then
     % the JSON writer will omit that member when the object is written.
     %
 :- type member_filter
@@ -801,7 +801,7 @@
 % the Mercury types instances of the to_json/1 and from_json/1 type classes.
 %
 % This module provides instances of these type classes for Mercury's primitive
-% types and many of the types defined by the standard library.  The mapping
+% types and many of the types defined by the standard library. The mapping
 % between these types and JSON is as follows:
 %
 % Builtin Types
