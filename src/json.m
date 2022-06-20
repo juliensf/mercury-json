@@ -545,6 +545,11 @@
 
     % object_fold(Reader, Pred, InitialAcc, Result, !State):
     %
+    % Read a JSON object using Reader, applying Pred to each member name and
+    % value in the object and an accumulator value. The initial value of the
+    % accumulator is given by InitialAcc. This continues until the end of the
+    % object is encountered or until an error occurs.
+    %
 :- pred object_fold(json.reader(Stream), pred(string, json.value, A, A),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
@@ -558,6 +563,8 @@
     in, out, di, uo) is cc_multi.
 
     % object_fold_state(Reader, Pred, InitialAcc, Result, !State):
+    %
+    % Similar to object_fold/6, except that !State is also passed to Pred.
     %
 :- pred object_fold_state(json.reader(Stream),
     pred(string, json.value, A, A, State, State),
@@ -579,6 +586,11 @@
 
     % array_fold(Reader, Pred, InitialAcc, Result, !State):
     %
+    % Read a JSON array using Reader, applying Pred to each element and an
+    % accumulator value. The initial value of the accumulator is given by
+    % InitialAcc. This continues until the end of the array is encountered or
+    % until an error occurs.
+    %
 :- pred array_fold(json.reader(Stream), pred(json.value, A, A),
     A, json.maybe_partial_res(A, Error), State, State)
     <= (
@@ -592,6 +604,8 @@
     in, out, di, uo) is cc_multi.
 
     % array_fold(Reader, Pred, InitialAcc, Result, !State):
+    %
+    % Similar to array_fold/6, except that !State is also passed to Pred.
     %
 :- pred array_fold_state(json.reader(Stream),
     pred(json.value, A, A, State, State),
