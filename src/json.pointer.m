@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2015-2016, Julien Fischer.
+% Copyright (C) 2015-2019, Julien Fischer.
 % See the file COPYING for license details.
 %
 % This sub-module implements JSON pointer operations.
