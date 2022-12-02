@@ -680,7 +680,7 @@ get_frac(Reader, Where, Buffer, Result, !State) :-
             ; Char = 'E'
             ),
             % There must be a least on digit before the exponent
-            % indicator.  We cannot have literals of the form "10.e30".
+            % indicator. We cannot have literals of the form "10.e30".
             Where = frac_digit
         then
             update_column_number(Reader, Char, !State),

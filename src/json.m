@@ -146,7 +146,7 @@
     % Lookup Member in Object and return the underlying value if it is a JSON
     % value of the type specified by the predicate name. Calls error/1 if the
     % member value is not a JSON value of the type specified by the predicate
-    % name.  If Member is not a member of Object, return DefaultValue.
+    % name. If Member is not a member of Object, return DefaultValue.
     %
 :- func search_bool(object, string, bool) = bool.
 :- func search_string(object, string, string) = string.
@@ -502,7 +502,7 @@
 
 % The 'get' operations here read a value from the underlying stream using the
 % reader. In contrast to the 'read' operations above they do not examine the
-% underlying character stream any further once a value has been read.  The
+% underlying character stream any further once a value has been read. The
 % 'get' operations can be used read a stream of JSON values.
 
     % get_value(Reader, Result, !State):
@@ -876,7 +876,7 @@
 %     version_array/1   array
 %
 % Note that for types that lack a canonical representation, the JSON marshaler
-% will not necessarily preserve structural equality.  That is, the following
+% will not necessarily preserve structural equality. That is, the following
 % may be false:
 %
 %     J = json.from_type(T),

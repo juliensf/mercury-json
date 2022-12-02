@@ -75,10 +75,10 @@ det_to_float(Buffer, State) = Float :-
 #define MJSON_INITIAL_BUFFER_SIZE 512
 
 /*
-** The C version of a character buffer.  It contains the following fields:
+** The C version of a character buffer. It contains the following fields:
 **
 ** last_char    The character code of the last character that was added
-**              to the buffer.  If the buffer is empty then this == 0.
+**              to the buffer. If the buffer is empty then this == 0.
 **
 ** num_bytes    The number of bytes used to hold characters in the buffer.
 **
