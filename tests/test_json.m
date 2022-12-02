@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016, 2018 Julien Fischer.
+% Copyright (C) 2013-2016, 2018, 2022 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -36,6 +36,7 @@
 :- import_module dir.
 :- import_module int.
 :- import_module getopt.
+:- import_module io.file.
 :- import_module list.
 :- import_module require.
 :- import_module stream.
@@ -392,8 +393,8 @@ check_result(OptionTable, BaseFileName, !NumFailures, !IO) :-
         DiffCmdRes = ok(DiffExitStatus),
         ( if DiffExitStatus = 0 then
             io.format("PASSED: %s\n", [s(BaseFileName)], !IO),
-            io.remove_file(ResFileName, _, !IO),
-            io.remove_file(OutputFileName, _, !IO)
+            io.file.remove_file(ResFileName, _, !IO),
+            io.file.remove_file(OutputFileName, _, !IO)
         else
             io.format("FAILED: %s\n", [s(BaseFileName)], !IO),
             !:NumFailures = !.NumFailures + 1
