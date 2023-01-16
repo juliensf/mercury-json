@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2022, Julien Fischer.
+% Copyright (C) 2013-2023, Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -1020,7 +1020,6 @@
 :- import_module string.
 :- import_module string.builder.
 :- import_module require.
-:- import_module univ.
 
 %-----------------------------------------------------------------------------%
 %
