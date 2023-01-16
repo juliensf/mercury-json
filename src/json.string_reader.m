@@ -159,7 +159,8 @@ where [
             store.set_mutvar(MutableInfoVar, MutableInfo, !State),
             Result = ok(Char)
         else if
-            string.index_next(Src, NextIndex, NextIndexPrime, Char)
+            NextIndex < Reader ^ reader_src_length,
+            string.unsafe_index_next(Src, NextIndex, NextIndexPrime, Char)
         then
             LineNumPrime = ( if Char = '\n' then LineNum + 1 else LineNum ),
             MutableInfo = reader_mutable_info(LineNumPrime, NextIndexPrime,
@@ -186,7 +187,8 @@ where [
             store.set_mutvar(MutableInfoVar, MutableInfo, !State),
             Result = ok
         else if
-            string.index_next(Src, NextIndex, NextIndexPrime, Char0)
+            NextIndex < Reader ^ reader_src_length,
+            string.unsafe_index_next(Src, NextIndex, NextIndexPrime, Char0)
         then
             LineNumPrime = ( if Char = '\n' then LineNum + 1 else LineNum ),
             MutableInfo = reader_mutable_info(LineNumPrime, NextIndexPrime,
