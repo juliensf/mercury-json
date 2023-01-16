@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2017 Julien Fischer.
+% Copyright (C) 2013-2018, 2022-2023 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -29,7 +29,7 @@
 
 :- implementation.
 
-:- import_module mutvar.
+:- import_module mutvar.    % Required for the C# and Java backends.
 
 %-----------------------------------------------------------------------------%
 
