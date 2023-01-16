@@ -360,7 +360,7 @@ RESULT: ERROR: conversion to array2d.array2d(int): row 1 has length 2, expected 
 
 JSON: {"edges":[],"vertices":[]}
 TYPE: digraph.digraph(string)
-RESULT: OK: digraph(0, bimap(empty, empty), empty, empty)
+RESULT: OK: digraph(0u, bimap(empty, empty), empty, empty)
 
 JSON: {"edges":[{"dest":"A","source":"C"}],"vertices":["A","B"]}
 TYPE: digraph.digraph(string)
