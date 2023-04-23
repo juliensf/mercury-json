@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2018, 2020, 2022 Julien Fischer.
+% Copyright (C) 2013-2018, 2020, 2022-2023 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -578,7 +578,7 @@ get_number(Reader, Buffer, Token, !State) :-
         Number = char_buffer.det_to_float(Buffer, !.State),
         ( if is_inf(Number) then
             NumberStr = char_buffer.to_string(Buffer, !.State),
-            string.count_codepoints(NumberStr, NumCodePoints),
+            string.count_code_points(NumberStr, NumCodePoints),
             make_error_context(Reader, Context0, !State),
             % Adjust the column number so we are pointing to the beginning
             % of the number.
