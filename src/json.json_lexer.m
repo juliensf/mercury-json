@@ -48,7 +48,13 @@ get_token(Reader, Token, !State) :-
         ReadResult = ok,
         update_column_number(Reader, Char, !State),
         ( if
-            json_lexer.is_whitespace(Char)
+            (
+                is_json_whitespace(Char)
+            ;
+                Reader ^ json_additional_whitespace =
+                    allow_additional_whitespace,
+                is_json5_whitespace(Char)
+            )
         then
             get_token(Reader, Token, !State)
         else if
@@ -142,13 +148,56 @@ get_token(Reader, Token, !State) :-
         Token = token_error(stream_error(StreamError))
     ).
 
-:- pragma inline(is_whitespace/1).
-:- pred is_whitespace(char::in) is semidet.
+%-----------------------------------------------------------------------------%
+%
+% JSON whitespace.
+%
 
-is_whitespace('\n').
-is_whitespace('\r').
-is_whitespace(' ').
-is_whitespace('\t').
+
+:- pragma inline(is_json_whitespace/1).
+:- pred is_json_whitespace(char::in) is semidet.
+
+is_json_whitespace('\n').
+is_json_whitespace('\r').
+is_json_whitespace(' ').
+is_json_whitespace('\t').
+
+%-----------------------------------------------------------------------------%
+%
+% JSON 5 whitespace
+%
+
+:- pred is_json5_whitespace(char::in) is semidet.
+
+is_json5_whitespace(Char) :-
+    CodePoint = char.to_int(Char),
+    ( CodePoint = 0x0009   % Horizontal tab.
+    ; CodePoint = 0x000a   % Line feed.
+    ; CodePoint = 0x000b   % Vertical tab
+    ; CodePoint = 0x000c   % Form feed.
+    ; CodePoint = 0x000d   % Carriage return.
+    ; CodePoint = 0x0020   % Space.
+    ; CodePoint = 0x00a0   % Non-breaking space.
+    ; CodePoint = 0x2028   % Line separator.
+    ; CodePoint = 0x2029   % Paragraph separator.
+    ; CodePoint = 0xfeff   % Byte order mark.
+    % + any other character in the Unicode Space Separator category (Zs).
+    ; CodePoint = 0x1680   % OGHAM SPACE MARK.
+    ; CodePoint = 0x2000   % EN QUAD.
+    ; CodePoint = 0x2001   % EM QUAD.
+    ; CodePoint = 0x2002   % EN SPACE.
+    ; CodePoint = 0x2003   % EM SPACE.
+    ; CodePoint = 0x2004   % THREE-PER-EM SPACE.
+    ; CodePoint = 0x2005   % FOUR-PER-EM SPACE.
+    ; CodePoint = 0x2006   % SIX-PER-EM SPACE.
+    ; CodePoint = 0x2007   % FIGURE SPACE.
+    ; CodePoint = 0x2008   % PUNCTUATINO SPACE.
+    ; CodePoint = 0x2009   % THIN SPACE.
+    ; CodePoint = 0x200a   % HAIR SPACE.
+    ; CodePoint = 0x202f   % NARROW NO-BREAK SPACE.
+    ; CodePoint = 0x205f   % MEDMIUM MATHEMATICAL SPACE.
+    ; CodePoint = 0x3000   % IDEOGRAPHIC SPACE.
+    ).
 
 %-----------------------------------------------------------------------------%
 %

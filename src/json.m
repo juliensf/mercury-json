@@ -229,11 +229,12 @@
 
 :- type reader_params
     --->    reader_params(
-                allow_comments         :: allow_comments,
-                allow_trailing_commas  :: allow_trailing_commas,
-                allow_repeated_members :: allow_repeated_members,
-                allow_infinities       :: allow_infinities,
-                maximum_nesting_depth  :: maximum_nesting_depth
+                allow_comments              :: allow_comments,
+                allow_trailing_commas       :: allow_trailing_commas,
+                allow_repeated_members      :: allow_repeated_members,
+                allow_infinities            :: allow_infinities,
+                maximum_nesting_depth       :: maximum_nesting_depth,
+                allow_additional_whitespace :: allow_additional_whitespace
             ).
 
     % The following function provides backwards compatibility with older
@@ -282,6 +283,14 @@
 :- type maximum_nesting_depth
     --->    no_maximum_nesting_depth
     ;       maximum_nesting_depth(int).
+
+    % Should the extension that allows additional white space characters be
+    % enabled. If this extension is enabled, then the set of characters that
+    % are treated as white space is extended to be that supported by JSON5.
+    %
+:- type allow_additional_whitespace
+    --->    allow_additional_whitespace
+    ;       do_not_allow_additional_whitespace.
 
     % init_reader(Stream, Reader, !State):
     % Reader is a new JSON reader using Stream as a character stream and using
@@ -1034,6 +1043,7 @@
                 json_repeated_members      :: allow_repeated_members,
                 json_infinities            :: allow_infinities,
                 json_maximum_nesting_depth :: maximum_nesting_depth,
+                json_additional_whitespace :: allow_additional_whitespace,
                 json_column_number         :: mutvar(int),
                 json_char_buffer           :: char_buffer
             ).
@@ -1044,7 +1054,8 @@ reader_params(Comments, TrailingCommas, RepeatedMembers, Infinities) =
         TrailingCommas,
         RepeatedMembers,
         Infinities,
-        no_maximum_nesting_depth
+        no_maximum_nesting_depth,
+        do_not_allow_additional_whitespace
     ).
 
 :- func default_reader_params = reader_params.
@@ -1055,7 +1066,8 @@ default_reader_params = Params :-
         do_not_allow_trailing_commas,
         do_not_allow_repeated_members,
         do_not_allow_infinities,
-        maximum_nesting_depth(64)
+        maximum_nesting_depth(64),
+        do_not_allow_additional_whitespace
     ).
 
 init_reader(Stream, Reader, !State) :-
@@ -1068,7 +1080,8 @@ init_reader(Stream, Params, Reader, !State) :-
         AllowTrailingCommas,
         RepeatedMembers,
         AllowInfinities,
-        MaximumNestingDepth
+        MaximumNestingDepth,
+        AllowAdditionalWhitespace
     ),
     ( if
         MaximumNestingDepth = maximum_nesting_depth(MaxDepth),
@@ -1086,6 +1099,7 @@ init_reader(Stream, Params, Reader, !State) :-
                 RepeatedMembers,
                 AllowInfinities,
                 MaximumNestingDepth,
+                AllowAdditionalWhitespace,
                 ColNumVar,
                 CharBuffer
             ),

@@ -305,7 +305,8 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
         AllowTrailingCommas,
         AllowRepeatedMembers,
         AllowInfinities,
-        MaxNestingDepth
+        MaxNestingDepth,
+        do_not_allow_additional_whitespace
     ),
     json.init_reader(Input, ReaderParams, Reader, !IO),
     WriterParams = writer_params(
