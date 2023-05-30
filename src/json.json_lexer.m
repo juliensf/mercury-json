@@ -164,7 +164,7 @@ is_json_whitespace('\t').
 
 %-----------------------------------------------------------------------------%
 %
-% JSON 5 whitespace
+% JSON 5 whitespace.
 %
 
 :- pred is_json5_whitespace(char::in) is semidet.

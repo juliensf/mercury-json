@@ -285,7 +285,7 @@
     ;       maximum_nesting_depth(int).
 
     % Should the extension that allows additional white space characters be
-    % enabled. If this extension is enabled, then the set of characters that
+    % enabled? If this extension is enabled, then the set of characters that
     % are treated as white space is extended to be that supported by JSON5.
     %
 :- type allow_additional_whitespace
