@@ -9,6 +9,7 @@ and writing [JSON](http://www.json.org) from character streams.
 * optionally allows single and multiline comments in JSON
 * optionally allows single trailing commas in JSON objects and arrays
 * optionally allows numbers to be -Infinity / Infinity
+* optionally allows single quoted strings
 * user configurable behaviour for handling repeated object members
 * marshaling and unmarshaling of Mercury data to and from JSON
 * user configurable maximum nesting depth limit

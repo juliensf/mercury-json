@@ -98,7 +98,12 @@ get_token(Reader, Token, !State) :-
         else if
             Char = '"'
         then
-            get_string_literal(Reader, Token, !State)
+            get_string_literal(Reader, ('\"'), Token, !State)
+        else if
+            Char = ('\''),
+            Reader ^ json_single_quoted_strings = allow_single_quoted_strings
+        then
+            get_string_literal(Reader, ('\''), Token, !State)
         else if
             Char = ('-')
         then
@@ -224,17 +229,18 @@ update_column_number(Reader, Char, !State) :-
 % String literals.
 %
 
-:- pred get_string_literal(json.reader(Stream)::in, token(Error)::out,
-    State::di, State::uo) is det
+:- pred get_string_literal(json.reader(Stream)::in, char::in,
+    token(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
     ).
 
-get_string_literal(Reader, Token, !State) :-
+get_string_literal(Reader, QuoteChar, Token, !State) :-
     make_error_context(Reader, StartContext, !State),
     Buffer = Reader ^ json_char_buffer,
-    get_string_chars(Reader, StartContext, Buffer, Result, !State),
+    get_string_chars(Reader, QuoteChar, StartContext, Buffer, Result,
+        !State),
     (
         Result = ok,
         String = char_buffer.to_string(Buffer, !.State),
@@ -246,14 +252,15 @@ get_string_literal(Reader, Token, !State) :-
     char_buffer.reset(Buffer, !State).
 
 :- pred get_string_chars(json.reader(Stream)::in,
-    json.context::in, char_buffer::in,
+    char::in, json.context::in, char_buffer::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
     ).
 
-get_string_chars(Reader, StartContext, Buffer, Result, !State) :-
+get_string_chars(Reader, QuoteChar, StartContext, Buffer, Result,
+        !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.unboxed_get(Stream, ReadResult, Char, !State),
     (
@@ -262,15 +269,17 @@ get_string_chars(Reader, StartContext, Buffer, Result, !State) :-
         ( if
             Char = ('\\')
         then
-            get_escaped_char(Reader, Buffer, EscapedCharResult, !State),
+            get_escaped_char(Reader, QuoteChar, Buffer, EscapedCharResult,
+                !State),
             (
                 EscapedCharResult = ok,
-                get_string_chars(Reader, StartContext, Buffer, Result, !State)
+                get_string_chars(Reader, QuoteChar, StartContext, Buffer,
+                    Result, !State)
             ;
                 EscapedCharResult = error(Error),
                 Result = error(Error)
             )
-        else if Char = '"' then
+        else if Char = QuoteChar then
             Result = ok
         else if
             char.to_int(Char, CodePoint),
@@ -284,7 +293,8 @@ get_string_chars(Reader, StartContext, Buffer, Result, !State) :-
             Result = error(Error)
         else
             char_buffer.add(Buffer, Char, !State),
-            get_string_chars(Reader, StartContext, Buffer, Result, !State)
+            get_string_chars(Reader, QuoteChar, StartContext, Buffer,
+                Result, !State)
         )
     ;
         ReadResult = eof,
@@ -297,20 +307,20 @@ get_string_chars(Reader, StartContext, Buffer, Result, !State) :-
     ).
 
 :- pred get_escaped_char(json.reader(Stream)::in,
-    char_buffer::in,
+    char::in, char_buffer::in,
     json.res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
     ).
 
-get_escaped_char(Reader, Buffer, Result, !State) :-
+get_escaped_char(Reader, QuoteChar, Buffer, Result, !State) :-
     Stream = Reader ^ json_reader_stream,
     stream.unboxed_get(Stream, ReadResult, Char, !State),
     (
         ReadResult = ok,
         update_column_number(Reader, Char, !State),
-        ( if escaped_json_char(Char, EscapedChar) then
+        ( if escaped_json_char(QuoteChar, Char, EscapedChar) then
             char_buffer.add(Buffer, EscapedChar, !State),
             Result = ok
         else if Char = 'u' then
@@ -331,18 +341,36 @@ get_escaped_char(Reader, Buffer, Result, !State) :-
         Result = error(stream_error(StreamError))
     ).
 
-:- pred escaped_json_char(char, char).
-:- mode escaped_json_char(in, out) is semidet.
-:- mode escaped_json_char(out, in) is semidet.
+:- pragma promise_equivalent_clauses(pred(escaped_json_char/3)).
+:- pred escaped_json_char(char, char, char).
+:- mode escaped_json_char(in, in, out) is semidet.
+:- mode escaped_json_char(in, out, in) is semidet.
 
-escaped_json_char('"', '"').
-escaped_json_char('\\', '\\').
-escaped_json_char('/', '/').
-escaped_json_char('b', '\b').
-escaped_json_char('f', '\f').
-escaped_json_char('n', '\n').
-escaped_json_char('r', '\r').
-escaped_json_char('t', '\t').
+escaped_json_char(QuoteChar::in, Char::in, EscapedChar::out) :-
+    ( if Char = QuoteChar then
+        EscapedChar = QuoteChar
+    else
+        escaped_json_char_2(Char, EscapedChar)
+    ).
+
+escaped_json_char(QuoteChar::in, Char::out, EscapedChar::in) :-
+    ( if EscapedChar = QuoteChar then
+        Char = EscapedChar
+    else
+        escaped_json_char_2(Char, EscapedChar)
+    ).
+
+:- pred escaped_json_char_2(char, char).
+:- mode escaped_json_char_2(in, out) is semidet.
+:- mode escaped_json_char_2(out, in) is semidet.
+
+escaped_json_char_2('\\', '\\').
+escaped_json_char_2('/', '/').
+escaped_json_char_2('b', '\b').
+escaped_json_char_2('f', '\f').
+escaped_json_char_2('n', '\n').
+escaped_json_char_2('r', '\r').
+escaped_json_char_2('t', '\t').
 
 :- pred get_escaped_unicode_char(json.reader(Stream)::in,
     char_buffer::in,
@@ -1069,7 +1097,7 @@ escape_json_string(String) = EscapedString :-
 :- pred do_char_escape(char::in, list(char)::in, list(char)::out) is det.
 
 do_char_escape(Char, !RevChars) :-
-    ( if escaped_json_char(Escape, Char) then   % Reverse mode.
+    ( if escaped_json_char(('\"'), Escape, Char) then   % Reverse mode.
         !:RevChars = [Escape, '\\'| !.RevChars]
     else if
         char.to_int(Char, CodePoint),

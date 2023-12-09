@@ -234,7 +234,8 @@
                 allow_repeated_members      :: allow_repeated_members,
                 allow_infinities            :: allow_infinities,
                 maximum_nesting_depth       :: maximum_nesting_depth,
-                allow_additional_whitespace :: allow_additional_whitespace
+                allow_additional_whitespace :: allow_additional_whitespace,
+                allow_single_quoted_strings :: allow_single_quoted_strings
             ).
 
     % The following function provides backwards compatibility with older
@@ -291,6 +292,12 @@
 :- type allow_additional_whitespace
     --->    allow_additional_whitespace
     ;       do_not_allow_additional_whitespace.
+
+    % Should the extension that allows single quoted strings be enabled?
+    %
+:- type allow_single_quoted_strings
+    --->    allow_single_quoted_strings
+    ;       do_not_allow_single_quoted_strings.
 
     % init_reader(Stream, Reader, !State):
     % Reader is a new JSON reader using Stream as a character stream and using
@@ -1037,15 +1044,16 @@
 
 :- type json.reader(Stream)
     --->    json_reader(
-                json_reader_stream         :: Stream,
-                json_comments              :: allow_comments,
-                json_trailing_commas       :: allow_trailing_commas,
-                json_repeated_members      :: allow_repeated_members,
-                json_infinities            :: allow_infinities,
-                json_maximum_nesting_depth :: maximum_nesting_depth,
-                json_additional_whitespace :: allow_additional_whitespace,
-                json_column_number         :: mutvar(int),
-                json_char_buffer           :: char_buffer
+                json_reader_stream          :: Stream,
+                json_comments               :: allow_comments,
+                json_trailing_commas        :: allow_trailing_commas,
+                json_repeated_members       :: allow_repeated_members,
+                json_infinities             :: allow_infinities,
+                json_maximum_nesting_depth  :: maximum_nesting_depth,
+                json_additional_whitespace  :: allow_additional_whitespace,
+                json_single_quoted_strings  :: allow_single_quoted_strings,
+                json_column_number          :: mutvar(int),
+                json_char_buffer            :: char_buffer
             ).
 
 reader_params(Comments, TrailingCommas, RepeatedMembers, Infinities) =
@@ -1055,7 +1063,8 @@ reader_params(Comments, TrailingCommas, RepeatedMembers, Infinities) =
         RepeatedMembers,
         Infinities,
         no_maximum_nesting_depth,
-        do_not_allow_additional_whitespace
+        do_not_allow_additional_whitespace,
+        do_not_allow_single_quoted_strings
     ).
 
 :- func default_reader_params = reader_params.
@@ -1067,7 +1076,8 @@ default_reader_params = Params :-
         do_not_allow_repeated_members,
         do_not_allow_infinities,
         maximum_nesting_depth(64),
-        do_not_allow_additional_whitespace
+        do_not_allow_additional_whitespace,
+        do_not_allow_single_quoted_strings
     ).
 
 init_reader(Stream, Reader, !State) :-
@@ -1081,7 +1091,8 @@ init_reader(Stream, Params, Reader, !State) :-
         RepeatedMembers,
         AllowInfinities,
         MaximumNestingDepth,
-        AllowAdditionalWhitespace
+        AllowAdditionalWhitespace,
+        AllowSingleQuotedStrings
     ),
     ( if
         MaximumNestingDepth = maximum_nesting_depth(MaxDepth),
@@ -1100,6 +1111,7 @@ init_reader(Stream, Params, Reader, !State) :-
                 AllowInfinities,
                 MaximumNestingDepth,
                 AllowAdditionalWhitespace,
+                AllowSingleQuotedStrings,
                 ColNumVar,
                 CharBuffer
             ),

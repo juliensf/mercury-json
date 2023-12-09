@@ -283,14 +283,19 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
     % specific tests -- such tests need to be added to the table
     % defined by the override_default_params/4 predicate.
     ( if
-        override_default_params(BaseFileName, AllowComments0,
-        AllowTrailingCommas0, AllowRepeatedMembers0, AllowInfinities0,
+        override_default_params(BaseFileName,
+            AllowComments0,
+            AllowTrailingCommas0,
+            AllowRepeatedMembers0,
+            AllowInfinities0,
+            AllowSingleQuotedStrings0,
             MaxNestingDepth0)
     then
         AllowComments = AllowComments0,
         AllowTrailingCommas = AllowTrailingCommas0,
         AllowRepeatedMembers = AllowRepeatedMembers0,
         AllowInfinities = AllowInfinities0,
+        AllowSingleQuotedStrings = AllowSingleQuotedStrings0,
         MaxNestingDepth = MaxNestingDepth0
     else
         % The default JSON reader parameters for the tests.
@@ -298,6 +303,7 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
         AllowTrailingCommas = do_not_allow_trailing_commas,
         AllowRepeatedMembers = do_not_allow_repeated_members,
         AllowInfinities = do_not_allow_infinities,
+        AllowSingleQuotedStrings = do_not_allow_single_quoted_strings,
         MaxNestingDepth = no_maximum_nesting_depth
     ),
     ReaderParams = reader_params(
@@ -306,7 +312,8 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
         AllowRepeatedMembers,
         AllowInfinities,
         MaxNestingDepth,
-        do_not_allow_additional_whitespace
+        do_not_allow_additional_whitespace,
+        AllowSingleQuotedStrings
     ),
     json.init_reader(Input, ReaderParams, Reader, !IO),
     WriterParams = writer_params(
@@ -329,28 +336,59 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
     ).
 
 :- pred override_default_params(string::in,
-    allow_comments::out, allow_trailing_commas::out,
+    allow_comments::out,
+    allow_trailing_commas::out,
     allow_repeated_members::out,
     allow_infinities::out,
+    allow_single_quoted_strings::out,
     maximum_nesting_depth::out) is semidet.
 
-override_default_params("repeated_member_first",
+override_default_params(TestName, AllowComments, AllowTrailingCommas,
+        AllowRepeatedMembers, AllowInfinities, AllowSingleQuotedStrings,
+        MaxNestingDepth) :-
+    ( if string.prefix(TestName, "j5_") then
+        % Default reader parameters for JSON5 tests.
+        AllowComments = allow_comments,
+        AllowTrailingCommas = allow_trailing_commas,
+        AllowRepeatedMembers = do_not_allow_repeated_members,
+        AllowInfinities = allow_infinities,
+        AllowSingleQuotedStrings = allow_single_quoted_strings,
+        MaxNestingDepth = no_maximum_nesting_depth
+    else
+        override_default_params_2(TestName,
+            AllowComments, AllowTrailingCommas,
+            AllowRepeatedMembers, AllowInfinities,
+            AllowSingleQuotedStrings, MaxNestingDepth)
+    ).
+
+:- pred override_default_params_2(string::in,
+    allow_comments::out,
+    allow_trailing_commas::out,
+    allow_repeated_members::out,
+    allow_infinities::out,
+    allow_single_quoted_strings::out,
+    maximum_nesting_depth::out) is semidet.
+
+override_default_params_2("repeated_member_first",
     allow_comments,
     do_not_allow_trailing_commas,
     allow_repeated_members_keep_first,
     do_not_allow_infinities,
+    do_not_allow_single_quoted_strings,
     no_maximum_nesting_depth).
-override_default_params("repeated_member_last",
+override_default_params_2("repeated_member_last",
     allow_comments,
     do_not_allow_trailing_commas,
     allow_repeated_members_keep_last,
     do_not_allow_infinities,
+    do_not_allow_single_quoted_strings,
     no_maximum_nesting_depth).
-override_default_params("infinity",
+override_default_params_2("infinity",
     allow_comments,
     do_not_allow_trailing_commas,
     allow_repeated_members_keep_last,
     allow_infinities,
+    do_not_allow_single_quoted_strings,
     no_maximum_nesting_depth).
 
 %-----------------------------------------------------------------------------%
