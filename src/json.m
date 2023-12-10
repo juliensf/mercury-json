@@ -315,7 +315,7 @@
 
     % init_reader(Stream, Parameters, Reader, !State):
     % As above, but allow reader parameters to be set by the caller.
-    % Throws a software_error/1 exception if the is a maximum nesting depth
+    % Throws a software_error/1 exception if there is a maximum nesting depth
     % limit set and the value of that limit is less than zero.
     %
 :- pred init_reader(Stream::in, reader_params::in, reader(Stream)::out,
