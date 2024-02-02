@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2018, 2020, 2022-2023 Julien Fischer.
+% Copyright (C) 2013-2018, 2020, 2022-2024 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -196,11 +196,11 @@ is_json5_whitespace(Char) :-
     ; CodePoint = 0x2005   % FOUR-PER-EM SPACE.
     ; CodePoint = 0x2006   % SIX-PER-EM SPACE.
     ; CodePoint = 0x2007   % FIGURE SPACE.
-    ; CodePoint = 0x2008   % PUNCTUATINO SPACE.
+    ; CodePoint = 0x2008   % PUNCTUATION SPACE.
     ; CodePoint = 0x2009   % THIN SPACE.
     ; CodePoint = 0x200a   % HAIR SPACE.
     ; CodePoint = 0x202f   % NARROW NO-BREAK SPACE.
-    ; CodePoint = 0x205f   % MEDMIUM MATHEMATICAL SPACE.
+    ; CodePoint = 0x205f   % MEDIUM MATHEMATICAL SPACE.
     ; CodePoint = 0x3000   % IDEOGRAPHIC SPACE.
     ).
 
