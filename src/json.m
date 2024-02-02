@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2023, Julien Fischer.
+% Copyright (C) 2013-2024 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -659,6 +659,48 @@
 
 %-----------------------------------------------------------------------------%
 %
+% Reading and getting JSON values from text files.
+%
+
+% The following convenience predicates can be used to read and get JSON values
+% from text files. Files being read from with these predicates must be UTF-8
+% encoded. If the UTF-8 byte order mark (BOM) is present at the beginning of
+% a file, it will be ignored.
+
+    % read_value_from_named_file(FileName, Result, !IO):
+    %
+    % Open the named file and read a JSON value from it using the default
+    % reader parameters.
+    %
+:- pred read_value_from_named_file(string::in,
+    json.result(json.value, io.error)::out, io::di, io::uo) is det.
+
+    % read_value_from_named_file(Parameters, FileName, Result, !IO):
+    %
+    % Open the named file and read a JSON value from it using the specified
+    % reader Parameters.
+    %
+:- pred read_value_from_named_file(reader_params::in, string::in,
+    json.result(json.value, io.error)::out, io::di, io::uo) is det.
+
+    % get_value_from_named_file(FileName, Result, !IO):
+    %
+    % Open the named file and get a JSON value from it using the default
+    % reader parameters.
+    %
+:- pred get_value_from_named_file(string::in,
+    json.result(json.value, io.error)::out, io::di, io::uo) is det.
+
+    % get_value_from_named_file(Parameters, FileName, Result, !IO):
+    %
+    % Open the named file and get a JSON value from it using the specified
+    % reader Parameters.
+    %
+:- pred get_value_from_named_file(reader_params::in, string::in,
+    json.result(json.value, io.error)::out, io::di, io::uo) is det.
+
+%-----------------------------------------------------------------------------%
+%
 % JSON writer.
 %
 
@@ -1291,6 +1333,76 @@ array_fold(Reader, Pred, !.Acc, Result, !State) :-
 
 array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
     do_array_fold_state(Reader, Pred, !.Acc, Result, !State).
+
+%-----------------------------------------------------------------------------%
+%
+% Reading and getting JSON values from text files.
+%
+
+read_value_from_named_file(FileName, Result, !IO) :-
+    Params = default_reader_params,
+    read_value_from_named_file(Params, FileName, Result, !IO).
+
+read_value_from_named_file(Params, FileName, Result, !IO) :-
+    io.open_input(FileName, OpenResult, !IO),
+    (
+        OpenResult = ok(FileStream),
+        maybe_consume_utf8_bom(FileStream, !IO),
+        init_reader(FileStream, Params, Reader, !IO),
+        read_value(Reader, Result, !IO),
+        ( if Result = error(stream_error(_)) then
+            true
+        else
+            io.close_input(FileStream, !IO)
+        )
+    ;
+        OpenResult = error(IO_Error),
+        Result = error(stream_error(IO_Error))
+    ).
+
+get_value_from_named_file(FileName, Result, !IO) :-
+    Params = default_reader_params,
+    get_value_from_named_file(Params, FileName, Result, !IO).
+
+get_value_from_named_file(Params, FileName, Result, !IO) :-
+    io.open_input(FileName, OpenResult, !IO),
+    (
+        OpenResult = ok(FileStream),
+        maybe_consume_utf8_bom(FileStream, !IO),
+        init_reader(FileStream, Params, Reader, !IO),
+        get_value(Reader, Result, !IO),
+        ( if Result = error(stream_error(_)) then
+            true
+        else
+            io.close_input(FileStream, !IO)
+        )
+    ;
+        OpenResult = error(IO_Error),
+        Result = error(stream_error(IO_Error))
+    ).
+
+:- pred maybe_consume_utf8_bom(io.input_stream::in, io::di, io::uo) is det.
+
+maybe_consume_utf8_bom(FileStream, !IO) :-
+    io.read_char(FileStream, ReadResult, !IO),
+    (
+        ReadResult = ok(Char),
+        ( if is_utf8_bom(Char) then
+            true
+        else
+            io.putback_char(FileStream, Char, !IO)
+        )
+    ;
+        ( ReadResult = eof
+        ; ReadResult = error(_)
+        )
+    ).
+
+:- pred is_utf8_bom(char::in) is semidet.
+
+is_utf8_bom(Char) :-
+    CodePoint = char.to_int(Char),
+    CodePoint = 0xfeff.
 
 %-----------------------------------------------------------------------------%
 %

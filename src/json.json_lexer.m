@@ -141,6 +141,8 @@ get_token(Reader, Token, !State) :-
             Error = json_error(Context, null_character),
             Token = token_error(Error)
         else
+            % XXX TODO: we should handle the case where the character
+            % is non printable better here.
             make_syntax_error(Reader, string.from_char(Char), no, Error,
                 !State),
             Token = token_error(Error)
