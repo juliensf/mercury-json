@@ -1776,10 +1776,7 @@ to_type(V) = from_json(V).
 
 :- pred make_unexpected_eof_error(json.reader(Stream)::in, string::in,
     json.error(Error)::out, State::di, State::uo) is det
-    <= (
-        stream.line_oriented(Stream, State),
-        stream.unboxed_reader(Stream, char, State, Error)
-    ).
+    <= stream.line_oriented(Stream, State).
 
 make_unexpected_eof_error(Reader, Msg, Error, !State) :-
     make_error_context(Reader, Context, !State),
@@ -1787,11 +1784,7 @@ make_unexpected_eof_error(Reader, Msg, Error, !State) :-
 
 :- pred make_syntax_error(json.reader(Stream)::in, string::in,
     maybe(string)::in, json.error(Error)::out, State::di, State::uo)
-    is det <= (
-        stream.line_oriented(Stream, State),
-        stream.unboxed_reader(Stream, char, State, Error),
-        stream.putback(Stream, char, State, Error)
-    ).
+    is det <= stream.line_oriented(Stream, State).
 
 make_syntax_error(Reader, Where, MaybeMsg, Error, !State) :-
     make_error_context(Reader, Context, !State),
@@ -1799,10 +1792,7 @@ make_syntax_error(Reader, Where, MaybeMsg, Error, !State) :-
 
 :- pred make_error_context(json.reader(Stream)::in,
     json.context::out, State::di, State::uo) is det
-    <= (
-        stream.line_oriented(Stream, State),
-        stream.unboxed_reader(Stream, char, State, Error)
-    ).
+    <= stream.line_oriented(Stream, State).
 
 make_error_context(Reader, Context, !State) :-
     promise_pure (
