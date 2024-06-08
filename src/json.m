@@ -227,6 +227,37 @@
     %
 :- type json.reader(Stream).
 
+    % init_reader(Stream, Reader, !State):
+    % Reader is a new JSON reader using Stream as a character stream and using
+    % the default reader parameters. With the default parameters the reader
+    % will conform to the RFC 8259 definition of JSON and have a maximum
+    % nesting depth of 64 levels.
+    %
+:- pred init_reader(Stream::in, reader(Stream)::out, State::di, State::uo)
+        is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+    % init_reader(Stream, Parameters, Reader, !State):
+    % As above, but using reader parameters set by the caller.
+    % Throws a software_error/1 exception if there is a maximum nesting depth
+    % limit set and the value of that limit is less than zero.
+    %
+:- pred init_reader(Stream::in, reader_params::in, reader(Stream)::out,
+        State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error),
+        stream.putback(Stream, char, State, Error)
+    ).
+
+%-----------------------------------------------------------------------------%
+%
+% JSON reader parameters.
+
 :- type reader_params
     --->    reader_params(
                 allow_comments              :: allow_comments,
@@ -235,7 +266,8 @@
                 allow_infinities            :: allow_infinities,
                 maximum_nesting_depth       :: maximum_nesting_depth,
                 allow_additional_whitespace :: allow_additional_whitespace,
-                allow_single_quoted_strings :: allow_single_quoted_strings
+                allow_single_quoted_strings :: allow_single_quoted_strings,
+                allow_hex_escapes           :: allow_hex_escapes
             ).
 
     % The following function provides backwards compatibility with older
@@ -299,32 +331,12 @@
     --->    allow_single_quoted_strings
     ;       do_not_allow_single_quoted_strings.
 
-    % init_reader(Stream, Reader, !State):
-    % Reader is a new JSON reader using Stream as a character stream and using
-    % the default reader parameters. With the default parameters the reader
-    % will conform to the RFC 8259 definition of JSON and have a maximum
-    % nesting depth of 64 levels.
+    % Should the extension that allows hexadecimal characters escapes in
+    % strings (e.g. \xHH) be enabled?
     %
-:- pred init_reader(Stream::in, reader(Stream)::out, State::di, State::uo)
-        is det
-    <= (
-        stream.line_oriented(Stream, State),
-        stream.unboxed_reader(Stream, char, State, Error),
-        stream.putback(Stream, char, State, Error)
-    ).
-
-    % init_reader(Stream, Parameters, Reader, !State):
-    % As above, but allow reader parameters to be set by the caller.
-    % Throws a software_error/1 exception if there is a maximum nesting depth
-    % limit set and the value of that limit is less than zero.
-    %
-:- pred init_reader(Stream::in, reader_params::in, reader(Stream)::out,
-        State::di, State::uo) is det
-    <= (
-        stream.line_oriented(Stream, State),
-        stream.unboxed_reader(Stream, char, State, Error),
-        stream.putback(Stream, char, State, Error)
-    ).
+:- type allow_hex_escapes
+    --->    allow_hex_escapes
+    ;       do_not_allow_hex_escapes.
 
 %-----------------------------------------------------------------------------%
 %
@@ -1094,6 +1106,7 @@
                 json_maximum_nesting_depth  :: maximum_nesting_depth,
                 json_additional_whitespace  :: allow_additional_whitespace,
                 json_single_quoted_strings  :: allow_single_quoted_strings,
+                json_allow_hex_escapes      :: allow_hex_escapes,
                 json_column_number          :: mutvar(int),
                 json_char_buffer            :: char_buffer
             ).
@@ -1106,7 +1119,8 @@ reader_params(Comments, TrailingCommas, RepeatedMembers, Infinities) =
         Infinities,
         no_maximum_nesting_depth,
         do_not_allow_additional_whitespace,
-        do_not_allow_single_quoted_strings
+        do_not_allow_single_quoted_strings,
+        do_not_allow_hex_escapes
     ).
 
 :- func default_reader_params = reader_params.
@@ -1119,7 +1133,8 @@ default_reader_params = Params :-
         do_not_allow_infinities,
         maximum_nesting_depth(64),
         do_not_allow_additional_whitespace,
-        do_not_allow_single_quoted_strings
+        do_not_allow_single_quoted_strings,
+        do_not_allow_hex_escapes
     ).
 
 init_reader(Stream, Reader, !State) :-
@@ -1134,7 +1149,8 @@ init_reader(Stream, Params, Reader, !State) :-
         AllowInfinities,
         MaximumNestingDepth,
         AllowAdditionalWhitespace,
-        AllowSingleQuotedStrings
+        AllowSingleQuotedStrings,
+        AllowHexEscapes
     ),
     ( if
         MaximumNestingDepth = maximum_nesting_depth(MaxDepth),
@@ -1154,6 +1170,7 @@ init_reader(Stream, Params, Reader, !State) :-
                 MaximumNestingDepth,
                 AllowAdditionalWhitespace,
                 AllowSingleQuotedStrings,
+                AllowHexEscapes,
                 ColNumVar,
                 CharBuffer
             ),

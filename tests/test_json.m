@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016, 2018, 2022-2023 Julien Fischer.
+% Copyright (C) 2013-2016, 2018, 2022-2024 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -289,14 +289,16 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
             AllowRepeatedMembers0,
             AllowInfinities0,
             AllowSingleQuotedStrings0,
-            MaxNestingDepth0)
+            MaxNestingDepth0,
+            AllowHexEscapes0)
     then
         AllowComments = AllowComments0,
         AllowTrailingCommas = AllowTrailingCommas0,
         AllowRepeatedMembers = AllowRepeatedMembers0,
         AllowInfinities = AllowInfinities0,
         AllowSingleQuotedStrings = AllowSingleQuotedStrings0,
-        MaxNestingDepth = MaxNestingDepth0
+        MaxNestingDepth = MaxNestingDepth0,
+        AllowHexEscapes = AllowHexEscapes0
     else
         % The default JSON reader parameters for the tests.
         AllowComments = allow_comments,
@@ -304,7 +306,8 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
         AllowRepeatedMembers = do_not_allow_repeated_members,
         AllowInfinities = do_not_allow_infinities,
         AllowSingleQuotedStrings = do_not_allow_single_quoted_strings,
-        MaxNestingDepth = no_maximum_nesting_depth
+        MaxNestingDepth = no_maximum_nesting_depth,
+        AllowHexEscapes = do_not_allow_hex_escapes
     ),
     ReaderParams = reader_params(
         AllowComments,
@@ -313,7 +316,8 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
         AllowInfinities,
         MaxNestingDepth,
         do_not_allow_additional_whitespace,
-        AllowSingleQuotedStrings
+        AllowSingleQuotedStrings,
+        AllowHexEscapes
     ),
     json.init_reader(Input, ReaderParams, Reader, !IO),
     WriterParams = writer_params(
@@ -341,11 +345,12 @@ parse_and_output(BaseFileName, Input, Output, !IO) :-
     allow_repeated_members::out,
     allow_infinities::out,
     allow_single_quoted_strings::out,
-    maximum_nesting_depth::out) is semidet.
+    maximum_nesting_depth::out,
+    allow_hex_escapes::out) is semidet.
 
 override_default_params(TestName, AllowComments, AllowTrailingCommas,
         AllowRepeatedMembers, AllowInfinities, AllowSingleQuotedStrings,
-        MaxNestingDepth) :-
+        MaxNestingDepth, AllowHexEscapes) :-
     ( if string.prefix(TestName, "j5_") then
         % Default reader parameters for JSON5 tests.
         AllowComments = allow_comments,
@@ -353,12 +358,14 @@ override_default_params(TestName, AllowComments, AllowTrailingCommas,
         AllowRepeatedMembers = do_not_allow_repeated_members,
         AllowInfinities = allow_infinities,
         AllowSingleQuotedStrings = allow_single_quoted_strings,
-        MaxNestingDepth = no_maximum_nesting_depth
+        MaxNestingDepth = no_maximum_nesting_depth,
+        AllowHexEscapes = allow_hex_escapes
     else
         override_default_params_2(TestName,
             AllowComments, AllowTrailingCommas,
             AllowRepeatedMembers, AllowInfinities,
-            AllowSingleQuotedStrings, MaxNestingDepth)
+            AllowSingleQuotedStrings, MaxNestingDepth,
+            AllowHexEscapes)
     ).
 
 :- pred override_default_params_2(string::in,
@@ -367,7 +374,8 @@ override_default_params(TestName, AllowComments, AllowTrailingCommas,
     allow_repeated_members::out,
     allow_infinities::out,
     allow_single_quoted_strings::out,
-    maximum_nesting_depth::out) is semidet.
+    maximum_nesting_depth::out,
+    allow_hex_escapes::out) is semidet.
 
 override_default_params_2("repeated_member_first",
     allow_comments,
@@ -375,21 +383,24 @@ override_default_params_2("repeated_member_first",
     allow_repeated_members_keep_first,
     do_not_allow_infinities,
     do_not_allow_single_quoted_strings,
-    no_maximum_nesting_depth).
+    no_maximum_nesting_depth,
+    do_not_allow_hex_escapes).
 override_default_params_2("repeated_member_last",
     allow_comments,
     do_not_allow_trailing_commas,
     allow_repeated_members_keep_last,
     do_not_allow_infinities,
     do_not_allow_single_quoted_strings,
-    no_maximum_nesting_depth).
+    no_maximum_nesting_depth,
+    do_not_allow_hex_escapes).
 override_default_params_2("infinity",
     allow_comments,
     do_not_allow_trailing_commas,
     allow_repeated_members_keep_last,
     allow_infinities,
     do_not_allow_single_quoted_strings,
-    no_maximum_nesting_depth).
+    no_maximum_nesting_depth,
+    do_not_allow_hex_escapes).
 
 %-----------------------------------------------------------------------------%
 

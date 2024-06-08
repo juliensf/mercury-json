@@ -322,11 +322,20 @@ get_escaped_char(Reader, QuoteChar, Buffer, Result, !State) :-
     (
         ReadResult = ok,
         update_column_number(Reader, Char, !State),
-        ( if escaped_json_char(QuoteChar, Char, EscapedChar) then
+        ( if
+            escaped_json_char(QuoteChar, Char, EscapedChar)
+        then
             char_buffer.add(Buffer, EscapedChar, !State),
             Result = ok
-        else if Char = 'u' then
+        else if
+            Char = 'u'
+        then
             get_escaped_unicode_char(Reader, Buffer, Result, !State)
+        else if
+            Char = 'x',
+            Reader ^ json_allow_hex_escapes = allow_hex_escapes
+        then
+            get_hex_escaped_char(Reader, Buffer, Result, !State)
         else
             make_error_context(Reader, Context, !State),
             ErrorDesc = invalid_character_escape(Char),
@@ -373,6 +382,36 @@ escaped_json_char_2('f', '\f').
 escaped_json_char_2('n', '\n').
 escaped_json_char_2('r', '\r').
 escaped_json_char_2('t', '\t').
+
+:- pred get_hex_escaped_char(json.reader(Stream)::in,
+    char_buffer::in,
+    json.res(Error)::out, State::di, State::uo) is det
+    <= (
+        stream.line_oriented(Stream, State),
+        stream.unboxed_reader(Stream, char, State, Error)
+    ).
+
+get_hex_escaped_char(Reader, Buffer, Result, !State) :-
+    get_hex_digits(Reader, 2, [], HexDigits, HexDigitsResult, !State),
+    (
+        HexDigitsResult = ok,
+        HexString = string.from_char_list(HexDigits),
+        ( if
+            string.base_string_to_int(16, HexString, UnicodeCharCode)
+        then
+            UnicodeChar = char.det_from_int(UnicodeCharCode),
+            char_buffer.add(Buffer, UnicodeChar, !State),
+            Result = ok
+        else
+            make_error_context(Reader, Context, !State),
+            ErrorDesc = invalid_unicode_character(HexString),
+            Error = json_error(Context, ErrorDesc),
+            Result = error(Error)
+        )
+    ;
+        HexDigitsResult = error(Error),
+        Result = error(Error)
+    ).
 
 :- pred get_escaped_unicode_char(json.reader(Stream)::in,
     char_buffer::in,

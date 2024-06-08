@@ -1,0 +1,1 @@
+j5_invalid_hex_escape2.json:2:15: error: character in Unicode escape is not a hexadecimal digit: '"'
