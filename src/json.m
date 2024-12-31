@@ -86,8 +86,8 @@
 % Procedures for working with JSON values.
 %
 
-    % The following are true iff the given value is a JSON value of the type
-    % specified by the predicate name.
+    % The following are true if and only if the given value is a JSON value of
+    % the type specified by the predicate name.
     %
 :- pred is_null(value::in) is semidet.
 :- pred is_bool(value::in) is semidet.
@@ -96,9 +96,9 @@
 :- pred is_object(value::in) is semidet.
 :- pred is_array(value::in) is semidet.
 
-    % The following are true iff the given value is a JSON value of the type
-    % specified by the predicate name. They return the underlying value.
-    % They are false if the given value is not a JSON value of the type
+    % The following are true if and only if the given value is a JSON value of
+    % the type specified by the predicate name. They return the underlying
+    % value. They are false if the given value is not a JSON value of the type
     % specified by the predicate name.
     %
 :- pred get_bool(value::in, bool::out) is semidet.
