@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2014-2016, 2020 Julien Fischer.
+% Copyright (C) 2014-2016, 2020, 2025 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -172,7 +172,10 @@ handle_args_and_options(OptionTable, Args, ReaderParams, MaybeInputFile,
         )
     ),
     ReaderParams = reader_params(AllowComments, AllowTrailingCommas,
-        RepeatedMembers, AllowInfinities, MaxNestDepth).
+        RepeatedMembers, AllowInfinities, MaxNestDepth,
+        do_not_allow_additional_whitespace,
+        do_not_allow_single_quoted_strings,
+        do_not_allow_hex_escapes).
 
 :- pred pretty_print_json(bool::in, json.reader_params::in,
     maybe(io.text_input_stream)::in, io::di, io::uo) is det.
@@ -297,12 +300,13 @@ print_error(Msg, !IO) :-
 
 usage(!IO) :-
     io.stderr_stream(File, !IO),
-    io.write_string(File, "pretty -- pretty print JSON to standard output.\n", !IO),
+    io.write_string(File, "pretty -- pretty print JSON to standard output.\n",
+        !IO),
     io.nl(File, !IO),
     io.write_string(File, "Usage: pretty [<options>] [<arg>]\n", !IO),
     io.nl(File, !IO),
     io.write_string(File, "OPTIONS:\n", !IO),
-    write_tabbed_lines(File, [
+    io.write_prefixed_lines("\t", [
         "--help",
         "\tPrint usage information.",
         "--repeated-members {none,first,last}",
@@ -321,16 +325,6 @@ usage(!IO) :-
         "-p-, --no-print",
         "\tParse the input only and do not print the resulting JSON."
     ], !IO).
-
-:- pred write_tabbed_lines(io.text_output_stream::in, list(string)::in,
-    io::di, io::uo) is det.
-
-write_tabbed_lines(_, [], !IO).
-write_tabbed_lines(File, [Str | Strs], !IO) :-
-    io.write_char(File, '\t', !IO),
-    io.write_string(File, Str, !IO),
-    io.nl(File, !IO),
-    write_tabbed_lines(File, Strs, !IO).
 
 %-----------------------------------------------------------------------------%
 :- end_module pretty.
