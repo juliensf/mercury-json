@@ -1,20 +1,20 @@
 %---------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et wm=0 tw=0
 %---------------------------------------------------------------------------%
-% Copyright (C) 2016, 2018 Julien Fischer.
+% Copyright (C) 2016, 2018, 2025 Julien Fischer.
 % See the file COPYING for license details.
 %---------------------------------------------------------------------------%
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
-% This program queries GitHub's System Status API* and reads the most
-% recent communications as a list of JSON objects.  It then serializes
-% those JSON objects into Mercury values and prints them out.
+% This program queries GitHub's System Status API* and reads the most recent
+% status rollup as a JSON object. It then serializes that JSON object into a
+% Mercury value and prints it out.
 %
 % In C grades, this program needs to be linked against libcurl (e.g. by
 % passing the flag -lcurl to the Mercury compiler).
 %
-% * See <https://status.github.com/api> for details.
+% * See <https://www.githubstatus.com/api> for details.
 %
 %---------------------------------------------------------------------------%
 
@@ -33,36 +33,33 @@
 :- import_module json.
 
 :- import_module list.
+:- import_module map.
 :- import_module maybe.
 :- import_module string.
 
 %---------------------------------------------------------------------------%
 
 main(!IO) :-
-    http_get_request("https://status.github.com/api/messages.json",
+    http_get_request("https://www.githubstatus.com/api/v2/status.json",
         MaybeResponse, !IO),
     (
         MaybeResponse = ok(Response),
 
         % Attempt to convert the response string into a JSON value.
         %
-        MaybeJMessages = json.maybe_from_string(Response),
+        MaybeJMessage = json.maybe_from_string(Response),
         (
-            MaybeJMessages = ok(JMessages),
-
-            % Attempt to unmarshal the JSON value into a list of message/0
-            % values.
-            %
-            MaybeMessages = json.from_json(JMessages),
+            MaybeJMessage = ok(JMessage),
+            MaybeMessage = json.from_json(JMessage),
             (
-                MaybeMessages = ok(Messages),
-                io.write_list(Messages, "\n", print_message, !IO)
+                MaybeMessage = ok(Message),
+                print_message(Message, !IO)
             ;
-                MaybeMessages = error(ConvError),
+                MaybeMessage = error(ConvError),
                 report_error(ConvError ++ "\n", !IO)
             )
         ;
-            MaybeJMessages = error(Context, ErrorDesc),
+            MaybeJMessage = error(Context, ErrorDesc),
             ErrorMsg = error_context_and_desc_to_string(Context, ErrorDesc),
             report_error(ErrorMsg, !IO)
         )
@@ -75,28 +72,94 @@ main(!IO) :-
 
 :- type message
     --->    message(
-                status     :: string,
-                body       :: string,
-                created_on :: string
+                page :: page,
+                status :: status
+            ).
+
+:- type page
+    --->    page(
+                id         :: string,
+                name       :: string,
+                url        :: string,
+                time_zone  :: string,
+                updated_at :: string
+            ).
+
+:- type status
+    --->    status(
+                indicator   :: string,
+                description :: string
             ).
 
 :- instance from_json(message) where [
     func(from_json/1) is message_from_json
 ].
 
+:- instance from_json(page) where [
+    func(from_json/1) is page_from_json
+].
+
+:- instance from_json(status) where [
+    func(from_json/1) is status_from_json
+].
+
 :- func message_from_json(json.value) = maybe_error(message).
 
 message_from_json(Value) = MaybeMessage :-
-    ( if json.get_object(Value, Object) then
-        % If any of the fields is missing from the JSON object for a message
-        % then we set it to the empty string.
-        Status = json.search_string(Object, "status", ""),
-        Body = json.search_string(Object, "body", ""),
-        CreatedOn = json.search_string(Object, "created_on", ""),
-        Message = message(Status, Body, CreatedOn),
-        MaybeMessage = ok(Message)
+    ( if
+        json.get_object(Value, Object),
+        map.search(Object, "page", PageValue),
+        map.search(Object, "status", StatusValue)
+    then
+        MaybePage = from_json(PageValue),
+        MaybeStatus = from_json(StatusValue),
+        (
+            MaybePage = ok(Page),
+            MaybeStatus = ok(Status),
+            Message = message(Page, Status),
+            MaybeMessage = ok(Message)
+        ;
+            MaybePage = ok(_),
+            MaybeStatus = error(StatusError),
+            MaybeMessage = error(StatusError)
+        ;
+            MaybePage = error(PageError),
+            MaybeStatus = ok(_),
+            MaybeMessage = error(PageError)
+        ;
+            MaybePage = error(PageError),
+            MaybeStatus = error(_StatusError),
+            MaybeMessage = error(PageError)
+        )
     else
         MaybeMessage = error("message is not a JSON object")
+    ).
+
+:- func page_from_json(json.value) = maybe_error(page).
+
+page_from_json(Value) = MaybePage :-
+    ( if json.get_object(Value, Object) then
+        Id = json.search_string(Object, "id", ""),
+        Name = json.search_string(Object, "name", ""),
+        URL = json.search_string(Object, "url", ""),
+        TimeZone = json.search_string(Object, "time_zone", ""),
+        UpdatedAt = json.search_string(Object, "updated_at", ""),
+        Page = page(Id, Name, URL, TimeZone, UpdatedAt),
+        MaybePage = ok(Page)
+    else
+        MaybePage = error("page is not a JSON object")
+    ).
+
+:- func status_from_json(json.value) = maybe_error(status).
+
+status_from_json(Value) = MaybeStatus :-
+    ( if json.get_object(Value, Object) then
+        Indicator = json.search_string(Object, "indicator", ""),
+        Description = json.search_string(Object, "description", ""),
+        Status = status(Indicator, Description),
+        MaybeStatus = ok(Status)
+    else
+        MaybeStatus = error("status is not a JSON object")
     ).
 
 %---------------------------------------------------------------------------%
@@ -104,15 +167,15 @@ message_from_json(Value) = MaybeMessage :-
 :- pred print_message(message::in, io::di, io::uo) is det.
 
 print_message(Message, !IO) :-
-    Message = message(Status, Body, CreatedOn),
-    io.format("  Time: %s\n", [s(CreatedOn)], !IO),
-    io.format("Status: %s\n", [s(string.to_upper(Status))], !IO),
-    io.format("  Desc: %s\n", [s(Body)], !IO).
+    Message = message(Page, Status),
+    io.format("       Time: %s\n", [s(Page ^ updated_at)], !IO),
+    io.format("  Indicator: %s\n", [s(Status ^ indicator)], !IO),
+    io.format("       Desc: %s\n", [s(Status ^ description)], !IO).
 
 %---------------------------------------------------------------------------%
 %---------------------------------------------------------------------------%
 
-% The code in the following sections handles the HTTPS GET request.
+% The code in the following sections handles the HTTP GET request.
 % There are three implementations: C (using libCurl), C# and Java.
 
 :- pragma foreign_decl("C", "
