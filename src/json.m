@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2024 Julien Fischer.
+% Copyright (C) 2013-2025 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -731,11 +731,7 @@
     % This function provides backwards compatibility with older versions of
     % this library.
     %
-:- func writer_params(output_style::in, allow_infinities::in) =
-    (writer_params::out(writer_params)) is det.
-
-:- inst writer_params for writer_params/0
-    --->    writer_params(ground, ground, ground, member_filter).
+:- func writer_params(output_style, allow_infinities) = writer_params.
 
 :- type output_style
     --->    compact
@@ -755,11 +751,7 @@
     %
 :- type member_filter
     --->    no_member_filter
-    ;       member_filter(pred(string, value)).
-
-:- inst member_filter for member_filter/0
-    --->    no_member_filter
-    ;       member_filter(pred(in, in) is semidet).
+    ;       member_filter(pred(string::in, value::in) is semidet).
 
     % init_writer(Stream, Writer, !State):
     % Writer is a new JSON writer that writes JSON values to Stream.
@@ -773,7 +765,7 @@
 
     % init_writer(Stream, Parameters, Writer, !State):
     %
-:- pred init_writer(Stream::in, writer_params::in(writer_params),
+:- pred init_writer(Stream::in, writer_params::in,
         writer(Stream)::out, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -1435,8 +1427,6 @@ is_utf8_bom(Char) :-
                 json_member_filter     :: member_filter
             ).
 
-:- inst json.writer for json.writer/1
-    --->    json_writer(ground, ground, ground, ground, member_filter).
 
 init_writer(Stream, Writer, !State) :-
     Writer = json_writer(Stream, compact, do_not_allow_infinities,
@@ -1455,14 +1445,13 @@ writer_params(OutputStyle, AllowInfinities) =
 %-----------------------------------------------------------------------------%
 
 put_value(Writer, Value, !State) :-
-    cast_writer(Writer, WriterPrime),
     OutputStyle = Writer ^ json_output_style,
     (
         OutputStyle = compact,
-        writer.raw_put_value(WriterPrime, Value, !State)
+        writer.raw_put_value(Writer, Value, !State)
     ;
         OutputStyle = pretty,
-        writer.pretty_put_value(WriterPrime, Value, !State)
+        writer.pretty_put_value(Writer, Value, !State)
     ).
 
 put_comment(Writer, Comment, !State) :-
@@ -1474,30 +1463,6 @@ put_comment(Writer, Comment, !State) :-
         Comment = comment_multiline(String),
         writer.put_multiline_comment(Stream, String, !State)
     ).
-
-:- pred cast_writer(json.writer(Stream)::in,
-    json.writer(Stream)::out(json.writer)) is det.
-
-:- pragma foreign_proc("C",
-    cast_writer(A::in, B::out(json.writer)),
-    [promise_pure, will_not_call_mercury, thread_safe, will_not_modify_trail],
-"
-    B = A;
-").
-
-:- pragma foreign_proc("Java",
-    cast_writer(A::in, B::out(json.writer)),
-    [promise_pure, will_not_call_mercury, thread_safe],
-"
-    B = A;
-").
-
-:- pragma foreign_proc("C#",
-    cast_writer(A::in, B::out(json.writer)),
-    [promise_pure, will_not_call_mercury, thread_safe],
-"
-    B = A;
-").
 
 %-----------------------------------------------------------------------------%
 %

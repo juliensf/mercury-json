@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2016 Julien Fischer.
+% Copyright (C) 2016, 2019, 2025 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -38,9 +38,8 @@ test_writer(File, !IO) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred test_writers(io.text_output_stream::in,
-    list(writer_params)::in(list(writer_params)), io::di, io::uo)
-    is cc_multi.
+:- pred test_writers(io.text_output_stream::in, list(writer_params)::in,
+    io::di, io::uo) is cc_multi.
 
 test_writers(_, [], !IO).
 test_writers(File, [Params | OtherParams], !IO) :-
@@ -65,9 +64,8 @@ test_writers(File, [Params | OtherParams], !IO) :-
     ),
     test_writers(File, OtherParams, !IO).
 
-:- pred test_writer(io.text_output_stream::in,
-    writer_params::in(writer_params), list(json.value)::in,
-    io::di, io::uo) is cc_multi.
+:- pred test_writer(io.text_output_stream::in, writer_params::in,
+    list(json.value)::in, io::di, io::uo) is cc_multi.
 
 test_writer(_, _, [], !IO).
 test_writer(File, Params, [Doc | Docs], !IO) :-
@@ -81,7 +79,7 @@ test_writer(File, Params, [Doc | Docs], !IO) :-
     test_writer(File, Params, Docs, !IO).
 
 :- pred test_writer_with_doc(io.text_output_stream::in,
-    writer_params::in(writer_params), json.value::in, io::di, io::uo)
+    writer_params::in, json.value::in, io::di, io::uo)
     is cc_multi.
 
 test_writer_with_doc(File, Params, Doc, !IO) :-
@@ -150,7 +148,7 @@ test_file_stream_writers(File, !IO) :-
 
 %-----------------------------------------------------------------------------%
 
-:- func test_writer_params = (list(writer_params)::out(list(writer_params))).
+:- func test_writer_params = list(writer_params).
 
 test_writer_params = [
     writer_params(compact, do_not_allow_infinities, escape_solidus, no_member_filter),

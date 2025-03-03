@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2015, Julien Fischer.
+% Copyright (C) 2013-2016, 2018-2019, 2025 Julien Fischer.
 % See the file COPYING for license details.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
@@ -16,14 +16,14 @@
 
 %-----------------------------------------------------------------------------%
 
-:- pred raw_put_value(json.writer(Stream)::in(json.writer), json.value::in,
+:- pred raw_put_value(json.writer(Stream)::in, json.value::in,
     State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
         stream.writer(Stream, string, State)
     ).
 
-:- pred pretty_put_value(json.writer(Stream)::in(json.writer), json.value::in,
+:- pred pretty_put_value(json.writer(Stream)::in, json.value::in,
     State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -95,7 +95,7 @@ raw_put_value(Writer, Value, !State) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred raw_put_object(json.writer(Stream)::in(json.writer), json.object::in,
+:- pred raw_put_object(json.writer(Stream)::in, json.object::in,
     State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -128,7 +128,7 @@ maybe_filter_member(FilterPred, Name, Value, !MembersList) :-
         !:MembersList = [Name - Value | !.MembersList]
     ).
 
-:- pred raw_put_members(json.writer(Stream)::in(json.writer),
+:- pred raw_put_members(json.writer(Stream)::in,
     assoc_list(string, json.value)::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -144,7 +144,7 @@ raw_put_members(Writer, [Member, NextMember | Members], !State) :-
     put(Stream, (','), !State),
     raw_put_members(Writer, [NextMember | Members], !State).
 
-:- pred raw_put_member(json.writer(Stream)::in(json.writer),
+:- pred raw_put_member(json.writer(Stream)::in,
     pair(string, json.value)::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -160,7 +160,7 @@ raw_put_member(Writer, Member, !State) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred raw_put_array(json.writer(Stream)::in(json.writer),
+:- pred raw_put_array(json.writer(Stream)::in,
     json.array::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -173,7 +173,7 @@ raw_put_array(Writer, Elements, !State) :-
     raw_put_elements(Writer, Elements, !State),
     put(Stream, ']', !State).
 
-:- pred raw_put_elements(json.writer(Stream)::in(json.writer), json.array::in,
+:- pred raw_put_elements(json.writer(Stream)::in, json.array::in,
     State::di, State::uo)
     is det <= (
         stream.writer(Stream, char, State),
@@ -196,7 +196,7 @@ raw_put_elements(Writer, Elements, !State) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred put_string_literal(json.writer(Stream)::in(json.writer), string::in,
+:- pred put_string_literal(json.writer(Stream)::in, string::in,
     State::di, State::uo)
     is det <= (
         stream.writer(Stream, char, State),
@@ -280,7 +280,7 @@ put_hex_digits(Stream, Int, !State) :-
 
 %-----------------------------------------------------------------------------%
 
-:- pred put_number(json.writer(Stream)::in(json.writer), float::in,
+:- pred put_number(json.writer(Stream)::in, float::in,
     State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -325,7 +325,7 @@ pretty_put_value(Writer, Value, !State) :-
     Stream = Writer ^ json_writer_stream,
     put(Stream, "\n", !State).
 
-:- pred do_pretty_put_json(json.writer(Stream)::in(json.writer), int::in,
+:- pred do_pretty_put_json(json.writer(Stream)::in, int::in,
     json.value::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
@@ -388,7 +388,7 @@ do_pretty_put_json(Writer, N, Value, !State) :-
         )
     ).
 
-:- pred pretty_put_members(json.writer(Stream)::in(json.writer),
+:- pred pretty_put_members(json.writer(Stream)::in,
     int::in, assoc_list(string, json.value)::in,
     State::di, State::uo) is det
     <= (
@@ -403,7 +403,7 @@ pretty_put_members(Writer, N, [Member | Members @ [_ | _]], !State) :-
     pretty_put_member(Writer, N, Member, ",\n", !State),
     pretty_put_members(Writer, N, Members, !State).
 
-:- pred pretty_put_member(json.writer(Stream)::in(json.writer),
+:- pred pretty_put_member(json.writer(Stream)::in,
     int::in, pair(string, json.value)::in, string::in,
     State::di, State::uo) is det
     <= (
@@ -420,7 +420,7 @@ pretty_put_member(Writer, N, KeyAndValue, Suffix, !State) :-
     do_pretty_put_json(Writer, N, Value, !State),
     put(Stream, Suffix, !State).
 
-:- pred pretty_put_elements(json.writer(Stream)::in(json.writer),
+:- pred pretty_put_elements(json.writer(Stream)::in,
     int::in, list(json.value)::in, State::di, State::uo) is det
     <= (
         stream.writer(Stream, char, State),
