@@ -146,7 +146,7 @@
     % Lookup Member in Object and return the underlying value if it is a JSON
     % value of the type specified by the predicate name. Calls error/1 if the
     % member value is not a JSON value of the type specified by the predicate
-    % name. If Member is not a member of Object, return DefaultValue.
+    % name. If Member is not a member of Object, then return DefaultValue.
     %
 :- func search_bool(object, string, bool) = bool.
 :- func search_string(object, string, string) = string.
@@ -159,7 +159,7 @@
     % search_<type>_or_null(Object, Member, DefaultValue) = Value:
     % Lookup Member in Object and return the underlying value if it is a JSON
     % value of the type specified by the predicate name. If Member is not a
-    % member of Object or if it is null then return DefaultValue.
+    % member of Object or if it is null, then return DefaultValue.
     % Calls error/1 if the member value is not a JSON value of the type
     % specified by the predicate name or null.
     %
@@ -306,12 +306,12 @@
             % Return an error if a repeated object member is encountered.
 
     ;       allow_repeated_members_keep_first
-            % If any object members are repeated, keep the first one that we
-            % encounter and discard any others.
+            % If any object members are repeated, then keep the first one that
+            % we encounter and discard any others.
 
     ;       allow_repeated_members_keep_last.
-            % If any object members are repeated, keep the last one that we
-            % encounter and discard any others.
+            % If any object members are repeated, then keep the last one that
+            % we encounter and discard any others.
 
 :- type maximum_nesting_depth
     --->    no_maximum_nesting_depth
@@ -331,7 +331,7 @@
     --->    allow_single_quoted_strings
     ;       do_not_allow_single_quoted_strings.
 
-    % Should the extension that allows hexadecimal characters escapes in
+    % Should the extension that allows hexadecimal character escapes in
     % strings (e.g. \xHH) be enabled?
     %
 :- type allow_hex_escapes
@@ -677,7 +677,7 @@
 % The following convenience predicates can be used to read and get JSON values
 % from text files. Files being read from with these predicates must be UTF-8
 % encoded. If the UTF-8 byte order mark (BOM) is present at the beginning of
-% a file, it will be ignored.
+% a file, then it will be ignored.
 
     % read_value_from_named_file(FileName, Result, !IO):
     %
@@ -746,7 +746,7 @@
     ;       do_not_escape_solidus.
 
     % A member filter is a semidet predicate whose two arguments are an object
-    % member name and its corresponding value. If the predicate succeeds then
+    % member name and its corresponding value. If the predicate succeeds, then
     % the JSON writer will omit that member when the object is written.
     %
 :- type member_filter
