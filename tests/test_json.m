@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016, 2018, 2022-2024 Julien Fischer.
+% Copyright (C) 2013-2016, 2018, 2022-2025 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -222,12 +222,13 @@ main(!IO) :-
 :- pred gather_json_file(string::in, string::in, io.file_type::in,
     bool::out, list(string)::in, list(string)::out, io::di, io::uo) is det.
 
-gather_json_file(_Dir, File, Type, Continue, !Files, !IO) :-
+gather_json_file(_Dir, File, Type, Continue, !Files, IO, IO) :-
     (
         Type = regular_file,
-        ( if string.suffix(File, ".json")
-        then !:Files = [File | !.Files]
-        else true
+        ( if string.suffix(File, ".json") then
+            !:Files = [File | !.Files]
+        else
+            true
         )
     ;
         ( Type = directory

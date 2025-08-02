@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2014, 2018, 2020, 2023 Julien Fischer.
+% Copyright (C) 2013-2014, 2018, 2020, 2023, 2025 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 %
@@ -132,7 +132,7 @@ init_string_reader(MaybeName, Src, Reader, !State) :-
 ].
 
 :- instance stream(string_reader, string_reader_state) where [
-    ( name(Reader, Name, !State) :-
+    ( name(Reader, Name, State, State) :-
         MaybeName = Reader ^ reader_maybe_name,
         (
             MaybeName = yes(Name)

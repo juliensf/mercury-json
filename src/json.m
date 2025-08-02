@@ -1326,22 +1326,22 @@ get_array(Reader, Result, !State) :-
 % Folding over object members.
 %
 
-object_fold(Reader, Pred, !.Acc, Result, !State) :-
-    do_object_fold(Reader, Pred, !.Acc, Result, !State).
+object_fold(Reader, Pred, Acc, Result, !State) :-
+    do_object_fold(Reader, Pred, Acc, Result, !State).
 
-object_fold_state(Reader, Pred, !.Acc, Result, !State) :-
-    do_object_fold_state(Reader, Pred, !.Acc, Result, !State).
+object_fold_state(Reader, Pred, Acc, Result, !State) :-
+    do_object_fold_state(Reader, Pred, Acc, Result, !State).
 
 %-----------------------------------------------------------------------------%
 %
 % Folding over array elements.
 %
 
-array_fold(Reader, Pred, !.Acc, Result, !State) :-
-    do_array_fold(Reader, Pred, !.Acc, Result, !State).
+array_fold(Reader, Pred, Acc, Result, !State) :-
+    do_array_fold(Reader, Pred, Acc, Result, !State).
 
-array_fold_state(Reader, Pred, !.Acc, Result, !State) :-
-    do_array_fold_state(Reader, Pred, !.Acc, Result, !State).
+array_fold_state(Reader, Pred, Acc, Result, !State) :-
+    do_array_fold_state(Reader, Pred, Acc, Result, !State).
 
 %-----------------------------------------------------------------------------%
 %
@@ -1428,11 +1428,11 @@ is_utf8_bom(Char) :-
             ).
 
 
-init_writer(Stream, Writer, !State) :-
+init_writer(Stream, Writer, State, State) :-
     Writer = json_writer(Stream, compact, do_not_allow_infinities,
         do_not_escape_solidus, no_member_filter).
 
-init_writer(Stream, Parameters, Writer, !State) :-
+init_writer(Stream, Parameters, Writer, State, State) :-
     Parameters = writer_params(OutputStyle, AllowInfinities, EscapeSolidus,
         MemberFilter),
     Writer = json_writer(Stream, OutputStyle, AllowInfinities, EscapeSolidus,
