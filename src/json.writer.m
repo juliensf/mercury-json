@@ -416,7 +416,7 @@ pretty_put_member(Writer, N, KeyAndValue, Suffix, !State) :-
     Stream = Writer ^ json_writer_stream,
     indent(Stream, N, !State),
     put_string_literal(Writer, Key, !State),
-    put(Stream, " : ", !State),
+    put(Stream, ": ", !State),
     do_pretty_put_json(Writer, N, Value, !State),
     put(Stream, Suffix, !State).
 

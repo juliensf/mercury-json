@@ -14,11 +14,11 @@ false
 ]
 {}
 {
-  "name" : null
+  "name": null
 }
 {
-  "name1" : true,
-  "name2" : false
+  "name1": true,
+  "name2": false
 }
 [
   {},
@@ -49,11 +49,11 @@ false
 ]
 {}
 {
-  "name" : null
+  "name": null
 }
 {
-  "name1" : true,
-  "name2" : false
+  "name1": true,
+  "name2": false
 }
 [
   {},
@@ -73,11 +73,11 @@ error: bad_values.json_stream:4:2: syntax error at '[': object member name not a
 {}
 {}
 {
-  "foo" : 1
+  "foo": 1
 }
 {
-  "baaz" : false,
-  "bar" : null
+  "baaz": false,
+  "bar": null
 }
 
 *** Testing get_object/4 predicate (bad_objects.json_stream) ***
@@ -104,7 +104,7 @@ error: bad_objects.json_stream:1:1: error: unexpected array value: value must be
   {},
   {},
   {
-    "foo" : null
+    "foo": null
   }
 ]
 

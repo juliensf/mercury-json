@@ -191,8 +191,8 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
 ]
 
 {
-  "bar" : false,
-  "foo" : true
+  "bar": false,
+  "foo": true
 }
 
 "https:\/\/github.com\/juliensf\/mercury-json"
@@ -222,8 +222,8 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
 ]
 
 {
-  "bar" : false,
-  "foo" : true
+  "bar": false,
+  "foo": true
 }
 
 "https://github.com/juliensf/mercury-json"
@@ -253,8 +253,8 @@ Infinity
 ]
 
 {
-  "bar" : false,
-  "foo" : true
+  "bar": false,
+  "foo": true
 }
 
 "https:\/\/github.com\/juliensf\/mercury-json"
@@ -284,8 +284,8 @@ Infinity
 ]
 
 {
-  "bar" : false,
-  "foo" : true
+  "bar": false,
+  "foo": true
 }
 
 "https://github.com/juliensf/mercury-json"
@@ -315,7 +315,7 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
 ]
 
 {
-  "bar" : false
+  "bar": false
 }
 
 "https:\/\/github.com\/juliensf\/mercury-json"
@@ -345,7 +345,7 @@ EXCP (non_finite_number_error("put_number: inf or -inf"))
 ]
 
 {
-  "bar" : false
+  "bar": false
 }
 
 "https://github.com/juliensf/mercury-json"
@@ -375,7 +375,7 @@ Infinity
 ]
 
 {
-  "bar" : false
+  "bar": false
 }
 
 "https:\/\/github.com\/juliensf\/mercury-json"
@@ -405,7 +405,7 @@ Infinity
 ]
 
 {
-  "bar" : false
+  "bar": false
 }
 
 "https://github.com/juliensf/mercury-json"
