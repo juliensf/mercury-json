@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2015-2019, Julien Fischer.
+% Copyright (C) 2015-2019, 2025 Julien Fischer.
 % See the file COPYING for license details.
 %
 % This sub-module implements JSON pointer operations.
@@ -81,7 +81,7 @@ reference_tokens_to_string(Tokens) = String :-
 
 do_resolve(Pointer, Value, Result) :-
     Pointer = pointer(RefTokens),
-    do_resolve_token(RefTokens, Value, Result).
+    do_resolve_token(cord.to_list(RefTokens), Value, Result).
 
 :- pred do_resolve_token(list(string)::in, value::in, value::out) is semidet.
 

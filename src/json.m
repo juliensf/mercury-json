@@ -178,6 +178,16 @@
 
 :- type json.pointer.
 
+    % Returns the empty pointer, which is pointer to an entire JSON document.
+    %
+:- func empty_pointer = pointer.
+
+:- func pointer_append_member(pointer, string) = pointer.
+:- pred pointer_append_member(string::in, pointer::in, pointer::out) is det.
+
+:- func pointer_append_index(pointer, int) = pointer.
+:- pred pointer_append_index(int::in, pointer::in, pointer::out) is det.
+
     % string_to_pointer(String, Pointer):
     % Convert a string to a JSON pointer.
     % Fails if String is not a valid JSON pointer using the syntax from
@@ -2253,11 +2263,25 @@ search_int_or_null(Object, Member, Default) = String :-
 %-----------------------------------------------------------------------------%
 
 :- type json.pointer
-    --->    pointer(list(string)).
+    --->    pointer(cord(string)).
+
+empty_pointer = pointer(cord.empty).
+
+pointer_append_member(!.Pointer, MemberName) = !:Pointer :-
+    pointer_append_member(MemberName, !Pointer).
+
+pointer_append_member(MemberName, pointer(!.Tokens) , pointer(!:Tokens)) :-
+    cord.snoc(MemberName, !Tokens).
+
+pointer_append_index(!.Pointer, Index) = !:Pointer :-
+    pointer_append_index(Index, !Pointer).
+
+pointer_append_index(Index, pointer(!.Tokens), pointer(!:Tokens)) :-
+    cord.snoc(int_to_string(Index), !Tokens).
 
 string_to_pointer(String, Pointer) :-
     pointer.string_to_reference_tokens(String, RefComps),
-    Pointer = pointer(RefComps).
+    Pointer = pointer(cord.from_list(RefComps)).
 
 det_string_to_pointer(String) =
     ( if string_to_pointer(String, Pointer) then
@@ -2268,7 +2292,7 @@ det_string_to_pointer(String) =
 
 pointer_to_string(Pointer) = String :-
     Pointer = pointer(RefTokens),
-    String = pointer.reference_tokens_to_string(RefTokens).
+    String = pointer.reference_tokens_to_string(cord.to_list(RefTokens)).
 
 resolve(Pointer, Doc, Value) :-
     pointer.do_resolve(Pointer, Doc, Value).
