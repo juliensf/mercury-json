@@ -129,6 +129,7 @@
 %
 
     % lookup_<type>(Object, Member) = Value:
+    %
     % Lookup Member in Object and return the underlying value if it is a
     % JSON value of the type specified by the predicate name.
     % Calls error/1 if Member is not a member of Object or if the member value
@@ -143,6 +144,7 @@
 :- func lookup_int(object, string) = int.
 
     % search_<type>(Object, Member, DefaultValue) = Value:
+    %
     % Lookup Member in Object and return the underlying value if it is a JSON
     % value of the type specified by the predicate name. Calls error/1 if the
     % member value is not a JSON value of the type specified by the predicate
@@ -157,6 +159,7 @@
 :- func search_int(object, string, int) = int.
 
     % search_<type>_or_null(Object, Member, DefaultValue) = Value:
+    %
     % Lookup Member in Object and return the underlying value if it is a JSON
     % value of the type specified by the predicate name. If Member is not a
     % member of Object or if it is null, then return DefaultValue.
@@ -182,13 +185,32 @@
     %
 :- func empty_pointer = pointer.
 
-:- func pointer_append_member(pointer, string) = pointer.
-:- pred pointer_append_member(string::in, pointer::in, pointer::out) is det.
+    % append_token(Pointer0, Token) = Pointer:
+    %
+    % Returns the JSON pointer that results from appending the unescaped token
+    % Token to Pointer0. Note that while Token will usually be a property name,
+    % it can also be the string representation of an array index.
+    %
+:- func append_token(pointer, string) = pointer.
 
-:- func pointer_append_index(pointer, int) = pointer.
-:- pred pointer_append_index(int::in, pointer::in, pointer::out) is det.
+    % A version of append_token suitable for use with state variables.
+    %
+:- pred append_token(string::in, pointer::in, pointer::out) is det.
+
+    % append_int_token(Pointer0, Token) = Pointer:
+    %
+    % Returns the JSON pointer that results from appending the integer token
+    % Token to Pointer0. Note that while Token will usually be an array index,
+    % it can also be a numeric member name.
+    %
+:- func append_int_token(pointer, int) = pointer.
+
+    % A version of append_int_token suitable for use with state variables.
+    %
+:- pred append_int_token(int::in, pointer::in, pointer::out) is det.
 
     % string_to_pointer(String, Pointer):
+    %
     % Convert a string to a JSON pointer.
     % Fails if String is not a valid JSON pointer using the syntax from
     % RFC 6901.
@@ -196,23 +218,27 @@
 :- pred string_to_pointer(string::in, pointer::out) is semidet.
 
     % det_string_to_pointer(String) = Pointer:
+    %
     % As above, but throws a software_error/1 exception if String is not a
     % valid JSON pointer.
     %
 :- func det_string_to_pointer(string) = pointer.
 
     % pointer_to_string(Pointer) = String:
+    %
     % String is the string representation of Pointer.
     %
 :- func pointer_to_string(pointer) = string.
 
     % resolve(Pointer, Value, Result):
+    %
     % Result is the value in Value that is pointed to by Pointer.
     % Fails if the pointer cannot be resolved.
     %
 :- pred resolve(pointer::in, value::in, value::out) is semidet.
 
     % det_resolve(Pointer, Value) = Result:
+    %
     % As above, but throws a software_error/1 exception if the pointer cannot
     % be resolved.
     %
@@ -238,6 +264,7 @@
 :- type json.reader(Stream).
 
     % init_reader(Stream, Reader, !State):
+    %
     % Reader is a new JSON reader using Stream as a character stream and using
     % the default reader parameters. With the default parameters the reader
     % will conform to the RFC 8259 definition of JSON and have a maximum
@@ -252,6 +279,7 @@
     ).
 
     % init_reader(Stream, Parameters, Reader, !State):
+    %
     % As above, but using reader parameters set by the caller.
     % Throws a software_error/1 exception if there is a maximum nesting depth
     % limit set and the value of that limit is less than zero.
@@ -501,6 +529,7 @@
 % also allowed if the reader is configured to allow comments.)
 
     % read_value(Reader, Result, !State):
+    %
     % Read a JSON value from Reader.
     %
 :- pred read_value(json.reader(Stream)::in,
@@ -512,6 +541,7 @@
     ).
 
     % read_object(Reader, Result, !State):
+    %
     % Read a JSON object from Reader.
     %
 :- pred read_object(json.reader(Stream)::in,
@@ -523,6 +553,7 @@
     ).
 
     % read_array(Reader, Result, !State):
+    %
     % Read a JSON array from Reader.
     %
 :- pred read_array(json.reader(Stream)::in,
@@ -544,6 +575,7 @@
 % 'get' operations can be used read a stream of JSON values.
 
     % get_value(Reader, Result, !State):
+    %
     % Get a JSON value from Reader.
     %
 :- pred get_value(json.reader(Stream)::in,
@@ -555,6 +587,7 @@
     ).
 
     % get_object(Reader, Result, !State):
+    %
     % Get a JSON object from Reader.
     %
 :- pred get_object(json.reader(Stream)::in,
@@ -566,6 +599,7 @@
     ).
 
     % get_array(Reader, Result, !State):
+    %
     % Get a JSON array from Reader.
     %
 :- pred get_array(json.reader(Stream)::in,
@@ -764,6 +798,7 @@
     ;       member_filter(pred(string::in, value::in) is semidet).
 
     % init_writer(Stream, Writer, !State):
+    %
     % Writer is a new JSON writer that writes JSON values to Stream.
     %
 :- pred init_writer(Stream::in, writer(Stream)::out, State::di, State::uo)
@@ -783,6 +818,7 @@
     ).
 
     % put_value(Writer, Value, !State):
+    %
     % Write the JSON value Value using the given Writer.
     % Throws an exception if the value is, or contains, a non-finite number.
     %
@@ -2267,17 +2303,17 @@ search_int_or_null(Object, Member, Default) = String :-
 
 empty_pointer = pointer(cord.empty).
 
-pointer_append_member(!.Pointer, MemberName) = !:Pointer :-
-    pointer_append_member(MemberName, !Pointer).
+append_token(!.Pointer, Token) = !:Pointer :-
+    append_token(Token, !Pointer).
 
-pointer_append_member(MemberName, pointer(!.Tokens) , pointer(!:Tokens)) :-
-    cord.snoc(MemberName, !Tokens).
+append_token(Token, pointer(!.Tokens) , pointer(!:Tokens)) :-
+    cord.snoc(Token, !Tokens).
 
-pointer_append_index(!.Pointer, Index) = !:Pointer :-
-    pointer_append_index(Index, !Pointer).
+append_int_token(!.Pointer, Token) = !:Pointer :-
+    append_int_token(Token, !Pointer).
 
-pointer_append_index(Index, pointer(!.Tokens), pointer(!:Tokens)) :-
-    cord.snoc(int_to_string(Index), !Tokens).
+append_int_token(Token, pointer(!.Tokens), pointer(!:Tokens)) :-
+    cord.snoc(int_to_string(Token), !Tokens).
 
 string_to_pointer(String, Pointer) :-
     pointer.string_to_reference_tokens(String, RefComps),
