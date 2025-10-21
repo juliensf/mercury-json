@@ -422,7 +422,7 @@ do_from_string_test(File, String, !IO) :-
 ].
 
 :- instance from_json(fruit) where [
-    ( from_json(V) = Result :-
+    ( from_json(_Pointer, V) = Result :-
         ( if
             V = string(S),
             fruit_string(F, S)
@@ -450,8 +450,7 @@ fruit_string(pear,   "pear").
 
 test(File, Term, !IO) :-
     io.write_string(File, " Orig. Term: ", !IO),
-    io.print(File, Term, !IO),
-    io.nl(File, !IO),
+    io.print_line(File, Term, !IO),
     io.write_string(File, "       JSON: ", !IO),
     ( try []
         Value = json.from_type(Term)
@@ -463,13 +462,11 @@ test(File, Term, !IO) :-
         io.write_string(File, "Result Term: ", !IO),
         (
             MaybeTermPrime = ok(TermPrime),
-            io.print(File, TermPrime, !IO),
-            io.nl(File, !IO)
+            io.print_line(File, TermPrime, !IO)
         ;
             MaybeTermPrime = error(ResultMsg),
             io.write_string(File, "error: ", !IO),
-            io.print(File, ResultMsg, !IO),
-            io.nl(File, !IO)
+            io.print_line(File, ResultMsg, !IO)
         )
     catch NonFiniteNumberError ->
         NonFiniteNumberError = non_finite_number_error(_),

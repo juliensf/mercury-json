@@ -476,7 +476,7 @@ do_unmarshal_test(File, Value, Type, !IO) :-
     TypeDesc = type_of(Type),
     io.print(File, TypeDesc, !IO),
     io.nl(File, !IO),
-    Result = json.from_json(Value),
+    Result = json.to_type(Value),
     (
         Result = ok(Term : T),
         io.write_string(File, "RESULT: OK: ", !IO),
