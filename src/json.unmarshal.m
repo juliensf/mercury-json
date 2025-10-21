@@ -894,7 +894,6 @@ rational_from_json(Pointer, Value) = Result :-
     (
         Value = object(Object),
         ( if
-            map.count(Object) = 2,
             map.search(Object, "numer", NumeratorValue),
             map.search(Object, "denom", DenominatorValue)
         then
@@ -1075,7 +1074,6 @@ maybe_from_json(Pointer, Value) = Result :-
     ;
         Value = object(Object),
         ( if
-            map.count(Object) = 1,
             map.search(Object, "yes", ArgValue)
         then
             YesPointer = append_token(Pointer, "yes"),
@@ -1169,7 +1167,6 @@ do_pair_from_json(Pointer, FstName, SndName, Value) = Result :-
     (
         Value = object(Object),
         ( if
-            map.count(Object) = 2,
             map.search(Object, FstName, FstValue),
             map.search(Object, SndName, SndValue)
         then
@@ -1415,7 +1412,6 @@ digraph_from_json(Pointer, Value) = Result :-
     (
         Value = object(Object),
         ( if
-            map.count(Object) = 2,
             map.search(Object, "vertices", VerticesValue),
             map.search(Object, "edges", EdgesValue)
         then

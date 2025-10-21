@@ -1020,6 +1020,10 @@
 %     ok(TPrime) = json.to_type(J),
 %     T = TPrime
 %
+% The from_json/1 instances below allow objects representing Mercury standard
+% library types to contain members that are not part of the JSON representation
+% of the type. Such members are ignored by the JSON to Mercury conversion.
+%
 %-----------------------------------------------------------------------------%
 
 :- typeclass to_json(T) where [
