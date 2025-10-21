@@ -395,19 +395,25 @@
                 column_number :: int
             ).
 
+
     % This type describes errors that can occur while reading JSON data using a
     % reader.
     %
-:- type json.error(Error)
+:- type json.reader_error(Error)
     --->    stream_error(Error)
             % An error has occurred in the underlying character stream.
 
     ;       json_error(
                 error_context :: json.context,
-                error_desc    :: json.error_desc
+                error_desc    :: json.reader_error_desc
             ).
 
-:- type json.error_desc
+    % Deprecated name for reader_error/1.
+    % This will eventually be deleted.
+    %
+:- type json.error(Error) == json.reader_error(Error).
+
+:- type json.reader_error_desc
     --->    unexpected_eof(string)
             % unexpected end-of-file: Msg
 
@@ -499,7 +505,12 @@
     ;       maximum_nesting_depth_reached.
             % The maximum nesting depth limit has been reached.
 
-:- instance stream.error(json.error(Error)) <= stream.error(Error).
+    % Deprecated name for reader_error_desc/1.
+    % This will eventually be deleted.
+    %
+:- type json.error_desc == json.reader_error_desc.
+
+:- instance stream.error(json.reader_error(Error)) <= stream.error(Error).
 
     % Exceptions of this type are thrown by some procedures in this module if a
     % number of infinite magnitude or a not-a-number value is encountered.
@@ -513,14 +524,28 @@
 % Wrappers for the standard stream result types.
 %
 
-:- type json.res(T, Error) == stream.res(T, json.error(Error)).
+:- type json.reader_res(T, Error) == stream.res(T, json.reader_error(Error)).
 
-:- type json.res(Error) == stream.res(json.error(Error)).
+:- type json.reader_res(Error) == stream.res(json.reader_error(Error)).
 
-:- type json.result(T, Error) == stream.result(T, json.error(Error)).
+:- type json.reader_result(T, Error) == stream.result(T, json.reader_error(Error)).
+
+:- type json.maybe_partial_reader_res(T, Error) ==
+    stream.maybe_partial_res(T, json.reader_error(Error)).
+
+%---------------------%
+
+% Deprecated names of the above wrapper types.
+% These will eventually be deleted.
+
+:- type json.res(T, Error) == stream.res(T, json.reader_error(Error)).
+
+:- type json.res(Error) == stream.res(json.reader_error(Error)).
+
+:- type json.result(T, Error) == stream.result(T, json.reader_error(Error)).
 
 :- type json.maybe_partial_res(T, Error) ==
-    stream.maybe_partial_res(T, json.error(Error)).
+    stream.maybe_partial_res(T, json.reader_error(Error)).
 
 %-----------------------------------------------------------------------------%
 %
@@ -537,7 +562,7 @@
     % Read a JSON value from Reader.
     %
 :- pred read_value(json.reader(Stream)::in,
-    json.result(json.value, Error)::out, State::di, State::uo) is det
+    json.reader_result(json.value, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -549,7 +574,7 @@
     % Read a JSON object from Reader.
     %
 :- pred read_object(json.reader(Stream)::in,
-    json.result(json.object, Error)::out, State::di, State::uo) is det
+    json.reader_result(json.object, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -561,7 +586,7 @@
     % Read a JSON array from Reader.
     %
 :- pred read_array(json.reader(Stream)::in,
-    json.result(json.array, Error)::out, State::di, State::uo) is det
+    json.reader_result(json.array, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -583,7 +608,7 @@
     % Get a JSON value from Reader.
     %
 :- pred get_value(json.reader(Stream)::in,
-    json.result(json.value, Error)::out, State::di, State::uo) is det
+    json.reader_result(json.value, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -595,7 +620,7 @@
     % Get a JSON object from Reader.
     %
 :- pred get_object(json.reader(Stream)::in,
-    json.result(json.object, Error)::out, State::di, State::uo) is det
+    json.reader_result(json.object, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -607,7 +632,7 @@
     % Get a JSON array from Reader.
     %
 :- pred get_array(json.reader(Stream)::in,
-    json.result(json.array, Error)::out, State::di, State::uo) is det
+    json.reader_result(json.array, Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -627,7 +652,7 @@
     % object is encountered or until an error occurs.
     %
 :- pred object_fold(json.reader(Stream), pred(string, json.value, A, A),
-    A, json.maybe_partial_res(A, Error), State, State)
+    A, json.maybe_partial_reader_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -644,7 +669,7 @@
     %
 :- pred object_fold_state(json.reader(Stream),
     pred(string, json.value, A, A, State, State),
-    A, json.maybe_partial_res(A, Error), State, State)
+    A, json.maybe_partial_reader_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -668,7 +693,7 @@
     % until an error occurs.
     %
 :- pred array_fold(json.reader(Stream), pred(json.value, A, A),
-    A, json.maybe_partial_res(A, Error), State, State)
+    A, json.maybe_partial_reader_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -685,7 +710,7 @@
     %
 :- pred array_fold_state(json.reader(Stream),
     pred(json.value, A, A, State, State),
-    A, json.maybe_partial_res(A, Error), State, State)
+    A, json.maybe_partial_reader_res(A, Error), State, State)
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -710,7 +735,7 @@
 :- instance stream.input(json.reader(Stream), io) <= stream.input(Stream, io).
 
 :- instance stream.reader(json.reader(Stream), json.value, io,
-    json.error(Error))
+    json.reader_error(Error))
     <= (
         stream.line_oriented(Stream, io),
         stream.unboxed_reader(Stream, char, io, Error),
@@ -733,7 +758,7 @@
     % reader parameters.
     %
 :- pred read_value_from_named_file(string::in,
-    json.result(json.value, io.error)::out, io::di, io::uo) is det.
+    json.reader_result(json.value, io.error)::out, io::di, io::uo) is det.
 
     % read_value_from_named_file(Parameters, FileName, Result, !IO):
     %
@@ -741,7 +766,7 @@
     % reader Parameters.
     %
 :- pred read_value_from_named_file(reader_params::in, string::in,
-    json.result(json.value, io.error)::out, io::di, io::uo) is det.
+    json.reader_result(json.value, io.error)::out, io::di, io::uo) is det.
 
     % get_value_from_named_file(FileName, Result, !IO):
     %
@@ -749,7 +774,7 @@
     % reader parameters.
     %
 :- pred get_value_from_named_file(string::in,
-    json.result(json.value, io.error)::out, io::di, io::uo) is det.
+    json.reader_result(json.value, io.error)::out, io::di, io::uo) is det.
 
     % get_value_from_named_file(Parameters, FileName, Result, !IO):
     %
@@ -757,7 +782,7 @@
     % reader Parameters.
     %
 :- pred get_value_from_named_file(reader_params::in, string::in,
-    json.result(json.value, io.error)::out, io::di, io::uo) is det.
+    json.reader_result(json.value, io.error)::out, io::di, io::uo) is det.
 
 %-----------------------------------------------------------------------------%
 %
@@ -904,7 +929,7 @@
 
 :- type from_string_result
     --->    ok(value)
-    ;       error(json.context, json.error_desc).
+    ;       error(json.context, json.reader_error_desc).
 
     % Convert a string into a JSON value, return an error if the conversion
     % cannot be performed.
@@ -915,7 +940,7 @@
     %
 :- func maybe_from_string(reader_params, string) = from_string_result.
 
-:- func error_context_and_desc_to_string(json.context, json.error_desc)
+:- func error_context_and_desc_to_string(json.context, json.reader_error_desc)
     = string.
 
 %-----------------------------------------------------------------------------%
@@ -1807,7 +1832,7 @@ to_type(V) = from_json(empty_pointer, V).
 %-----------------------------------------------------------------------------%
 
 :- pred make_unexpected_eof_error(json.reader(Stream)::in, string::in,
-    json.error(Error)::out, State::di, State::uo) is det
+    json.reader_error(Error)::out, State::di, State::uo) is det
     <= stream.line_oriented(Stream, State).
 
 make_unexpected_eof_error(Reader, Msg, Error, !State) :-
@@ -1815,7 +1840,7 @@ make_unexpected_eof_error(Reader, Msg, Error, !State) :-
     Error = json_error(Context, unexpected_eof(Msg)).
 
 :- pred make_syntax_error(json.reader(Stream)::in, string::in,
-    maybe(string)::in, json.error(Error)::out, State::di, State::uo)
+    maybe(string)::in, json.reader_error(Error)::out, State::di, State::uo)
     is det <= stream.line_oriented(Stream, State).
 
 make_syntax_error(Reader, Where, MaybeMsg, Error, !State) :-
@@ -1838,12 +1863,13 @@ make_error_context(Reader, Context, !State) :-
 
 %-----------------------------------------------------------------------------%
 
-:- instance stream.error(json.error(Error)) <= stream.error(Error) where
+:- instance stream.error(json.reader_error(Error)) <= stream.error(Error) where
 [
     func(error_message/1) is make_error_message
 ].
 
-:- func make_error_message(json.error(Error)) = string <= stream.error(Error).
+:- func make_error_message(json.reader_error(Error)) = string
+    <= stream.error(Error).
 
 make_error_message(Error) = Msg :-
     (
@@ -2055,7 +2081,7 @@ value_desc(array(_)) = "array".
     <= stream.input(Stream, io) where [].
 
 :- instance stream.reader(json.reader(Stream), json.value, io,
-    json.error(Error))
+    json.reader_error(Error))
     <= (
         stream.line_oriented(Stream, io),
         stream.unboxed_reader(Stream, char, io, Error),

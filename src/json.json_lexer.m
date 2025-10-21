@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2018, 2020, 2022-2024 Julien Fischer.
+% Copyright (C) 2013-2018, 2020, 2022-2025 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -23,7 +23,7 @@
     ;       token_true
     ;       token_null
     ;       token_eof
-    ;       token_error(json.error(Error)).
+    ;       token_error(json.reader_error(Error)).
 
 :- pred get_token(json.reader(Stream)::in, token(Error)::out,
     State::di, State::uo) is det
@@ -255,7 +255,7 @@ get_string_literal(Reader, QuoteChar, Token, !State) :-
 
 :- pred get_string_chars(json.reader(Stream)::in,
     char::in, json.context::in, char_buffer::in,
-    json.res(Error)::out, State::di, State::uo) is det
+    json.reader_res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
@@ -310,7 +310,7 @@ get_string_chars(Reader, QuoteChar, StartContext, Buffer, Result,
 
 :- pred get_escaped_char(json.reader(Stream)::in,
     char::in, char_buffer::in,
-    json.res(Error)::out, State::di, State::uo) is det
+    json.reader_res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
@@ -384,8 +384,8 @@ escaped_json_char_2('r', '\r').
 escaped_json_char_2('t', '\t').
 
 :- pred get_hex_escaped_char(json.reader(Stream)::in,
-    char_buffer::in,
-    json.res(Error)::out, State::di, State::uo) is det
+    char_buffer::in, json.reader_res(Error)::out,
+    State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
@@ -415,7 +415,7 @@ get_hex_escaped_char(Reader, Buffer, Result, !State) :-
 
 :- pred get_escaped_unicode_char(json.reader(Stream)::in,
     char_buffer::in,
-    json.res(Error)::out, State::di, State::uo) is det
+    json.reader_res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
@@ -477,7 +477,7 @@ get_escaped_unicode_char(Reader, Buffer, Result, !State) :-
 
 :- pred get_hex_digits(json.reader(Stream)::in, int::in,
     list(char)::in, list(char)::out,
-    json.res(Error)::out, State::di, State::uo) is det
+    json.reader_res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
@@ -552,7 +552,7 @@ is_trailing_surrogate(Code) :-
 
 :- pred get_trailing_surrogate_and_combine(json.reader(Stream)::in,
     string::in, int::in, char_buffer::in,
-    json.res(Error)::out, State::di, State::uo) is det
+    json.reader_res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
@@ -713,7 +713,7 @@ get_number(Reader, Buffer, Token, !State) :-
     ).
 
 :- pred get_number_chars(json.reader(Stream)::in,
-    char_buffer::in, json.res(Error)::out,
+    char_buffer::in, json.reader_res(Error)::out,
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
@@ -775,7 +775,7 @@ get_number_chars(Reader, Buffer, Result, !State) :-
 
 :- pred get_frac(json.reader(Stream)::in,
     frac_where::in, char_buffer::in,
-    json.res(Error)::out, State::di, State::uo) is det
+    json.reader_res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -839,7 +839,7 @@ get_frac(Reader, Where, Buffer, Result, !State) :-
     ;       exp_digit.   % Have just seen a digit.
 
 :- pred get_exp(json.reader(Stream)::in, exp_where::in,
-    char_buffer::in, json.res(Error)::out,
+    char_buffer::in, json.reader_res(Error)::out,
     State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
@@ -974,7 +974,7 @@ get_keyword(Reader, Buffer, Token, !State) :-
     ).
 
 :- pred get_keyword_chars(json.reader(Stream)::in, char_buffer::in,
-    stream.res(json.error(Error))::out, State::di, State::uo) is det
+    stream.res(json.reader_error(Error))::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error),
@@ -1016,7 +1016,7 @@ is_keyword("null", token_null).
 %-----------------------------------------------------------------------------%
 
 :- pred consume_comment(json.reader(Stream)::in, json.context::in,
-    json.res(Error)::out, State::di, State::uo) is det
+    json.reader_res(Error)::out, State::di, State::uo) is det
     <= (
         stream.line_oriented(Stream, State),
         stream.unboxed_reader(Stream, char, State, Error)
@@ -1052,7 +1052,7 @@ consume_comment(Reader, StartCommentContext, Result, !State) :-
     ).
 
 :- pred consume_until_next_nl_or_eof(json.reader(Stream)::in,
-    json.res(Error)::out, State::di, State::uo) is det
+    json.reader_res(Error)::out, State::di, State::uo) is det
     <= stream.unboxed_reader(Stream, char, State, Error).
 
 consume_until_next_nl_or_eof(Reader, Result, !State) :-
@@ -1080,7 +1080,7 @@ consume_until_next_nl_or_eof(Reader, Result, !State) :-
 
 :- pred consume_multiline_comment(json.reader(Stream)::in,
     json.context::in, last_multiline_comment_char::in,
-    json.res(Error)::out, State::di, State::uo) is det
+    json.reader_res(Error)::out, State::di, State::uo) is det
     <= stream.unboxed_reader(Stream, char, State, Error).
 
 consume_multiline_comment(Reader, StartCommentContext, LastCharKind, Result,
