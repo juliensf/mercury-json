@@ -358,6 +358,14 @@ JSON: [[1],[2,3]]
 TYPE: array2d.array2d(int)
 RESULT: ERROR: conversion to array2d.array2d(int): row 1 has length 2, expected length 1
 
+JSON: [[1,2,3],true,[7,8,9]]
+TYPE: array2d.array2d(int)
+RESULT: ERROR: at /1: conversion to array2d.array2d(int): row 1 is Boolean, expected array
+
+JSON: [[1,2,3],[4,null,6],[7,8,9]]
+TYPE: array2d.array2d(int)
+RESULT: ERROR: at /1/1: conversion to int: argument is null, expected number
+
 JSON: {"edges":[],"vertices":[]}
 TYPE: digraph.digraph(string)
 RESULT: OK: digraph(0u, bimap(empty, empty), empty, empty)

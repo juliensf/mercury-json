@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2016, 2018-2020 Julien Fischer.
+% Copyright (C) 2016, 2018-2020, 2025 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -301,6 +301,24 @@ test_unmarshal_array2ds(File, !IO) :-
         array([
             array([int(1)]),
             array([int(2), int(3)])
+        ]), _ : array2d(int), !IO),
+
+    % Test incorrect row type.
+    %
+    do_unmarshal_test(File,
+        array([
+            array([int(1), int(2), int(3)]),
+            bool(yes),
+            array([int(7), int(8), int(9)])
+        ]), _ : array2d(int), !IO),
+
+    % Test incorrect element type.
+    %
+    do_unmarshal_test(File,
+        array([
+            array([int(1), int(2), int(3)]),
+            array([int(4), null, int(6)]),
+            array([int(7), int(8), int(9)])
         ]), _ : array2d(int), !IO).
 
 %-----------------------------------------------------------------------------%

@@ -663,14 +663,14 @@ array2d_from_json(Pointer, Value) = Result :-
                         some [!Array2d] (
                             !:Array2d = array2d.init(ExpectedNumRows,
                                 ExpectedNumCols, FirstElem),
-                            array2d_unmarshal_elems(0/*Row*/, 1/*Col*/,
-                                ExpectedNumCols, OtherElemValues, !Array2d,
-                                FirstRowResult),
+                            array2d_unmarshal_elems(FirstRowPointer, 0/*Row*/,
+                                1/*Col*/, ExpectedNumCols, OtherElemValues,
+                                !Array2d, FirstRowResult),
                             (
                                 FirstRowResult = ok,
-                                array2d_unmarshal_rows(1, ExpectedNumRows,
-                                    ExpectedNumCols, RestRowValues, !Array2d,
-                                    RestRowsResult),
+                                array2d_unmarshal_rows(Pointer, 1,
+                                    ExpectedNumRows, ExpectedNumCols,
+                                    RestRowValues, !Array2d, RestRowsResult),
                                 (
                                     RestRowsResult = ok,
                                     Result = ok(!.Array2d)
@@ -754,11 +754,12 @@ check_array2d_rows_are_empty(RowNo, [Value | Values], Result) :-
         Result = crr_bad_type(RowNo, Value)
     ).
 
-:- pred array2d_unmarshal_rows(int::in, int::in, int::in, list(value)::in,
-    array2d(T)::array_di, array2d(T)::array_uo, maybe_error::out)
-    is det <= from_json(T).
+:- pred array2d_unmarshal_rows(pointer::in, int::in, int::in, int::in,
+    list(value)::in, array2d(T)::array_di, array2d(T)::array_uo,
+    maybe_error::out) is det <= from_json(T).
 
-array2d_unmarshal_rows(R, NumRows, NumCols, RowValues, !Array2d, Result) :-
+array2d_unmarshal_rows(Pointer, R, NumRows, NumCols, RowValues, !Array2d,
+        Result) :-
     ( if R < NumRows then
         (
             RowValues = [],
@@ -766,13 +767,14 @@ array2d_unmarshal_rows(R, NumRows, NumCols, RowValues, !Array2d, Result) :-
             unexpected($file, $pred, "too few rows")
         ;
             RowValues = [RowValue | RowValuesPrime],
+            RowPointer = append_int_token(Pointer, R),
             (
                 RowValue = array(ElemValues),
-                array2d_unmarshal_elems(R, 0, NumCols, ElemValues, !Array2d,
-                    RowResult),
+                array2d_unmarshal_elems(RowPointer, R, 0, NumCols, ElemValues,
+                    !Array2d, RowResult),
                 (
                     RowResult = ok,
-                    array2d_unmarshal_rows(R + 1, NumRows, NumCols,
+                    array2d_unmarshal_rows(Pointer, R + 1, NumRows, NumCols,
                         RowValuesPrime, !Array2d, Result)
                 ;
                     RowResult = error(_),
@@ -788,8 +790,10 @@ array2d_unmarshal_rows(R, NumRows, NumCols, RowValues, !Array2d, Result) :-
                 TypeDesc = type_of(!.Array2d),
                 TypeName = type_name(TypeDesc),
                 RowValueDesc = value_desc(RowValue),
-                string.format("conversion to %s: row %d is %s, expected array",
-                    [s(TypeName), i(R), s(RowValueDesc)], BadRowValueErrorMsg),
+                string.format(
+                    "at %s: conversion to %s: row %d is %s, expected array",
+                    [s(describe_context(RowPointer)), s(TypeName), i(R),
+                        s(RowValueDesc)], BadRowValueErrorMsg),
                 Result = error(BadRowValueErrorMsg)
             )
         )
@@ -804,31 +808,32 @@ array2d_unmarshal_rows(R, NumRows, NumCols, RowValues, !Array2d, Result) :-
         )
     ).
 
-:- pred array2d_unmarshal_elems(int::in, int::in, int::in, list(value)::in,
-    array2d(T)::array2d_di, array2d(T)::array2d_uo, maybe_error::out)
-    is det <= from_json(T).
+:- pred array2d_unmarshal_elems(pointer::in, int::in, int::in, int::in,
+    list(value)::in, array2d(T)::array2d_di, array2d(T)::array2d_uo,
+    maybe_error::out) is det <= from_json(T).
 
-array2d_unmarshal_elems(R, C, NumCols, RowValues, !Array2d, Result) :-
+array2d_unmarshal_elems(Pointer, R, C, NumCols, RowValues, !Array2d, Result) :-
     ( if C < NumCols then
         (
             RowValues = [],
             TypeDesc = type_of(!.Array2d),
             TypeName = type_name(TypeDesc),
             string.format(
-                "conversion to %s: row %d has length %d, expected length %d",
-                [s(TypeName), i(R), i(C), i(NumCols)], ErrorMsg),
+                "at %s: conversion to %s: row %d has length %d, expected length %d",
+                [s(describe_context(Pointer)), s(TypeName),
+                    i(R), i(C), i(NumCols)], ErrorMsg),
             Result = error(ErrorMsg)
         ;
             RowValues = [RowValue | RowValuesPrime],
-            % XXX FIXME POINTER
-            ElemResult = from_json(empty_pointer, RowValue),
+            ValuePointer = append_int_token(Pointer, C),
+            ElemResult = from_json(ValuePointer, RowValue),
             (
                 ElemResult = ok(Elem),
                 % Safe since to reach this point we must be within the bounds
                 % set when the array was created.
                 array2d.unsafe_set(R, C, Elem, !Array2d),
-                array2d_unmarshal_elems(R, C + 1, NumCols, RowValuesPrime,
-                    !Array2d, Result)
+                array2d_unmarshal_elems(Pointer, R, C + 1, NumCols,
+                    RowValuesPrime, !Array2d, Result)
             ;
                 ElemResult = error(ElemError),
                 Result = error(ElemError)
