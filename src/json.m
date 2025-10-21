@@ -185,6 +185,10 @@
     %
 :- func empty_pointer = pointer.
 
+    % Succeeds if and only if the argument is the empty JSON pointer.
+    %
+:- pred is_empty_pointer(pointer::in) is semidet.
+
     % append_token(Pointer0, Token) = Pointer:
     %
     % Returns the JSON pointer that results from appending the unescaped token
@@ -1047,7 +1051,7 @@
 %-----------------------------------------------------------------------------%
 
 :- typeclass from_json(T) where [
-    func from_json(json.value) = maybe_error(T)
+    func from_json(json.pointer, json.value) = maybe_error(T)
 ].
 
 :- instance from_json(bag(T)) <= from_json(T).
@@ -1672,133 +1676,133 @@ from_type(T) = to_json(T).
 %-----------------------------------------------------------------------------%
 
 :- instance from_json(bag(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.bag_from_json
+    func(from_json/2) is json.unmarshal.bag_from_json
 ].
 :- instance from_json(int) where [
-    func(from_json/1) is json.unmarshal.int_from_json
+    func(from_json/2) is json.unmarshal.int_from_json
 ].
 :- instance from_json(int8) where [
-    func(from_json/1) is json.unmarshal.int8_from_json
+    func(from_json/2) is json.unmarshal.int8_from_json
 ].
 :- instance from_json(int16) where [
-    func(from_json/1) is json.unmarshal.int16_from_json
+    func(from_json/2) is json.unmarshal.int16_from_json
 ].
 :- instance from_json(int32) where [
-    func(from_json/1) is json.unmarshal.int32_from_json
+    func(from_json/2) is json.unmarshal.int32_from_json
 ].
 :- instance from_json(int64) where [
-    func(from_json/1) is json.unmarshal.int64_from_json
+    func(from_json/2) is json.unmarshal.int64_from_json
 ].
 :- instance from_json(uint8) where [
-    func(from_json/1) is json.unmarshal.uint8_from_json
+    func(from_json/2) is json.unmarshal.uint8_from_json
 ].
 :- instance from_json(uint16) where [
-    func(from_json/1) is json.unmarshal.uint16_from_json
+    func(from_json/2) is json.unmarshal.uint16_from_json
 ].
 :- instance from_json(uint64) where [
-    func(from_json/1) is json.unmarshal.uint64_from_json
+    func(from_json/2) is json.unmarshal.uint64_from_json
 ].
 :- instance from_json(float) where [
-    func(from_json/1) is json.unmarshal.float_from_json
+    func(from_json/2) is json.unmarshal.float_from_json
 ].
 :- instance from_json(char) where [
-    func(from_json/1) is json.unmarshal.char_from_json
+    func(from_json/2) is json.unmarshal.char_from_json
 ].
 :- instance from_json(string) where [
-    func(from_json/1) is json.unmarshal.string_from_json
+    func(from_json/2) is json.unmarshal.string_from_json
 ].
 :- instance from_json(bool) where [
-    func(from_json/1) is json.unmarshal.bool_from_json
+    func(from_json/2) is json.unmarshal.bool_from_json
 ].
 :- instance from_json(integer) where [
-    func(from_json/1) is json.unmarshal.integer_from_json
+    func(from_json/2) is json.unmarshal.integer_from_json
 ].
 :- instance from_json(kv_list(K, V)) <= (from_json(K), from_json(V)) where [
-    func(from_json/1) is json.unmarshal.kv_list_from_json
+    func(from_json/2) is json.unmarshal.kv_list_from_json
 ].
 :- instance from_json(date) where [
-    func(from_json/1) is json.unmarshal.date_time_from_json
+    func(from_json/2) is json.unmarshal.date_time_from_json
 ].
 :- instance from_json(duration) where [
-    func(from_json/1) is json.unmarshal.duration_from_json
+    func(from_json/2) is json.unmarshal.duration_from_json
 ].
 :- instance from_json(pair(A, B)) <= (from_json(A), from_json(B)) where [
-    func(from_json/1) is json.unmarshal.pair_from_json
+    func(from_json/2) is json.unmarshal.pair_from_json
 ].
 :- instance from_json(list(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.list_from_json
+    func(from_json/2) is json.unmarshal.list_from_json
 ].
 :- instance from_json(cord(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.cord_from_json
+    func(from_json/2) is json.unmarshal.cord_from_json
 ].
 :- instance from_json(array(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.array_from_json
+    func(from_json/2) is json.unmarshal.array_from_json
 ].
 :- instance from_json(array2d(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.array2d_from_json
+    func(from_json/2) is json.unmarshal.array2d_from_json
 ].
 :- instance from_json(version_array(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.version_array_from_json
+    func(from_json/2) is json.unmarshal.version_array_from_json
 ].
 :- instance from_json(rational) where [
-    func(from_json/1) is json.unmarshal.rational_from_json
+    func(from_json/2) is json.unmarshal.rational_from_json
 ].
 :- instance from_json(bitmap) where [
-    func(from_json/1) is json.unmarshal.bitmap_from_json
+    func(from_json/2) is json.unmarshal.bitmap_from_json
 ].
 :- instance from_json(one_or_more(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.one_or_more_from_json
+    func(from_json/2) is json.unmarshal.one_or_more_from_json
 ].
 :- instance from_json(pqueue(K, V)) <= (from_json(K), from_json(V)) where [
-    func(from_json/1) is json.unmarshal.pqueue_from_json
+    func(from_json/2) is json.unmarshal.pqueue_from_json
 ].
 :- instance from_json(set_ordlist(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.set_ordlist_from_json
+    func(from_json/2) is json.unmarshal.set_ordlist_from_json
 ].
 :- instance from_json(set_unordlist(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.set_unordlist_from_json
+    func(from_json/2) is json.unmarshal.set_unordlist_from_json
 ].
 :- instance from_json(set_tree234(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.set_tree234_from_json
+    func(from_json/2) is json.unmarshal.set_tree234_from_json
 ].
 :- instance from_json(set_ctree234(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.set_ctree234_from_json
+    func(from_json/2) is json.unmarshal.set_ctree234_from_json
 ].
 :- instance from_json(set_bbbtree(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.set_bbbtree_from_json
+    func(from_json/2) is json.unmarshal.set_bbbtree_from_json
 ].
 :- instance from_json(maybe(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.maybe_from_json
+    func(from_json/2) is json.unmarshal.maybe_from_json
 ].
 :- instance from_json(maybe_error(T, E)) <= (from_json(T), from_json(E)) where [
-    func(from_json/1) is json.unmarshal.maybe_error_from_json
+    func(from_json/2) is json.unmarshal.maybe_error_from_json
 ].
 :- instance from_json(map(K, V)) <= (from_json(K), from_json(V)) where [
-    func(from_json/1) is json.unmarshal.map_from_json
+    func(from_json/2) is json.unmarshal.map_from_json
 ].
 :- instance from_json(rbtree(K, V)) <= (from_json(K), from_json(V)) where [
-    func(from_json/1) is json.unmarshal.rbtree_from_json
+    func(from_json/2) is json.unmarshal.rbtree_from_json
 ].
 :- instance from_json(bimap(K, V)) <= (from_json(K), from_json(V)) where [
-    func(from_json/1) is json.unmarshal.bimap_from_json
+    func(from_json/2) is json.unmarshal.bimap_from_json
 ].
 :- instance from_json(unit) where [
-    func(from_json/1) is json.unmarshal.unit_from_json
+    func(from_json/2) is json.unmarshal.unit_from_json
 ].
 :- instance from_json(queue(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.queue_from_json
+    func(from_json/2) is json.unmarshal.queue_from_json
 ].
 :- instance from_json(digraph(T)) <= from_json(T) where [
-    func(from_json/1) is json.unmarshal.digraph_from_json
+    func(from_json/2) is json.unmarshal.digraph_from_json
 ].
 :- instance from_json(json.value) where [
-    from_json(V) = ok(V)
+    from_json(_, V) = ok(V)
 ].
 :- instance from_json(json.pointer) where [
-    func(from_json/1) is json.unmarshal.json_pointer_from_json
+    func(from_json/2) is json.unmarshal.json_pointer_from_json
 ].
 
-to_type(V) = from_json(V).
+to_type(V) = from_json(empty_pointer, V).
 
 %-----------------------------------------------------------------------------%
 
@@ -2302,6 +2306,9 @@ search_int_or_null(Object, Member, Default) = String :-
     --->    pointer(cord(string)).
 
 empty_pointer = pointer(cord.empty).
+
+is_empty_pointer(pointer(Cord)) :-
+    cord.is_empty(Cord).
 
 append_token(!.Pointer, Token) = !:Pointer :-
     append_token(Token, !Pointer).
