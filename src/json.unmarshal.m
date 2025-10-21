@@ -645,7 +645,7 @@ array2d_from_json(Pointer, Value) = Result :-
                         RowsAreEmptyResult = crr_bad_type(RowNo, RowValue),
                         TypeDesc = type_desc_from_result(Result),
                         TypeName = type_name(TypeDesc),
-                        RowValueDesc = value_desc(RowValue),
+                        RowValueDesc = to_value_desc(RowValue),
                         string.format(
                             "at %s: conversion to %s: row %d is %s, expected array",
                             [s(describe_context(Pointer)), s(TypeName),
@@ -698,7 +698,7 @@ array2d_from_json(Pointer, Value) = Result :-
                 TypeDesc = type_desc_from_result(Result),
                 TypeName = type_name(TypeDesc),
                 FirstRowPointer = append_int_token(Pointer, 0),
-                FirstRowValueDesc = value_desc(FirstRowValue),
+                FirstRowValueDesc = to_value_desc(FirstRowValue),
                 string.format(
                     "at %s: conversion to %s: row 0 is %s, expected array",
                     [s(describe_context(FirstRowPointer)), s(TypeName),
@@ -789,7 +789,7 @@ array2d_unmarshal_rows(Pointer, R, NumRows, NumCols, RowValues, !Array2d,
                 ),
                 TypeDesc = type_of(!.Array2d),
                 TypeName = type_name(TypeDesc),
-                RowValueDesc = value_desc(RowValue),
+                RowValueDesc = to_value_desc(RowValue),
                 string.format(
                     "at %s: conversion to %s: row %d is %s, expected array",
                     [s(describe_context(RowPointer)), s(TypeName), i(R),
@@ -1553,7 +1553,7 @@ json_pointer_from_json(Pointer, Value) = Result :-
 
 make_conv_error_msg(Pointer, TypeDesc, Value, Expected) = Msg :-
     TypeName = type_name(TypeDesc),
-    ValueDesc = value_desc(Value),
+    ValueDesc = to_value_desc(Value),
     string.format("at %s: conversion to %s: argument is %s, expected %s",
         [s(describe_context(Pointer)), s(TypeName), s(ValueDesc),
             s(Expected)], Msg).

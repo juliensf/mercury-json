@@ -1129,6 +1129,17 @@
 :- func to_type(json.value) = maybe_error(T) <= from_json(T).
 
 %-----------------------------------------------------------------------------%
+%
+% Utility methods for error reporting.
+%
+
+    % Returns a string describing JSON value given by the argument.
+    % The string returned will be one of: "null", "Boolean", "number", "string,
+    % "array" or "object.
+    %
+:- func to_value_desc(json.value) = string.
+
+%-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
 
 :- implementation.
@@ -1269,7 +1280,7 @@ read_object(Reader, Result, !State) :-
             ; Value = array(_)
             ),
             Msg = "value must be an object",
-            ValueDesc = value_desc(Value),
+            ValueDesc = to_value_desc(Value),
             ErrorDesc = unexpected_value(ValueDesc, Msg),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
@@ -1300,7 +1311,7 @@ read_array(Reader, Result, !State) :-
             ; Value = object(_)
             ),
             Msg = "value must be an array",
-            ValueDesc = value_desc(Value),
+            ValueDesc = to_value_desc(Value),
             ErrorDesc = unexpected_value(ValueDesc, Msg),
             Error = json_error(Context, ErrorDesc),
             Result = error(Error)
@@ -1346,7 +1357,7 @@ get_object(Reader, Result, !State) :-
                 ; Value = array(_)
                 ),
                 Msg = "value must be an object",
-                ValueDesc = value_desc(Value),
+                ValueDesc = to_value_desc(Value),
                 ErrorDesc = unexpected_value(ValueDesc, Msg),
                 Error = json_error(Context, ErrorDesc),
                 Result = error(Error)
@@ -1382,7 +1393,7 @@ get_array(Reader, Result, !State) :-
                 ; Value = object(_)
                 ),
                 Msg = "value must be an array",
-                ValueDesc = value_desc(Value),
+                ValueDesc = to_value_desc(Value),
                 ErrorDesc = unexpected_value(ValueDesc, Msg),
                 Error = json_error(Context, ErrorDesc),
                 Result = error(Error)
@@ -2052,14 +2063,12 @@ to_char_name(0x001F, "INFORMATION SEPARATOR ONE").
 
 %-----------------------------------------------------------------------------%
 
-:- func value_desc(json.value) = string.
-
-value_desc(null) = "null".
-value_desc(bool(_)) = "Boolean".
-value_desc(string(_)) = "string".
-value_desc(number(_)) = "number".
-value_desc(object(_)) = "object".
-value_desc(array(_)) = "array".
+to_value_desc(null) = "null".
+to_value_desc(bool(_)) = "Boolean".
+to_value_desc(string(_)) = "string".
+to_value_desc(number(_)) = "number".
+to_value_desc(object(_)) = "object".
+to_value_desc(array(_)) = "array".
 
 %-----------------------------------------------------------------------------%
 %
@@ -2189,7 +2198,7 @@ det_get_int(Value) =
 :- func unexpected_type_error(string, string, json.value) = _ is erroneous.
 
 unexpected_type_error(FuncName, ExpectedType, Value) = _ :-
-    ValueDesc = value_desc(Value),
+    ValueDesc = to_value_desc(Value),
     string.format("%s: expected %s value: have %s value",
         [s(FuncName), s(ExpectedType), s(ValueDesc)], Msg),
     error(Msg).
