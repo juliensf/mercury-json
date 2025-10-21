@@ -637,8 +637,9 @@ array2d_from_json(Pointer, Value) = Result :-
                         TypeDesc = type_desc_from_result(Result),
                         TypeName = type_name(TypeDesc),
                         string.format(
-                            "conversion to %s: row 0 has length 0, row %d has length %d",
-                            [s(TypeName), i(FirstNonEmptyRowNo), i(FirstNonEmptyRowLength)], Msg),
+                            "at %s: conversion to %s: row 0 has length 0, row %d has length %d",
+                            [s(describe_context(Pointer)), s(TypeName),
+                                i(FirstNonEmptyRowNo), i(FirstNonEmptyRowLength)], Msg),
                         Result = error(Msg)
                     ;
                         RowsAreEmptyResult = crr_bad_type(RowNo, RowValue),
@@ -646,15 +647,17 @@ array2d_from_json(Pointer, Value) = Result :-
                         TypeName = type_name(TypeDesc),
                         RowValueDesc = value_desc(RowValue),
                         string.format(
-                            "conversion to %s: row %d is %s, expected array",
-                            [s(TypeName), i(RowNo), s(RowValueDesc)], Msg),
+                            "at %s: conversion to %s: row %d is %s, expected array",
+                            [s(describe_context(Pointer)), s(TypeName),
+                                i(RowNo), s(RowValueDesc)], Msg),
                         Result = error(Msg)
                     )
                 ;
                     FirstRowValues = [FirstElemValue | OtherElemValues],
                     list.length(FirstRowValues, ExpectedNumCols),
-                    % XXX FIXME POINTER.
-                    FirstElemResult = from_json(empty_pointer, FirstElemValue),
+                    FirstRowPointer = append_int_token(Pointer, 0),
+                    FirstElemPointer = append_int_token(FirstRowPointer, 0),
+                    FirstElemResult = from_json(FirstElemPointer, FirstElemValue),
                     (
                         FirstElemResult = ok(FirstElem),
                         some [!Array2d] (
@@ -694,9 +697,12 @@ array2d_from_json(Pointer, Value) = Result :-
                 ),
                 TypeDesc = type_desc_from_result(Result),
                 TypeName = type_name(TypeDesc),
+                FirstRowPointer = append_int_token(Pointer, 0),
                 FirstRowValueDesc = value_desc(FirstRowValue),
-                string.format("conversion to %s: row 0 is %s, expected array",
-                    [s(TypeName), s(FirstRowValueDesc)], ErrorMsg),
+                string.format(
+                    "at %s: conversion to %s: row 0 is %s, expected array",
+                    [s(describe_context(FirstRowPointer)), s(TypeName),
+                        s(FirstRowValueDesc)], ErrorMsg),
                 Result = error(ErrorMsg)
             )
         )

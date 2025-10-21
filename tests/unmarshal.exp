@@ -340,15 +340,15 @@ RESULT: OK: array2d(2, 0, array([]))
 
 JSON: [[],null]
 TYPE: array2d.array2d(int)
-RESULT: ERROR: conversion to array2d.array2d(int): row 1 is null, expected array
+RESULT: ERROR: at root: conversion to array2d.array2d(int): row 1 is null, expected array
 
 JSON: [[],[3]]
 TYPE: array2d.array2d(int)
-RESULT: ERROR: conversion to array2d.array2d(int): row 0 has length 0, row 1 has length 1
+RESULT: ERROR: at root: conversion to array2d.array2d(int): row 0 has length 0, row 1 has length 1
 
 JSON: [false,[3]]
 TYPE: array2d.array2d(int)
-RESULT: ERROR: conversion to array2d.array2d(int): row 0 is Boolean, expected array
+RESULT: ERROR: at /0: conversion to array2d.array2d(int): row 0 is Boolean, expected array
 
 JSON: [[1,2,3],[4,5,6],[7,8,9]]
 TYPE: array2d.array2d(int)
