@@ -15,6 +15,13 @@
 
 %-----------------------------------------------------------------------------%
 
+    % A submodule providing utility predicates that assist in implementing
+    % instances of the from_json/1 type class.
+    %
+:- include_module from_json_util.
+
+%-----------------------------------------------------------------------------%
+
 :- import_module array.
 :- import_module array2d.
 :- import_module assoc_list.
