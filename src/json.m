@@ -306,6 +306,7 @@
 %-----------------------------------------------------------------------------%
 %
 % JSON reader parameters.
+%
 
 :- type reader_params
     --->    reader_params(
@@ -401,7 +402,6 @@
                 line_number   :: int,
                 column_number :: int
             ).
-
 
     % This type describes errors that can occur while reading JSON data using a
     % reader.
