@@ -135,12 +135,12 @@
 % Procedures for working with JSON objects.
 %
 
-    % lookup_<type>(Object, Member) = Value:
+    % lookup_<type>(Object, MemberName) = Value:
     %
-    % Lookup Member in Object and return the underlying value if it is a
+    % Lookup MemberName in Object and return the underlying value if it is a
     % JSON value of the type specified by the predicate name.
-    % Calls error/1 if Member is not a member of Object or if the member value
-    % is not a JSON value of the type specified by the predicate name.
+    % Calls error/1 if MemberName is not a member of Object or if the member
+    % value is not a JSON value of the type specified by the predicate name.
     %
 :- func lookup_bool(object, string) = bool.
 :- func lookup_string(object, string) = string.
@@ -150,12 +150,13 @@
 
 :- func lookup_int(object, string) = int.
 
-    % search_<type>(Object, Member, DefaultValue) = Value:
+    % search_<type>(Object, MemberName, DefaultValue) = Value:
     %
-    % Lookup Member in Object and return the underlying value if it is a JSON
-    % value of the type specified by the predicate name. Calls error/1 if the
-    % member value is not a JSON value of the type specified by the predicate
-    % name. If Member is not a member of Object, then return DefaultValue.
+    % Lookup MemberName in Object and return the underlying value if it is a
+    % JSON value of the type specified by the predicate name. Calls error/1 if
+    % the member value is not a JSON value of the type specified by the
+    % predicate name. If MemberName is not a member of Object, then return
+    % DefaultValue.
     %
 :- func search_bool(object, string, bool) = bool.
 :- func search_string(object, string, string) = string.
@@ -165,11 +166,12 @@
 
 :- func search_int(object, string, int) = int.
 
-    % search_<type>_or_null(Object, Member, DefaultValue) = Value:
+    % search_<type>_or_null(Object, MemberName, DefaultValue) = Value:
     %
-    % Lookup Member in Object and return the underlying value if it is a JSON
-    % value of the type specified by the predicate name. If Member is not a
-    % member of Object or if it is null, then return DefaultValue.
+    % Lookup MemberName in Object and return the underlying value if it is a
+    % JSON value of the type specified by the predicate name.
+    % If MemberName is not a member of Object, or if it's value is null, then
+    % return DefaultValue.
     % Calls error/1 if the member value is not a JSON value of the type
     % specified by the predicate name or null.
     %
@@ -198,9 +200,10 @@
 
     % append_token(Pointer0, Token) = Pointer:
     %
-    % Returns the JSON pointer that results from appending the unescaped token
-    % Token to Pointer0. Note that while Token will usually be a property name,
-    % it can also be the string representation of an array index.
+    % Return the JSON pointer that results from appending Token to Pointer0.
+    % Token is unescaped JSON pointer token.
+    % Note that while Token will usually be a member name, it can also be the
+    % string representation of an array index.
     %
 :- func append_token(pointer, string) = pointer.
 
@@ -979,11 +982,8 @@
 %     float             number (only finite floats can be converted)
 %     char              string (of length 1)
 %
-% Library Types
-% -------------
-%
-% The following standard library types are handled specially, either to reduce
-% the size of their JSON representation or to make it more readable.
+% Standard Library Types
+% ----------------------
 %
 %     Mercury Type      JSON
 %     ------------      ----
@@ -1027,8 +1027,8 @@
 %     ok(TPrime) = json.to_type(J),
 %     T = TPrime
 %
-% The from_json/1 instances below allow objects representing Mercury standard
-% library types to contain members that are not part of the JSON representation
+% The from_json/1 instances below let objects representing Mercury standard
+% library types contain members that are not part of the JSON representation
 % of the type. Such members are ignored by the JSON to Mercury conversion.
 %
 %-----------------------------------------------------------------------------%
@@ -1144,9 +1144,10 @@
 % Utility methods for error reporting.
 %
 
-    % Returns a string describing JSON value given by the argument.
-    % The string returned will be one of: "null", "Boolean", "number", "string,
-    % "array" or "object.
+    % Return a string describing JSON value given by the argument.
+    %
+    % The string returned will be one of: "null", "Boolean", "number",
+    % "string, "array" or "object.
     %
 :- func to_value_desc(json.value) = string.
 
