@@ -15,71 +15,118 @@
 
 %-----------------------------------------------------------------------------%
 
-:- func bag_from_json(pointer, value) = maybe_error(bag(T)) <= from_json(T).
-:- func int_from_json(pointer, value) = maybe_error(int).
-:- func int8_from_json(pointer, value) = maybe_error(int8).
-:- func int16_from_json(pointer, value) = maybe_error(int16).
-:- func int32_from_json(pointer, value) = maybe_error(int32).
-:- func int64_from_json(pointer, value) = maybe_error(int64).
-:- func uint8_from_json(pointer, value) = maybe_error(uint8).
-:- func uint16_from_json(pointer, value) = maybe_error(uint16).
-:- func uint64_from_json(pointer, value) = maybe_error(uint64).
-:- func float_from_json(pointer, value) = maybe_error(float).
-:- func char_from_json(pointer, value) = maybe_error(char).
-:- func string_from_json(pointer, value) = maybe_error(string).
-:- func bool_from_json(pointer, value) = maybe_error(bool).
-:- func integer_from_json(pointer, value) = maybe_error(integer).
-:- func kv_list_from_json(pointer, value) = maybe_error(kv_list(K, V))
+:- func bag_from_json(pointer, value) = from_json_result(bag(T))
+    <= from_json(T).
+
+:- func int_from_json(pointer, value) = from_json_result(int).
+
+:- func int8_from_json(pointer, value) = from_json_result(int8).
+
+:- func int16_from_json(pointer, value) = from_json_result(int16).
+
+:- func int32_from_json(pointer, value) = from_json_result(int32).
+
+:- func int64_from_json(pointer, value) = from_json_result(int64).
+
+:- func uint8_from_json(pointer, value) = from_json_result(uint8).
+
+:- func uint16_from_json(pointer, value) = from_json_result(uint16).
+
+:- func uint64_from_json(pointer, value) = from_json_result(uint64).
+
+:- func float_from_json(pointer, value) = from_json_result(float).
+
+:- func char_from_json(pointer, value) = from_json_result(char).
+
+:- func string_from_json(pointer, value) = from_json_result(string).
+
+:- func bool_from_json(pointer, value) = from_json_result(bool).
+
+:- func integer_from_json(pointer, value) = from_json_result(integer).
+
+:- func kv_list_from_json(pointer, value) = from_json_result(kv_list(K, V))
     <= (from_json(K), from_json(V)).
-:- func date_time_from_json(pointer, value) = maybe_error(date).
-:- func duration_from_json(pointer, value) = maybe_error(duration).
-:- func bitmap_from_json(pointer, value) = maybe_error(bitmap).
-:- func one_or_more_from_json(pointer, value) = maybe_error(one_or_more(T))
+
+:- func date_time_from_json(pointer, value) = from_json_result(date).
+
+:- func duration_from_json(pointer, value) = from_json_result(duration).
+
+:- func bitmap_from_json(pointer, value) = from_json_result(bitmap).
+
+:- func one_or_more_from_json(pointer, value) = from_json_result(one_or_more(T))
     <= from_json(T).
-:- func list_from_json(pointer, value) = maybe_error(list(T)) <= from_json(T).
-:- func cord_from_json(pointer, value) = maybe_error(cord(T)) <= from_json(T).
-:- func array_from_json(pointer, value) = maybe_error(array(T))
+
+:- func list_from_json(pointer, value) = from_json_result(list(T))
     <= from_json(T).
-:- func array2d_from_json(pointer, value) = maybe_error(array2d(T))
+
+:- func cord_from_json(pointer, value) = from_json_result(cord(T))
     <= from_json(T).
-:- func version_array_from_json(pointer, value) = maybe_error(version_array(T))
+
+:- func array_from_json(pointer, value) = from_json_result(array(T))
     <= from_json(T).
-:- func rational_from_json(pointer, value) = maybe_error(rational).
-:- func set_ordlist_from_json(pointer, value) = maybe_error(set_ordlist(T))
+
+:- func array2d_from_json(pointer, value) = from_json_result(array2d(T))
     <= from_json(T).
-:- func set_unordlist_from_json(pointer, value) = maybe_error(set_unordlist(T))
+
+:- func version_array_from_json(pointer, value) =
+    from_json_result(version_array(T)) <= from_json(T).
+
+:- func rational_from_json(pointer, value) =
+    from_json_result(rational).
+
+:- func set_ordlist_from_json(pointer, value) =
+    from_json_result(set_ordlist(T)) <= from_json(T).
+
+:- func set_unordlist_from_json(pointer, value) =
+    from_json_result(set_unordlist(T)) <= from_json(T).
+
+:- func set_tree234_from_json(pointer, value) =
+    from_json_result(set_tree234(T)) <= from_json(T).
+
+:- func set_ctree234_from_json(pointer, value) =
+    from_json_result(set_ctree234(T)) <= from_json(T).
+
+:- func set_bbbtree_from_json(pointer, value) =
+    from_json_result(set_bbbtree(T)) <= from_json(T).
+
+:- func pair_from_json(pointer, value) =
+    from_json_result(pair(A, B)) <= (from_json(A), from_json(B)).
+
+:- func maybe_from_json(pointer, value) = from_json_result(maybe(T))
     <= from_json(T).
-:- func set_tree234_from_json(pointer, value) = maybe_error(set_tree234(T))
-    <= from_json(T).
-:- func set_ctree234_from_json(pointer, value) = maybe_error(set_ctree234(T))
-    <= from_json(T).
-:- func set_bbbtree_from_json(pointer, value) = maybe_error(set_bbbtree(T))
-    <= from_json(T).
-:- func pair_from_json(pointer, value) = maybe_error(pair(A, B))
-    <= (from_json(A), from_json(B)).
-:- func maybe_from_json(pointer, value) = maybe_error(maybe(T))
-    <= from_json(T).
-:- func maybe_error_from_json(pointer, value) = maybe_error(maybe_error(T, E))
-    <= (from_json(T), from_json(E)).
-:- func map_from_json(pointer, value) = maybe_error(map(K, V))
+
+:- func maybe_error_from_json(pointer, value) =
+    from_json_result(maybe_error(T, E)) <= (from_json(T), from_json(E)).
+
+:- func map_from_json(pointer, value) = from_json_result(map(K, V))
     <= (from_json(K), from_json(V)).
-:- func rbtree_from_json(pointer, value) = maybe_error(rbtree(K, V))
+
+:- func rbtree_from_json(pointer, value) = from_json_result(rbtree(K, V))
     <= (from_json(K), from_json(V)).
-:- func bimap_from_json(pointer, value) = maybe_error(bimap(K, V))
+
+:- func bimap_from_json(pointer, value) = from_json_result(bimap(K, V))
     <= (from_json(K), from_json(V)).
-:- func unit_from_json(pointer, value) = maybe_error(unit).
-:- func queue_from_json(pointer, value) = maybe_error(queue(T))
+
+:- func unit_from_json(pointer, value) = from_json_result(unit).
+
+:- func queue_from_json(pointer, value) = from_json_result(queue(T))
     <= from_json(T).
-:- func pqueue_from_json(pointer, value) = maybe_error(pqueue(K, V))
+
+:- func pqueue_from_json(pointer, value) = from_json_result(pqueue(K, V))
     <= (from_json(K), from_json(V)).
-:- func digraph_from_json(pointer, value) = maybe_error(digraph(T))
+
+:- func digraph_from_json(pointer, value) = from_json_result(digraph(T))
     <= from_json(T).
-:- func json_pointer_from_json(pointer, value) = maybe_error(json.pointer).
+
+:- func json_pointer_from_json(pointer, value) =
+    from_json_result(json.pointer).
 
 %-----------------------------------------------------------------------------%
 %-----------------------------------------------------------------------------%
 
 :- implementation.
+
+:- import_module json.from_json_util.
 
 :- import_module int8.
 :- import_module int16.
@@ -91,187 +138,153 @@
 %-----------------------------------------------------------------------------%
 
 bag_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Elems),
+    ( if Value = array(Elems) then
         unmarshal_list_of_pairs(Pointer, "value", "count", 0, Elems, [],
             MaybeVCs),
         (
             MaybeVCs = ok(VCs),
-            add_values_and_counts(VCs, bag.init, Result)
+            list.length(VCs, NumVCs),
+            add_values_and_counts(Pointer, VCs, NumVCs - 1, bag.init, Result)
         ;
             MaybeVCs = error(Msg),
             Result = error(Msg)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = string(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
-:- pred add_values_and_counts(list(pair(T, int))::in, bag(T)::in,
-    maybe_error(bag(T))::out) is det.
+:- pred add_values_and_counts(pointer::in, list(pair(T, int))::in, int::in,
+    bag(T)::in, from_json_result(bag(T))::out) is det.
 
-add_values_and_counts([], Bag, ok(Bag)).
-add_values_and_counts([VC | VCs], !.Bag, Result) :-
+add_values_and_counts(_, [], _, Bag, ok(Bag)).
+add_values_and_counts(Pointer, [VC | VCs], Index, !.Bag, Result) :-
     VC = Value - Count,
     ( if Count > 0 then
         bag.det_insert_duplicates(Count, Value, !Bag),
-        add_values_and_counts(VCs, !.Bag, Result)
+        add_values_and_counts(Pointer, VCs, Index - 1, !.Bag, Result)
     else
-        string.format("value '%s' count is less than 1", [s(string(Value))],
-            Msg),
-        Result = error(Msg)
+        VCPointer = append_token(append_int_token(Pointer, Index), "count"),
+        Result = make_other_error(VCPointer, "count is less than 1")
     ).
 
 %-----------------------------------------------------------------------------%
 
-int_from_json(Pointer, Value) = Result :-
-    ( if Value = number(Number) then
+int_from_json(Pointer, JValue) = Result :-
+    ( if JValue = number(Number) then
         % XXX check that Number does not have a fractional part.
         Result = ok(round_to_int(Number))
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "number"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-int8_from_json(Pointer, Value) = Result :-
-    ( if Value = number(Number) then
+% XXX the following should all check for non-finite numbers *before*
+% attempting the conversion.
+
+int8_from_json(Pointer, JValue) = Result :-
+    ( if JValue = number(Number) then
         Int = truncate_to_int(Number),
         ( if int8.from_int(Int, Int8) then
             Result = ok(Int8)
         else
-            ErrorMsg = make_int_conv_bounds_error_msg(Pointer, "int8"),
-            Result = error(ErrorMsg)
+            Result = make_out_of_bounds_number_error(Pointer)
         )
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "number"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-int16_from_json(Pointer, Value) = Result :-
-    ( if Value = number(Number) then
+int16_from_json(Pointer, JValue) = Result :-
+    ( if JValue = number(Number) then
         Int = truncate_to_int(Number),
         ( if int16.from_int(Int, Int16) then
             Result = ok(Int16)
         else
-            ErrorMsg = make_int_conv_bounds_error_msg(Pointer, "int16"),
-            Result = error(ErrorMsg)
+            Result = make_out_of_bounds_number_error(Pointer)
         )
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "number"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-int32_from_json(Pointer, Value) = Result :-
-    ( if Value = number(Number) then
+int32_from_json(Pointer, JValue) = Result :-
+    ( if JValue = number(Number) then
         Int = truncate_to_int(Number),
         ( if int32.from_int(Int, Int32) then
             Result = ok(Int32)
         else
-            ErrorMsg = make_int_conv_bounds_error_msg(Pointer, "int32"),
-            Result = error(ErrorMsg)
+            Result = make_out_of_bounds_number_error(Pointer)
         )
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "number"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-int64_from_json(Pointer, Value) = Result :-
-    ( if Value = string(NumberStr) then
+int64_from_json(Pointer, JValue) = Result :-
+    ( if JValue = string(NumberStr) then
         ( if integer.from_string(NumberStr, Number) then
             ( if integer.to_int64(Number, Int64) then
                 Result = ok(Int64)
             else
-                ErrorMsg = make_int_conv_bounds_error_msg(Pointer, "int64"),
-                Result = error(ErrorMsg)
+                Result = make_out_of_bounds_number_error(Pointer)
             )
         else
-            TypeDesc = type_desc_from_result(Result),
-            ErrorMsg = make_string_conv_error_msg(Pointer, TypeDesc, "int64"),
-            Result = error(ErrorMsg)
+            Result = make_other_error(Pointer,
+                "cannot convert number to integer")
         )
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-uint8_from_json(Pointer, Value) = Result :-
-    ( if Value = number(Number) then
+uint8_from_json(Pointer, JValue) = Result :-
+    ( if JValue = number(Number) then
         Int = truncate_to_int(Number),
         ( if uint8.from_int(Int, UInt8) then
             Result = ok(UInt8)
         else
-            ErrorMsg = make_int_conv_bounds_error_msg(Pointer, "uint8"),
-            Result = error(ErrorMsg)
+            Result = make_out_of_bounds_number_error(Pointer)
         )
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "number"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-uint16_from_json(Pointer, Value) = Result :-
-    ( if Value = number(Number) then
+uint16_from_json(Pointer, JValue) = Result :-
+    ( if JValue = number(Number) then
         Int = truncate_to_int(Number),
         ( if uint16.from_int(Int, UInt16) then
             Result = ok(UInt16)
         else
-            ErrorMsg = make_int_conv_bounds_error_msg(Pointer, "uint16"),
-            Result = error(ErrorMsg)
+            Result = make_out_of_bounds_number_error(Pointer)
         )
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "number"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-uint64_from_json(Pointer, Value) = Result :-
-    ( if Value = string(NumberStr) then
+uint64_from_json(Pointer, JValue) = Result :-
+    ( if JValue = string(NumberStr) then
         ( if integer.from_string(NumberStr, Number) then
             ( if integer.to_uint64(Number, UInt64) then
                 Result = ok(UInt64)
             else
-                ErrorMsg = make_int_conv_bounds_error_msg(Pointer, "uint64"),
-                Result = error(ErrorMsg)
+                Result = make_out_of_bounds_number_error(Pointer)
             )
         else
-            TypeDesc = type_desc_from_result(Result),
-            ErrorMsg = make_string_conv_error_msg(Pointer, TypeDesc, "uint64"),
-            Result = error(ErrorMsg)
+            Result = make_other_error(Pointer,
+                "cannot convert string to integer")
         )
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-float_from_json(Pointer, Value) = Result :-
-    ( if Value = number(Number) then
+float_from_json(Pointer, JValue) = Result :-
+    ( if JValue = number(Number) then
         ( if is_finite(Number) then
             Result = ok(Number)
         else
-            ErrorMsg = "conversion to float: number is not finite",
-            Result = error(ErrorMsg)
+            Result = make_non_finite_number_error(Pointer)
         )
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "number"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-char_from_json(Pointer, Value) = Result :-
-    ( if Value = string(String) then
+char_from_json(Pointer, JValue) = Result :-
+    ( if JValue = string(String) then
         string.length(String, Length),
         ( if
             Length = 1,
@@ -279,25 +292,20 @@ char_from_json(Pointer, Value) = Result :-
         then
             Result = ok(Char)
         else
-            TypeDesc = type_desc_from_result(Result),
-            string.format("has length %d", [i(Length)], ArgDesc),
-            ErrorMsg = make_structure_error_msg(Pointer, TypeDesc, ArgDesc,
-                "length 1"),
-            Result = error(ErrorMsg)
+            % XXX ERROR
+            string.format("has length %d, expected length 1",
+                [i(Length)], Msg),
+            Result = make_other_error(Pointer, Msg)
         )
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "string", JValue)
     ).
 
-string_from_json(Pointer, Value) = Result :-
-    ( if Value = string(String) then
+string_from_json(Pointer, JValue) = Result :-
+    ( if JValue = string(String) then
         Result = ok(String)
     else
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
+        Result = make_value_type_mismatch_error(Pointer, "string", JValue)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -305,20 +313,11 @@ string_from_json(Pointer, Value) = Result :-
 % JSON -> bool/0 type.
 %
 
-bool_from_json(Pointer, Value) = Result :-
-    (
-        Value = bool(Bool),
+bool_from_json(Pointer, JValue) = Result :-
+    ( if JValue = bool(Bool) then
         Result = ok(Bool)
-    ;
-        ( Value = null
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ; Value = array(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "Boolean"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "Boolean", JValue)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -326,27 +325,15 @@ bool_from_json(Pointer, Value) = Result :-
 % JSON -> integer/0 type.
 %
 
-integer_from_json(Pointer, Value) = Result :-
-    (
-        Value = string(String),
+integer_from_json(Pointer, JValue) = Result :-
+    ( if JValue = string(String) then
         ( if integer.from_string(String, Integer) then
             Result = ok(Integer)
         else
-            TypeDesc = type_desc_from_result(Result),
-            ErrorMsg = make_string_conv_error_msg(Pointer, TypeDesc,
-                "integer"),
-            Result = error(ErrorMsg)
+            Result = make_from_string_failed_error(Pointer, String)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ; Value = array(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "string", JValue)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -355,28 +342,20 @@ integer_from_json(Pointer, Value) = Result :-
 %
 
 kv_list_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Elems),
-        unmarshal_list_of_pairs(Pointer, "key", "value", 0, Elems, [], MaybeKVs),
+    ( if Value = array(Elems) then
+        unmarshal_list_of_pairs(Pointer, "key", "value", 0, Elems,
+            [], MaybeKVs),
         (
             MaybeKVs = ok(RevKVs),
             list.reverse(RevKVs, KVs),
             KVList = assoc_list_to_kv_list(KVs),
             Result = ok(KVList)
         ;
-            MaybeKVs = error(Msg),
-            Result = error(Msg)
+            MaybeKVs = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = string(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -384,81 +363,24 @@ kv_list_from_json(Pointer, Value) = Result :-
 % JSON -> date/0 type.
 %
 
-date_time_from_json(Pointer, Value) = Result :-
-    (
-        Value = string(String),
-        ( if calendar.date_from_string(String, Date) then
-            Result = ok(Date)
-        else
-            TypeDesc = type_desc_from_result(Result),
-            ErrorMsg = make_string_conv_error_msg(Pointer, TypeDesc, "date"),
-            Result = error(ErrorMsg)
-        )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ; Value = array(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
-    ).
+date_time_from_json(Pointer, JValue) =
+    string_value_to_type(Pointer, JValue, calendar.date_from_string).
 
 %-----------------------------------------------------------------------------%
 %
 % JSON -> duration/0 types.
 %
 
-duration_from_json(Pointer, Value) = Result :-
-    (
-        Value = string(String),
-        ( if calendar.duration_from_string(String, Duration) then
-            Result = ok(Duration)
-        else
-            TypeDesc = type_desc_from_result(Result),
-            ErrorMsg = make_string_conv_error_msg(Pointer, TypeDesc, "duration"),
-            Result = error(ErrorMsg)
-        )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ; Value = array(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
-    ).
+duration_from_json(Pointer, JValue) =
+    string_value_to_type(Pointer, JValue, calendar.duration_from_string).
 
 %-----------------------------------------------------------------------------%
 %
 % JSON -> bitmap/0 types.
 %
 
-bitmap_from_json(Pointer, Value) = Result :-
-    (
-        Value = string(String),
-        ( if Bitmap = bitmap.from_string(String) then
-            Result = ok(Bitmap)
-        else
-            TypeDesc = type_desc_from_result(Result),
-            ErrorMsg = make_string_conv_error_msg(Pointer, TypeDesc, "bitmap"),
-            Result = error(ErrorMsg)
-        )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ; Value = array(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
-    ).
+bitmap_from_json(Pointer, JValue) =
+    string_value_to_type(Pointer, JValue, bitmap.from_string).
 
 %-----------------------------------------------------------------------------%
 %
@@ -466,35 +388,22 @@ bitmap_from_json(Pointer, Value) = Result :-
 %
 
 one_or_more_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(RevElems),
-            list.reverse(RevElems, Elems),
-            ( if list_to_one_or_more(Elems, OneOrMore) then
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            ( if list_to_one_or_more(ElemsList, OneOrMore) then
                 Result = ok(OneOrMore)
             else
-                TypeDesc = type_desc_from_result(Result),
-                TypeName = type_name(TypeDesc),
-                string.format("conversion to %s: expected non-empty array",
-                    [s(TypeName)], Msg),
-                Result = error(Msg)
+                Result = make_other_error(Pointer, "expected non-empty array")
             )
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -503,42 +412,33 @@ one_or_more_from_json(Pointer, Value) = Result :-
 %
 
 list_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(RevElems),
-            list.reverse(RevElems, Elems),
-            Result = ok(Elems)
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            Result = ok(ElemsList)
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 :- pred unmarshal_list_elems(pointer::in, list(value)::in, int::in,
-    list(T)::in, maybe_error(list(T))::out) is det <= from_json(T).
+    cord(T)::in, from_json_result(cord(T))::out) is det <= from_json(T).
 
 unmarshal_list_elems(_, [], _, Ts, ok(Ts)).
 unmarshal_list_elems(Pointer, [V | Vs], Index, !.Ts, Result) :-
     MaybeT = from_json(append_int_token(Pointer, Index), V),
     (
         MaybeT = ok(T),
-        !:Ts = [T | !.Ts],
+        cord.snoc(T, !Ts),
         unmarshal_list_elems(Pointer, Vs, Index + 1, !.Ts, Result)
     ;
-        MaybeT = error(Msg),
-        Result = error(Msg)
+        MaybeT = error(Error),
+        Result = error(Error)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -547,28 +447,17 @@ unmarshal_list_elems(Pointer, [V | Vs], Index, !.Ts, Result) :-
 %
 
 cord_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(RevElems),
-            list.reverse(RevElems, Elems),
-            Cord = cord.from_list(Elems),
-            Result = ok(Cord)
+            ElemsResult = ok(ElemsCord),
+            Result = ok(ElemsCord)
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -577,27 +466,19 @@ cord_from_json(Pointer, Value) = Result :-
 %
 
 array_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(RevElems),
-            Array = array.from_reverse_list(RevElems),
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            Array = array.from_list(ElemsList),
             Result = ok(Array)
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -606,8 +487,7 @@ array_from_json(Pointer, Value) = Result :-
 %
 
 array2d_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(RowValues),
+    ( if Value = array(RowValues) then
         (
             RowValues = [],
             Array2d = array2d.from_lists([]),
@@ -615,8 +495,7 @@ array2d_from_json(Pointer, Value) = Result :-
         ;
             RowValues = [FirstRowValue | RestRowValues],
             list.length(RowValues, ExpectedNumRows),
-            (
-                FirstRowValue = array(FirstRowValues),
+            ( if FirstRowValue = array(FirstRowValues)  then
                 (
                     FirstRowValues = [],
                     check_array2d_rows_are_empty(1, RestRowValues,
@@ -634,23 +513,17 @@ array2d_from_json(Pointer, Value) = Result :-
                     ;
                         RowsAreEmptyResult = crr_non_empty(FirstNonEmptyRowNo,
                             FirstNonEmptyRowLength),
-                        TypeDesc = type_desc_from_result(Result),
-                        TypeName = type_name(TypeDesc),
                         string.format(
-                            "at %s: conversion to %s: row 0 has length 0, row %d has length %d",
-                            [s(describe_context(Pointer)), s(TypeName),
-                                i(FirstNonEmptyRowNo), i(FirstNonEmptyRowLength)], Msg),
-                        Result = error(Msg)
+                            "row 0 has length 0, row %d has length %d",
+                            [i(FirstNonEmptyRowNo), i(FirstNonEmptyRowLength)],
+                            Msg),
+                        Result = make_other_error(Pointer, Msg)
                     ;
                         RowsAreEmptyResult = crr_bad_type(RowNo, RowValue),
-                        TypeDesc = type_desc_from_result(Result),
-                        TypeName = type_name(TypeDesc),
-                        RowValueDesc = to_value_desc(RowValue),
                         string.format(
-                            "at %s: conversion to %s: row %d is %s, expected array",
-                            [s(describe_context(Pointer)), s(TypeName),
-                                i(RowNo), s(RowValueDesc)], Msg),
-                        Result = error(Msg)
+                            " row %d is %s, expected array",
+                            [i(RowNo), s(to_value_desc(RowValue))], Msg),
+                        Result = make_other_error(Pointer, Msg)
                     )
                 ;
                     FirstRowValues = [FirstElemValue | OtherElemValues],
@@ -663,8 +536,10 @@ array2d_from_json(Pointer, Value) = Result :-
                         some [!Array2d] (
                             !:Array2d = array2d.init(ExpectedNumRows,
                                 ExpectedNumCols, FirstElem),
-                            array2d_unmarshal_elems(FirstRowPointer, 0/*Row*/,
-                                1/*Col*/, ExpectedNumCols, OtherElemValues,
+                            array2d_unmarshal_elems(FirstRowPointer,
+                                0, % Row
+                                1, % Col
+                                ExpectedNumCols, OtherElemValues,
                                 !Array2d, FirstRowResult),
                             (
                                 FirstRowResult = ok,
@@ -679,8 +554,8 @@ array2d_from_json(Pointer, Value) = Result :-
                                     Result = error(RestRowsError)
                                 )
                             ;
-                                FirstRowResult = error(Msg),
-                                Result = error(Msg)
+                                FirstRowResult = error(Error),
+                                Result = error(Error)
                             )
                         )
                     ;
@@ -688,34 +563,14 @@ array2d_from_json(Pointer, Value) = Result :-
                         Result = error(FirstElemError)
                     )
                 )
-            ;
-                ( FirstRowValue = null
-                ; FirstRowValue = bool(_)
-                ; FirstRowValue = string(_)
-                ; FirstRowValue = number(_)
-                ; FirstRowValue = object(_)
-                ),
-                TypeDesc = type_desc_from_result(Result),
-                TypeName = type_name(TypeDesc),
+            else
                 FirstRowPointer = append_int_token(Pointer, 0),
-                FirstRowValueDesc = to_value_desc(FirstRowValue),
-                string.format(
-                    "at %s: conversion to %s: row 0 is %s, expected array",
-                    [s(describe_context(FirstRowPointer)), s(TypeName),
-                        s(FirstRowValueDesc)], ErrorMsg),
-                Result = error(ErrorMsg)
+                Result = make_value_type_mismatch_error(FirstRowPointer,
+                    "array", FirstRowValue)
             )
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 :- type check_row_result
@@ -756,7 +611,7 @@ check_array2d_rows_are_empty(RowNo, [Value | Values], Result) :-
 
 :- pred array2d_unmarshal_rows(pointer::in, int::in, int::in, int::in,
     list(value)::in, array2d(T)::array_di, array2d(T)::array_uo,
-    maybe_error::out) is det <= from_json(T).
+    from_json_res::out) is det <= from_json(T).
 
 array2d_unmarshal_rows(Pointer, R, NumRows, NumCols, RowValues, !Array2d,
         Result) :-
@@ -777,8 +632,8 @@ array2d_unmarshal_rows(Pointer, R, NumRows, NumCols, RowValues, !Array2d,
                     array2d_unmarshal_rows(Pointer, R + 1, NumRows, NumCols,
                         RowValuesPrime, !Array2d, Result)
                 ;
-                    RowResult = error(_),
-                    Result = RowResult
+                    RowResult = error(Error),
+                    Result = error(Error)
                 )
             ;
                 ( RowValue = null
@@ -788,13 +643,9 @@ array2d_unmarshal_rows(Pointer, R, NumRows, NumCols, RowValues, !Array2d,
                 ; RowValue = object(_)
                 ),
                 TypeDesc = type_of(!.Array2d),
-                TypeName = type_name(TypeDesc),
-                RowValueDesc = to_value_desc(RowValue),
-                string.format(
-                    "at %s: conversion to %s: row %d is %s, expected array",
-                    [s(describe_context(RowPointer)), s(TypeName), i(R),
-                        s(RowValueDesc)], BadRowValueErrorMsg),
-                Result = error(BadRowValueErrorMsg)
+                ErrorDesc = value_type_mismatch("array", to_value_desc(RowValue)),
+                Error = from_json_error(Pointer, TypeDesc, ErrorDesc),
+                Result = error(Error)
             )
         )
     else
@@ -810,19 +661,18 @@ array2d_unmarshal_rows(Pointer, R, NumRows, NumCols, RowValues, !Array2d,
 
 :- pred array2d_unmarshal_elems(pointer::in, int::in, int::in, int::in,
     list(value)::in, array2d(T)::array2d_di, array2d(T)::array2d_uo,
-    maybe_error::out) is det <= from_json(T).
+    from_json_res::out) is det <= from_json(T).
 
 array2d_unmarshal_elems(Pointer, R, C, NumCols, RowValues, !Array2d, Result) :-
     ( if C < NumCols then
         (
             RowValues = [],
             TypeDesc = type_of(!.Array2d),
-            TypeName = type_name(TypeDesc),
             string.format(
-                "at %s: conversion to %s: row %d has length %d, expected length %d",
-                [s(describe_context(Pointer)), s(TypeName),
-                    i(R), i(C), i(NumCols)], ErrorMsg),
-            Result = error(ErrorMsg)
+                "row %d has length %d, expected length %d",
+                [i(R), i(C), i(NumCols)], ErrorMsg),
+            Error = from_json_error(Pointer, TypeDesc, other(ErrorMsg)),
+            Result = error(Error)
         ;
             RowValues = [RowValue | RowValuesPrime],
             ValuePointer = append_int_token(Pointer, C),
@@ -846,13 +696,13 @@ array2d_unmarshal_elems(Pointer, R, C, NumCols, RowValues, !Array2d, Result) :-
         ;
             RowValues = [_ | _],
             TypeDesc = type_of(!.Array2d),
-            TypeName = type_name(TypeDesc),
             list.length(RowValues, NumRemainingCols),
             string.format(
-                "conversion to %s: row %d has length %d, expected length %d",
-                [s(TypeName), i(R), i(C + NumRemainingCols), i(NumCols)],
+                "row %d has length %d, expected length %d",
+                [i(R), i(C + NumRemainingCols), i(NumCols)],
                 ErrorMsg),
-            Result = error(ErrorMsg)
+            Error = from_json_error(Pointer, TypeDesc, other(ErrorMsg)),
+            Result = error(Error)
         )
     ).
 
@@ -862,27 +712,19 @@ array2d_unmarshal_elems(Pointer, R, C, NumCols, RowValues, !Array2d, Result) :-
 %
 
 version_array_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(RevElems),
-            Array = version_array.from_reverse_list(RevElems),
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            Array = version_array.from_list(ElemsList),
             Result = ok(Array)
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -890,51 +732,48 @@ version_array_from_json(Pointer, Value) = Result :-
 % JSON -> rational/0 types.
 %
 
-rational_from_json(Pointer, Value) = Result :-
-    (
-        Value = object(Object),
+rational_from_json(Pointer, JValue) = Result :-
+    ( if JValue = object(Object) then
         ( if
-            map.search(Object, "numer", NumeratorValue),
-            map.search(Object, "denom", DenominatorValue)
+            map.search(Object, "numer", NumeratorValue)
         then
-            NumeratorPointer = append_token(Pointer, "numer"),
-            MaybeNumerator = integer_from_json(NumeratorPointer,
-                NumeratorValue),
-            (
-                MaybeNumerator = ok(Numerator),
-                DenominatorPointer = append_token(Pointer, "denom"),
-                MaybeDenominator = integer_from_json(DenominatorPointer,
-                    DenominatorValue),
+            ( if
+                map.search(Object, "denom", DenominatorValue)
+            then
+                NumeratorPointer = append_token(Pointer, "numer"),
+                MaybeNumerator = integer_from_json(NumeratorPointer,
+                    NumeratorValue),
                 (
-                    MaybeDenominator = ok(Denominator),
-                    ( if integer.is_zero(Denominator) then
-                        Result = error("rational/0 with zero denominator")
-                    else
-                        Rational = rational.from_integers(Numerator,
-                            Denominator),
-                        Result = ok(Rational)
+                    MaybeNumerator = ok(Numerator),
+                    DenominatorPointer = append_token(Pointer, "denom"),
+                    MaybeDenominator = integer_from_json(DenominatorPointer,
+                        DenominatorValue),
+                    (
+                        MaybeDenominator = ok(Denominator),
+                        ( if integer.is_zero(Denominator) then
+                            Result = make_other_error(Pointer,
+                                "zero denominator")
+                        else
+                            Rational = rational.from_integers(Numerator,
+                                Denominator),
+                            Result = ok(Rational)
+                        )
+                    ;
+                        MaybeDenominator = error(Error),
+                        Result = error(Error)
                     )
                 ;
-                    MaybeDenominator = error(ErrorMsg),
-                    Result = error(ErrorMsg)
+                    MaybeNumerator = error(Error),
+                    Result = error(Error)
                 )
-            ;
-                MaybeNumerator = error(ErrorMsg),
-                Result = error(ErrorMsg)
+            else
+                Result = make_missing_member_error(Pointer, "denom")
             )
         else
-            Result = error("object is not a rational/0")
+            Result = make_missing_member_error(Pointer, "numer")
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = array(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "object"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "object", JValue)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -942,124 +781,87 @@ rational_from_json(Pointer, Value) = Result :-
 % JSON -> set types.
 %
 
+% XXX we should build the sets directly, without building the intermediate
+% cord.
+
 set_ordlist_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(Elems),
-            set_ordlist.list_to_set(Elems, Set),
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            set_ordlist.list_to_set(ElemsList, Set),
             Result = ok(Set)
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 set_unordlist_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(Elems),
-            set_unordlist.list_to_set(Elems, Set),
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            set_unordlist.list_to_set(ElemsList, Set),
             Result = ok(Set)
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 set_tree234_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(Elems),
-            set_tree234.list_to_set(Elems, Set),
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            set_tree234.list_to_set(ElemsList, Set),
             Result = ok(Set)
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 set_ctree234_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(Elems),
-            Set = set_ctree234.list_to_set(Elems),
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            Set = set_ctree234.list_to_set(ElemsList),
             Result = ok(Set)
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 set_bbbtree_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], ListElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            ListElemsResult = ok(Elems),
-            set_bbbtree.list_to_set(Elems, Set),
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            set_bbbtree.list_to_set(ElemsList, Set),
             Result = ok(Set)
         ;
-            ListElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1082,11 +884,11 @@ maybe_from_json(Pointer, Value) = Result :-
                 MaybeArg = ok(Arg),
                 Result = ok(yes(Arg))
             ;
-                MaybeArg = error(Msg),
-                Result = error(Msg)
+                MaybeArg = error(Error),
+                Result = error(Error)
             )
         else
-            Result = error("object is not a maybe.yes/1")
+            Result = make_missing_member_error(Pointer, "yes")
         )
     ;
         ( Value = bool(_)
@@ -1094,9 +896,8 @@ maybe_from_json(Pointer, Value) = Result :-
         ; Value = number(_)
         ; Value = array(_)
         ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "object"),
-        Result = error(ErrorMsg)
+        % XXX ERROR it could be null.
+        Result = make_value_type_mismatch_error(Pointer, "object", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1105,11 +906,12 @@ maybe_from_json(Pointer, Value) = Result :-
 %
 
 maybe_error_from_json(Pointer, Value) = Result :-
-    (
-        Value = object(Object),
+    ( if Value = object(Object) then
         ( if
+            % XXX don't require this.
             map.count(Object) = 1
         then
+            % XXX check that we do not have both "ok" and "error" members.
             ( if
                 map.search(Object, "ok", OkValue)
             then
@@ -1119,37 +921,31 @@ maybe_error_from_json(Pointer, Value) = Result :-
                     MaybeOk = ok(Ok),
                     Result = ok(ok(Ok))
                 ;
-                    MaybeOk = error(Msg),
-                    Result = error(Msg)
+                    MaybeOk = error(Error),
+                    Result = error(Error)
                 )
             else if
-                map.search(Object, "error", ErrorValue)
+                map.search(Object, "error", JErrorValue)
             then
                 ErrorPointer = append_token(Pointer, "error"),
-                MaybeError = from_json(ErrorPointer, ErrorValue),
+                MaybeErrorValue = from_json(ErrorPointer, JErrorValue),
                 (
-                    MaybeError = ok(Error),
-                    Result = ok(error(Error))
+                    MaybeErrorValue = ok(ErrorValue),
+                    Result = ok(error(ErrorValue))
                 ;
-                    MaybeError = error(Msg),
-                    Result = error(Msg)
+                    MaybeErrorValue = error(Error),
+                    Result = error(Error)
                 )
             else
-                Result = error("object is not a maybe_error/2 value")
+                Result = make_other_error(Pointer,
+                    "object is not a maybe_error/2 value")
             )
         else
-            Result = error("object is not a maybe_error/2 value")
+            Result = make_other_error(Pointer,
+                "object is not a maybe_error/2 value")
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = array(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "object"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "object", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1157,51 +953,8 @@ maybe_error_from_json(Pointer, Value) = Result :-
 % JSON -> pair/2 types.
 %
 
-pair_from_json(Pointer, Value) =
-    do_pair_from_json(Pointer, "fst", "snd", Value).
-
-:- func do_pair_from_json(pointer, string, string, value)
-    = maybe_error(pair(A, B)) <= (from_json(A), from_json(B)).
-
-do_pair_from_json(Pointer, FstName, SndName, Value) = Result :-
-    (
-        Value = object(Object),
-        ( if
-            map.search(Object, FstName, FstValue),
-            map.search(Object, SndName, SndValue)
-        then
-            FstPointer = append_token(Pointer, FstName),
-            MaybeFst = from_json(FstPointer, FstValue),
-            (
-                MaybeFst = ok(Fst),
-                SndPointer = append_token(Pointer, SndName),
-                MaybeSnd = from_json(SndPointer, SndValue),
-                (
-                    MaybeSnd = ok(Snd),
-                    Pair = Fst - Snd,
-                    Result = ok(Pair)
-                ;
-                    MaybeSnd = error(Msg),
-                    Result = error(Msg)
-                )
-            ;
-                MaybeFst = error(Msg),
-                Result = error(Msg)
-            )
-        else
-            Result = error("object is not a pair/2")
-        )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = string(_)
-        ; Value = array(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "object"),
-        Result = error(ErrorMsg)
-    ).
+pair_from_json(Pointer, JValue) =
+    object_value_to_type2(Pointer, JValue, "fst", "snd", pair.pair).
 
 %-----------------------------------------------------------------------------%
 %
@@ -1209,8 +962,7 @@ do_pair_from_json(Pointer, FstName, SndName, Value) = Result :-
 %
 
 map_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Elems),
+    ( if Value = array(Elems) then
         unmarshal_list_of_pairs(Pointer, "key", "value", 0, Elems,
             [], MaybeKVs),
         (
@@ -1218,30 +970,24 @@ map_from_json(Pointer, Value) = Result :-
             map.from_assoc_list(KVs, Map),
             Result = ok(Map)
         ;
-            MaybeKVs = error(Msg),
-            Result = error(Msg)
+            MaybeKVs = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = string(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 :-pred unmarshal_list_of_pairs(pointer::in, string::in, string::in, int::in,
-    list(value)::in, list(pair(K, V))::in, maybe_error(list(pair(K, V)))::out) is det
+    list(value)::in, list(pair(K, V))::in,
+    from_json_result(list(pair(K, V)))::out) is det
     <= (from_json(K), from_json(V)).
 
 unmarshal_list_of_pairs(_, _, _, _, [], Pairs, ok(Pairs)).
 unmarshal_list_of_pairs(Pointer, FstName, SndName, Index, [Value | Values],
         !.Pairs, Result) :-
     PairPointer = append_int_token(Pointer, Index),
-    MaybePair = do_pair_from_json(PairPointer, FstName, SndName, Value),
+    MaybePair = object_value_to_type2(PairPointer, Value, FstName, SndName,
+        pair.pair),
     (
         MaybePair = ok(Pair),
         !:Pairs = [Pair | !.Pairs],
@@ -1258,8 +1004,7 @@ unmarshal_list_of_pairs(Pointer, FstName, SndName, Index, [Value | Values],
 %
 
 rbtree_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Elems),
+    ( if Value = array(Elems) then
         unmarshal_list_of_pairs(Pointer, "key", "value", 0, Elems, [],
             MaybeKVs),
         (
@@ -1272,19 +1017,11 @@ rbtree_from_json(Pointer, Value) = Result :-
             list.foldl(InsertPred, KVs, rbtree.init, RBTree),
             Result = ok(RBTree)
         ;
-            MaybeKVs = error(Msg),
-            Result = error(Msg)
+            MaybeKVs = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = string(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1293,30 +1030,21 @@ rbtree_from_json(Pointer, Value) = Result :-
 %
 
 bimap_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Elems),
+    ( if Value = array(Elems) then
         unmarshal_list_of_pairs(Pointer, "key", "value", 0, Elems, [], MaybeKVs),
         (
             MaybeKVs = ok(KVs),
             ( if bimap.from_assoc_list(KVs, Bimap) then
                 Result = ok(Bimap)
             else
-                Result = error("cannot create bimap: not a bijection")
+                Result = make_other_error(Pointer, "not a bijection")
             )
         ;
-            MaybeKVs = error(Msg),
-            Result = error(Msg)
+            MaybeKVs = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = string(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1324,25 +1052,12 @@ bimap_from_json(Pointer, Value) = Result :-
 % JSON -> unit/0 types.
 %
 
-unit_from_json(Pointer, Value) = Result :-
-    (
-        Value = string(UnitStr),
-        ( if UnitStr = "unit" then
-            Result = ok(unit)
-        else
-            Result = error("string is not a unit/0 value")
-        )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = array(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
-    ).
+unit_from_json(Pointer, JValue) =
+    string_value_to_type(Pointer, JValue, string_to_unit).
+
+:- pred string_to_unit(string::in, unit::out) is semidet.
+
+string_to_unit("unit", unit).
 
 %-----------------------------------------------------------------------------%
 %
@@ -1350,28 +1065,19 @@ unit_from_json(Pointer, Value) = Result :-
 %
 
 queue_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Values),
-        unmarshal_list_elems(Pointer, Values, 0, [], QueueElemsResult),
+    ( if Value = array(Values) then
+        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
         (
-            QueueElemsResult = ok(RevElems),
-            list.reverse(RevElems, Elems),
-            Queue = queue.from_list(Elems),
+            ElemsResult = ok(ElemsCord),
+            ElemsList = cord.to_list(ElemsCord),
+            Queue = queue.from_list(ElemsList),
             Result = ok(Queue)
         ;
-            QueueElemsResult = error(Msg),
-            Result = error(Msg)
+            ElemsResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1380,27 +1086,18 @@ queue_from_json(Pointer, Value) = Result :-
 %
 
 pqueue_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Elems),
+    ( if Value = array(Elems) then
         unmarshal_list_of_pairs(Pointer, "key", "value", 0, Elems, [], MaybeKVs),
         (
             MaybeKVs = ok(KVs),
             assoc_list_to_pqueue(KVs, PQueue),
             Result = ok(PQueue)
         ;
-            MaybeKVs = error(Msg),
-            Result = error(Msg)
+            MaybeKVs = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "array"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1409,8 +1106,7 @@ pqueue_from_json(Pointer, Value) = Result :-
 %
 
 digraph_from_json(Pointer, Value) = Result :-
-    (
-        Value = object(Object),
+    ( if Value = object(Object) then
         ( if
             map.search(Object, "vertices", VerticesValue),
             map.search(Object, "edges", EdgesValue)
@@ -1430,7 +1126,7 @@ digraph_from_json(Pointer, Value) = Result :-
                             digraph.add_vertex(V, _, !DG)
                         ),
                         list.foldl(AddVertex, Vertices, !Digraph),
-                        add_edges(Edges, !.Digraph, Result)
+                        add_edges(Pointer, Edges, !.Digraph, Result)
                     )
                 ;
                     MaybeEdges = error(Msg),
@@ -1441,78 +1137,59 @@ digraph_from_json(Pointer, Value) = Result :-
                 Result = error(Msg)
             )
         else
-            Result = error("object is not a digraph/1")
+            % XXX handle members separately.
+            Result = make_other_error(Pointer, "object is not a digraph/1")
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = string(_)
-        ; Value = number(_)
-        ; Value = array(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "object"),
-        Result = error(ErrorMsg)
+    else
+        Result = make_value_type_mismatch_error(Pointer, "object", Value)
     ).
 
-:- func vertex_list_from_json(pointer, value) = maybe_error(list(T))
+:- func vertex_list_from_json(pointer, value) = from_json_result(list(T))
     <= from_json(T).
 
 vertex_list_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Elems),
-        unmarshal_list_elems(Pointer, Elems, 0, [], RevVerticesResult),
+    ( if Value = array(Elems) then
+        unmarshal_list_elems(Pointer, Elems, 0, cord.empty, VerticesResult),
         (
-            RevVerticesResult = ok(RevVertices),
-            list.reverse(RevVertices, Vertices),
-            Result = ok(Vertices)
+            VerticesResult = ok(VerticesCord),
+            VerticesList = cord.to_list(VerticesCord),
+            Result = ok(VerticesList)
         ;
-            RevVerticesResult = error(Msg),
-            Result = error(Msg)
+            VerticesResult = error(Error),
+            Result = error(Error)
         )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = string(_)
-        ; Value = object(_)
-        ),
-        Result = error("expected a JSON array as value of 'vertices' member")
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
-:- func edge_list_from_json(pointer, value) = maybe_error(list(pair(T)))
+:- func edge_list_from_json(pointer, value) = from_json_result(list(pair(T)))
     <= from_json(T).
 
 edge_list_from_json(Pointer, Value) = Result :-
-    (
-        Value = array(Elems),
+    ( if Value = array(Elems) then
         unmarshal_list_of_pairs(Pointer, "source", "dest", 0, Elems, [], Result)
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = string(_)
-        ; Value = object(_)
-        ),
-        Result = error("expected a JSON array as value of 'edges' member")
+    else
+        Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
-:- pred add_edges(list(pair(T))::in, digraph(T)::in, maybe_error(digraph(T))::out) is det.
+    % XXX ERROR
+:- pred add_edges(pointer::in, list(pair(T))::in, digraph(T)::in,
+    from_json_result(digraph(T))::out) is det.
 
-add_edges([], Digraph, ok(Digraph)).
-add_edges([Edge | Edges], !.Digraph, Result) :-
+add_edges(_, [], Digraph, ok(Digraph)).
+add_edges(Pointer, [Edge | Edges], !.Digraph, Result) :-
     Edge = Src - Dst,
     ( if digraph.search_key(!.Digraph, Src, SrcKey) then
         ( if digraph.search_key(!.Digraph, Dst, DstKey) then
             digraph.add_edge(SrcKey, DstKey, !Digraph),
-            add_edges(Edges, !.Digraph, Result)
+            add_edges(Pointer, Edges, !.Digraph, Result)
         else
             Msg = string.format("'%s' is not in vertex set", [s(string(Dst))]),
-            Result = error(Msg)
+            Result = make_other_error(Pointer, Msg)
         )
     else
         Msg = string.format("'%s' is not in vertex set", [s(string(Src))]),
-        Result = error(Msg)
+        Result = make_other_error(Pointer, Msg)
     ).
 
 %-----------------------------------------------------------------------------%
@@ -1520,30 +1197,14 @@ add_edges([Edge | Edges], !.Digraph, Result) :-
 % JSON -> JSON pointer.
 %
 
-json_pointer_from_json(Pointer, Value) = Result :-
-    (
-        Value = string(PointerStr),
-        ( if json.string_to_pointer(PointerStr, PointerValue) then
-            Result = ok(PointerValue)
-        else
-            Result = error("string is not a JSON pointer")
-        )
-    ;
-        ( Value = null
-        ; Value = bool(_)
-        ; Value = number(_)
-        ; Value = array(_)
-        ; Value = object(_)
-        ),
-        TypeDesc = type_desc_from_result(Result),
-        ErrorMsg = make_conv_error_msg(Pointer, TypeDesc, Value, "string"),
-        Result = error(ErrorMsg)
-    ).
+json_pointer_from_json(Pointer, JValue) =
+    string_value_to_type(Pointer, JValue, json.string_to_pointer).
 
 %-----------------------------------------------------------------------------%
 %
 % Extra error handling code.
 %
+
 
 :- func make_conv_error_msg(pointer, type_desc, json.value, string) = string.
 
@@ -1576,7 +1237,7 @@ make_int_conv_bounds_error_msg(Pointer, IntType) = Msg :-
     string.format("at %s: conversion to %s: number is out-of-bounds",
         [s(describe_context(Pointer)), s(IntType)], Msg).
 
-:- func type_desc_from_result(maybe_error(T)::unused) = (type_desc::out).
+:- func type_desc_from_result(from_json_result(T)::unused) = (type_desc::out).
 
 type_desc_from_result(Result) = TypeDesc :-
     ResultTypeDesc = type_of(Result),

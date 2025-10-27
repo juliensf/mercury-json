@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2014-2016, 2018, 2020 Julien Fischer.
+% Copyright (C) 2014-2016, 2018, 2020, 2025 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -22,6 +22,7 @@
 :- implementation.
 
 :- import_module json.
+:- import_module json.from_json_util.
 
 :- import_module array.
 :- import_module array2d.
@@ -422,15 +423,9 @@ do_from_string_test(File, String, !IO) :-
 ].
 
 :- instance from_json(fruit) where [
-    ( from_json(_Pointer, V) = Result :-
-        ( if
-            V = string(S),
-            fruit_string(F, S)
-        then
-            Result = ok(F)
-        else
-            Result = error("not a fruit")
-        )
+    ( from_json(Pointer, V) =
+        string_value_to_type(Pointer, V,
+            (pred(S::in, F::out) is semidet :- fruit_string(F, S)))
     )
 ].
 
@@ -458,15 +453,15 @@ test(File, Term, !IO) :-
         json.init_writer(File, Writer, !IO),
         json.put_value(Writer, Value, !IO),
         io.nl(File, !IO),
-        MaybeTermPrime : maybe_error(T) = json.to_type(Value),
+        MaybeTermPrime : from_json_result(T) = json.to_type(Value),
         io.write_string(File, "Result Term: ", !IO),
         (
             MaybeTermPrime = ok(TermPrime),
             io.print_line(File, TermPrime, !IO)
         ;
-            MaybeTermPrime = error(ResultMsg),
+            MaybeTermPrime = error(Error),
             io.write_string(File, "error: ", !IO),
-            io.print_line(File, ResultMsg, !IO)
+            io.print_line(File, Error, !IO)
         )
     catch NonFiniteNumberError ->
         NonFiniteNumberError = non_finite_number_error(_),

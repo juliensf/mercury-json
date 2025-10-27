@@ -51,6 +51,7 @@
 :- import_module set_tree234.
 :- import_module set_unordlist.
 :- import_module stream.
+:- import_module type_desc.
 :- import_module unit.
 :- import_module version_array.
 
@@ -1087,8 +1088,41 @@
 %-----------------------------------------------------------------------------%
 
 :- typeclass from_json(T) where [
-    func from_json(json.pointer, json.value) = maybe_error(T)
+    func from_json(json.pointer, json.value) = from_json_result(T)
 ].
+
+:- type from_json_result(T) == maybe_error(T, from_json_error).
+
+:- type from_json_res
+    --->    ok
+    ;       error(from_json_error).
+
+:- type from_json_error
+    --->    from_json_error(
+                error_path  :: pointer,
+                % A JSON pointer describing where in the JSON document, the
+                % conversion error occurred.
+
+                target_type :: type_desc,
+                % The target Mercury type we were trying to convert to.
+
+                error_desc  :: from_json_error_desc
+                % A description of the error.
+            ).
+
+:- type from_json_error_desc
+    --->    value_type_mismatch(
+                expected_value_type :: string,
+                have_value_type     :: string
+            )
+    ;       from_string_failed(string)
+
+    ;       missing_member(
+                missing_member :: string
+            )
+    ;       out_of_bounds_number
+    ;       non_finite_number
+    ;       other(string).
 
 :- instance from_json(bag(T)) <= from_json(T).
 :- instance from_json(int).
@@ -1137,7 +1171,7 @@
     % MaybeType is 'ok(Type)' if Value is a JSON object corresponding
     % to the Mercury value Type and 'error(...)' otherwise.
     %
-:- func to_type(json.value) = maybe_error(T) <= from_json(T).
+:- func to_type(json.value) = from_json_result(T) <= from_json(T).
 
 %-----------------------------------------------------------------------------%
 %
@@ -1772,6 +1806,7 @@ from_type(T) = to_json(T).
     func(from_json/2) is json.unmarshal.date_time_from_json
 ].
 :- instance from_json(duration) where [
+
     func(from_json/2) is json.unmarshal.duration_from_json
 ].
 :- instance from_json(pair(A, B)) <= (from_json(A), from_json(B)) where [

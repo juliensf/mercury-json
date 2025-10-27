@@ -492,19 +492,16 @@ do_unmarshal_test(File, Value, Type, !IO) :-
     io.nl(File, !IO),
     io.write_string(File, "TYPE: ", !IO),
     TypeDesc = type_of(Type),
-    io.print(File, TypeDesc, !IO),
-    io.nl(File, !IO),
+    io.print_line(File, TypeDesc, !IO),
     Result = json.to_type(Value),
     (
         Result = ok(Term : T),
         io.write_string(File, "RESULT: OK: ", !IO),
-        io.print(File, Term, !IO),
-        io.nl(File, !IO)
+        io.print_line(File, Term, !IO)
     ;
-        Result = error(Msg),
+        Result = error(Error),
         io.write_string(File, "RESULT: ERROR: ", !IO),
-        io.write_string(File, Msg, !IO),
-        io.nl(File, !IO)
+        io.print_line(File, Error, !IO)
     ),
     io.nl(File, !IO).
 
