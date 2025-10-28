@@ -1,22 +1,22 @@
 JSON: null
 TYPE: int
-RESULT: ERROR: at root: conversion to int: argument is null, expected number
+RESULT: ERROR: at root: conversion to int failed: expected number, have null
 
 JSON: "Hello"
 TYPE: int
-RESULT: ERROR: at root: conversion to int: argument is string, expected number
+RESULT: ERROR: at root: conversion to int failed: expected number, have string
 
 JSON: null
 TYPE: int8
-RESULT: ERROR: at root: conversion to int8: argument is null, expected number
+RESULT: ERROR: at root: conversion to int8 failed: expected number, have null
 
 JSON: "Hello"
 TYPE: int8
-RESULT: ERROR: at root: conversion to int8: argument is string, expected number
+RESULT: ERROR: at root: conversion to int8 failed: expected number, have string
 
 JSON: -129
 TYPE: int8
-RESULT: ERROR: at root: conversion to int8: number is out-of-bounds
+RESULT: ERROR: at root: conversion to int8 failed: number is out-of-bounds for type
 
 JSON: -128
 TYPE: int8
@@ -32,7 +32,7 @@ RESULT: OK: 127
 
 JSON: 128
 TYPE: int8
-RESULT: ERROR: at root: conversion to int8: number is out-of-bounds
+RESULT: ERROR: at root: conversion to int8 failed: number is out-of-bounds for type
 
 JSON: [-1,0,1]
 TYPE: list.list(int8)
@@ -40,15 +40,15 @@ RESULT: OK: [-1i8, 0i8, 1i8]
 
 JSON: null
 TYPE: int16
-RESULT: ERROR: at root: conversion to int16: argument is null, expected number
+RESULT: ERROR: at root: conversion to int16 failed: expected number, have null
 
 JSON: "Hello"
 TYPE: int16
-RESULT: ERROR: at root: conversion to int16: argument is string, expected number
+RESULT: ERROR: at root: conversion to int16 failed: expected number, have string
 
 JSON: -32769
 TYPE: int16
-RESULT: ERROR: at root: conversion to int16: number is out-of-bounds
+RESULT: ERROR: at root: conversion to int16 failed: number is out-of-bounds for type
 
 JSON: -32768
 TYPE: int16
@@ -60,7 +60,7 @@ RESULT: OK: 32767
 
 JSON: 32768
 TYPE: int16
-RESULT: ERROR: at root: conversion to int16: number is out-of-bounds
+RESULT: ERROR: at root: conversion to int16 failed: number is out-of-bounds for type
 
 JSON: [-1,0,1]
 TYPE: list.list(int16)
@@ -68,15 +68,15 @@ RESULT: OK: [-1i16, 0i16, 1i16]
 
 JSON: null
 TYPE: int32
-RESULT: ERROR: at root: conversion to int32: argument is null, expected number
+RESULT: ERROR: at root: conversion to int32 failed: expected number, have null
 
 JSON: "Hello"
 TYPE: int32
-RESULT: ERROR: at root: conversion to int32: argument is string, expected number
+RESULT: ERROR: at root: conversion to int32 failed: expected number, have string
 
 JSON: -2147483649
 TYPE: int32
-RESULT: ERROR: at root: conversion to int32: number is out-of-bounds
+RESULT: ERROR: at root: conversion to int32 failed: number is out-of-bounds for type
 
 JSON: -2147483648
 TYPE: int32
@@ -88,7 +88,7 @@ RESULT: OK: 2147483647
 
 JSON: 2147483648
 TYPE: int32
-RESULT: ERROR: at root: conversion to int32: number is out-of-bounds
+RESULT: ERROR: at root: conversion to int32 failed: number is out-of-bounds for type
 
 JSON: [-1,0,1]
 TYPE: list.list(int32)
@@ -96,19 +96,19 @@ RESULT: OK: [-1i32, 0i32, 1i32]
 
 JSON: null
 TYPE: int64
-RESULT: ERROR: at root: conversion to int64: argument is null, expected string
+RESULT: ERROR: at root: conversion to int64 failed: expected string, have null
 
 JSON: 561
 TYPE: int64
-RESULT: ERROR: at root: conversion to int64: argument is number, expected string
+RESULT: ERROR: at root: conversion to int64 failed: expected string, have number
 
 JSON: "Hello"
 TYPE: int64
-RESULT: ERROR: at root: conversion to int64: cannot convert string to int64
+RESULT: ERROR: at root: conversion to int64 failed: cannot convert string to integer
 
 JSON: "-9223372036854775809"
 TYPE: int64
-RESULT: ERROR: at root: conversion to int64: number is out-of-bounds
+RESULT: ERROR: at root: conversion to int64 failed: number is out-of-bounds for type
 
 JSON: "-9223372036854775808"
 TYPE: int64
@@ -120,7 +120,7 @@ RESULT: OK: 9223372036854775807
 
 JSON: "9223372036854775808"
 TYPE: int64
-RESULT: ERROR: at root: conversion to int64: number is out-of-bounds
+RESULT: ERROR: at root: conversion to int64 failed: number is out-of-bounds for type
 
 JSON: ["-1","0","1"]
 TYPE: list.list(int64)
@@ -128,15 +128,15 @@ RESULT: OK: [-1i64, 0i64, 1i64]
 
 JSON: null
 TYPE: uint8
-RESULT: ERROR: at root: conversion to uint8: argument is null, expected number
+RESULT: ERROR: at root: conversion to uint8 failed: expected number, have null
 
 JSON: "Hello"
 TYPE: uint8
-RESULT: ERROR: at root: conversion to uint8: argument is string, expected number
+RESULT: ERROR: at root: conversion to uint8 failed: expected number, have string
 
 JSON: -1
 TYPE: uint8
-RESULT: ERROR: at root: conversion to uint8: number is out-of-bounds
+RESULT: ERROR: at root: conversion to uint8 failed: number is out-of-bounds for type
 
 JSON: 0
 TYPE: uint8
@@ -148,7 +148,7 @@ RESULT: OK: 255
 
 JSON: 256
 TYPE: uint8
-RESULT: ERROR: at root: conversion to uint8: number is out-of-bounds
+RESULT: ERROR: at root: conversion to uint8 failed: number is out-of-bounds for type
 
 JSON: [0,1,255]
 TYPE: list.list(uint8)
@@ -156,15 +156,15 @@ RESULT: OK: [0u8, 1u8, 255u8]
 
 JSON: null
 TYPE: uint16
-RESULT: ERROR: at root: conversion to uint16: argument is null, expected number
+RESULT: ERROR: at root: conversion to uint16 failed: expected number, have null
 
 JSON: "Hello"
 TYPE: uint16
-RESULT: ERROR: at root: conversion to uint16: argument is string, expected number
+RESULT: ERROR: at root: conversion to uint16 failed: expected number, have string
 
 JSON: -1
 TYPE: uint16
-RESULT: ERROR: at root: conversion to uint16: number is out-of-bounds
+RESULT: ERROR: at root: conversion to uint16 failed: number is out-of-bounds for type
 
 JSON: 0
 TYPE: uint16
@@ -184,19 +184,19 @@ RESULT: OK: [0u16, 1u16, 32768u16]
 
 JSON: null
 TYPE: uint64
-RESULT: ERROR: at root: conversion to uint64: argument is null, expected string
+RESULT: ERROR: at root: conversion to uint64 failed: expected string, have null
 
 JSON: 561
 TYPE: uint64
-RESULT: ERROR: at root: conversion to uint64: argument is number, expected string
+RESULT: ERROR: at root: conversion to uint64 failed: expected string, have number
 
 JSON: "Hello"
 TYPE: uint64
-RESULT: ERROR: at root: conversion to uint64: cannot convert string to uint64
+RESULT: ERROR: at root: conversion to uint64 failed: cannot convert string to integer
 
 JSON: "-1"
 TYPE: uint64
-RESULT: ERROR: at root: conversion to uint64: number is out-of-bounds
+RESULT: ERROR: at root: conversion to uint64 failed: number is out-of-bounds for type
 
 JSON: "0"
 TYPE: uint64
@@ -208,7 +208,7 @@ RESULT: OK: 18446744073709551615
 
 JSON: "18446744073709551616"
 TYPE: uint64
-RESULT: ERROR: at root: conversion to uint64: number is out-of-bounds
+RESULT: ERROR: at root: conversion to uint64 failed: number is out-of-bounds for type
 
 JSON: ["0","1"]
 TYPE: list.list(uint64)
@@ -216,39 +216,39 @@ RESULT: OK: [0u64, 1u64]
 
 JSON: null
 TYPE: float
-RESULT: ERROR: at root: conversion to float: argument is null, expected number
+RESULT: ERROR: at root: conversion to float failed: expected number, have null
 
 JSON: "5.61"
 TYPE: float
-RESULT: ERROR: at root: conversion to float: argument is string, expected number
+RESULT: ERROR: at root: conversion to float failed: expected number, have string
 
 JSON: infinity
 TYPE: float
-RESULT: ERROR: conversion to float: number is not finite
+RESULT: ERROR: at root: conversion to float failed: non-finite number
 
 JSON: null
 TYPE: character
-RESULT: ERROR: at root: conversion to character: argument is null, expected string
+RESULT: ERROR: at root: conversion to character failed: expected string, have null
 
 JSON: "AA"
 TYPE: character
-RESULT: ERROR: at root: conversion to character: argument has length 2, expected length 1
+RESULT: ERROR: at root: conversion to character failed: has length 2, expected length 1
 
 JSON: ""
 TYPE: character
-RESULT: ERROR: at root: conversion to character: argument has length 0, expected length 1
+RESULT: ERROR: at root: conversion to character failed: has length 0, expected length 1
 
 JSON: null
 TYPE: string
-RESULT: ERROR: at root: conversion to string: argument is null, expected string
+RESULT: ERROR: at root: conversion to string failed: expected string, have null
 
 JSON: 5.61
 TYPE: string
-RESULT: ERROR: at root: conversion to string: argument is number, expected string
+RESULT: ERROR: at root: conversion to string failed: expected string, have number
 
 JSON: []
 TYPE: string
-RESULT: ERROR: at root: conversion to string: argument is array, expected string
+RESULT: ERROR: at root: conversion to string failed: expected string, have array
 
 JSON: ""
 TYPE: string
@@ -260,23 +260,23 @@ RESULT: OK: Hello
 
 JSON: null
 TYPE: bool.bool
-RESULT: ERROR: at root: conversion to bool.bool: argument is null, expected Boolean
+RESULT: ERROR: at root: conversion to bool.bool failed: expected Boolean, have null
 
 JSON: "Hello"
 TYPE: bool.bool
-RESULT: ERROR: at root: conversion to bool.bool: argument is string, expected Boolean
+RESULT: ERROR: at root: conversion to bool.bool failed: expected Boolean, have string
 
 JSON: 5.61
 TYPE: bool.bool
-RESULT: ERROR: at root: conversion to bool.bool: argument is number, expected Boolean
+RESULT: ERROR: at root: conversion to bool.bool failed: expected Boolean, have number
 
 JSON: null
 TYPE: integer.integer
-RESULT: ERROR: at root: conversion to integer.integer: argument is null, expected string
+RESULT: ERROR: at root: conversion to integer.integer failed: expected string, have null
 
 JSON: "Hello"
 TYPE: integer.integer
-RESULT: ERROR: at root: conversion to integer.integer: cannot convert string to integer
+RESULT: ERROR: at root: conversion from string to integer.integer failed: have "Hello"
 
 JSON: "12345678912345678912346"
 TYPE: integer.integer
@@ -288,15 +288,15 @@ RESULT: OK: -123456789123456789123456
 
 JSON: null
 TYPE: bitmap.bitmap
-RESULT: ERROR: at root: conversion to bitmap.bitmap: argument is null, expected string
+RESULT: ERROR: at root: conversion to bitmap.bitmap failed: expected string, have null
 
 JSON: ""
 TYPE: bitmap.bitmap
-RESULT: ERROR: at root: conversion to bitmap.bitmap: cannot convert string to bitmap
+RESULT: ERROR: at root: conversion to bitmap.bitmap failed: unrecognised string: ""
 
 JSON: "---"
 TYPE: bitmap.bitmap
-RESULT: ERROR: at root: conversion to bitmap.bitmap: cannot convert string to bitmap
+RESULT: ERROR: at root: conversion to bitmap.bitmap failed: unrecognised string: "---"
 
 JSON: "<24:10AFBD>"
 TYPE: bitmap.bitmap
@@ -304,7 +304,7 @@ RESULT: OK: "<24:10AFBD>"
 
 JSON: null
 TYPE: list.list(int)
-RESULT: ERROR: at root: conversion to list.list(int): argument is null, expected array
+RESULT: ERROR: at root: conversion to list.list(int) failed: expected array, have null
 
 JSON: []
 TYPE: list.list(int)
@@ -320,15 +320,15 @@ RESULT: OK: [1, 2]
 
 JSON: [10,null]
 TYPE: list.list(int)
-RESULT: ERROR: at /1: conversion to int: argument is null, expected number
+RESULT: ERROR: at /1: conversion to int failed: expected number, have null
 
 JSON: null
 TYPE: array.array(int)
-RESULT: ERROR: at root: conversion to array.array(int): argument is null, expected array
+RESULT: ERROR: at root: conversion to array.array(int) failed: expected array, have null
 
 JSON: null
 TYPE: array2d.array2d(int)
-RESULT: ERROR: at root: conversion to array2d.array2d(int): argument is null, expected array
+RESULT: ERROR: at root: conversion to array2d.array2d(int) failed: expected array, have null
 
 JSON: []
 TYPE: array2d.array2d(int)
@@ -340,15 +340,15 @@ RESULT: OK: array2d(2, 0, array([]))
 
 JSON: [[],null]
 TYPE: array2d.array2d(int)
-RESULT: ERROR: at root: conversion to array2d.array2d(int): row 1 is null, expected array
+RESULT: ERROR: at root: conversion to array2d.array2d(int) failed:  row 1 is null, expected array
 
 JSON: [[],[3]]
 TYPE: array2d.array2d(int)
-RESULT: ERROR: at root: conversion to array2d.array2d(int): row 0 has length 0, row 1 has length 1
+RESULT: ERROR: at root: conversion to array2d.array2d(int) failed: row 0 has length 0, row 1 has length 1
 
 JSON: [false,[3]]
 TYPE: array2d.array2d(int)
-RESULT: ERROR: at /0: conversion to array2d.array2d(int): row 0 is Boolean, expected array
+RESULT: ERROR: at /0: conversion to array2d.array2d(int) failed: expected array, have Boolean
 
 JSON: [[1,2,3],[4,5,6],[7,8,9]]
 TYPE: array2d.array2d(int)
@@ -356,15 +356,15 @@ RESULT: OK: array2d(3, 3, array([1, 2, 3, 4, 5, 6, 7, 8, 9]))
 
 JSON: [[1],[2,3]]
 TYPE: array2d.array2d(int)
-RESULT: ERROR: conversion to array2d.array2d(int): row 1 has length 2, expected length 1
+RESULT: ERROR: at /1: conversion to array2d.array2d(int) failed: row 1 has length 2, expected length 1
 
 JSON: [[1,2,3],true,[7,8,9]]
 TYPE: array2d.array2d(int)
-RESULT: ERROR: at /1: conversion to array2d.array2d(int): row 1 is Boolean, expected array
+RESULT: ERROR: at root: conversion to array2d.array2d(int) failed: expected array, have Boolean
 
 JSON: [[1,2,3],[4,null,6],[7,8,9]]
 TYPE: array2d.array2d(int)
-RESULT: ERROR: at /1/1: conversion to int: argument is null, expected number
+RESULT: ERROR: at /1/1: conversion to int failed: expected number, have null
 
 JSON: {"edges":[],"vertices":[]}
 TYPE: digraph.digraph(string)
@@ -372,27 +372,27 @@ RESULT: OK: digraph(0u, bimap(empty, empty), empty, empty)
 
 JSON: {"edges":[{"dest":"A","source":"C"}],"vertices":["A","B"]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: '"C"' is not in vertex set
+RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: '"C"' is not in vertex set
 
 JSON: {"edges":[{"dest":"C","source":"A"}],"vertices":["A","B"]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: '"C"' is not in vertex set
+RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: '"C"' is not in vertex set
 
 JSON: {"vertices":["A","B"]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: object is not a digraph/1
+RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: object is not a digraph/1
 
 JSON: {"edges":[{"dest":"C","source":"A"}]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: object is not a digraph/1
+RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: object is not a digraph/1
 
 JSON: null
 TYPE: digraph.digraph(string)
-RESULT: ERROR: at root: conversion to digraph.digraph(string): argument is null, expected object
+RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: expected object, have null
 
 JSON: {"edges":[],"vertices":[null,"B"]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: at /vertices/0: conversion to string: argument is null, expected string
+RESULT: ERROR: at /vertices/0: conversion to string failed: expected string, have null
 
 JSON: []
 TYPE: tree234.tree234(int, int)
@@ -400,7 +400,7 @@ RESULT: OK: empty
 
 JSON: {"bar":["c"],"foo":["a","b"]}
 TYPE: tree234.tree234(string, list.list(string))
-RESULT: ERROR: at root: conversion to tree234.tree234(string, list.list(string)): argument is object, expected array
+RESULT: ERROR: at root: conversion to tree234.tree234(string, list.list(string)) failed: expected array, have object
 
 JSON: []
 TYPE: bimap.bimap(int, int)
@@ -408,7 +408,7 @@ RESULT: OK: bimap(empty, empty)
 
 JSON: {"bar":["c"],"foo":["a","b"]}
 TYPE: bimap.bimap(string, list.list(string))
-RESULT: ERROR: at root: conversion to bimap.bimap(string, list.list(string)): argument is object, expected array
+RESULT: ERROR: at root: conversion to bimap.bimap(string, list.list(string)) failed: expected array, have object
 
 JSON: []
 TYPE: rbtree.rbtree(int, int)
@@ -416,11 +416,11 @@ RESULT: OK: empty
 
 JSON: {"bar":["c"],"foo":["a","b"]}
 TYPE: rbtree.rbtree(string, list.list(string))
-RESULT: ERROR: at root: conversion to rbtree.rbtree(string, list.list(string)): argument is object, expected array
+RESULT: ERROR: at root: conversion to rbtree.rbtree(string, list.list(string)) failed: expected array, have object
 
 JSON: []
 TYPE: one_or_more.one_or_more(string)
-RESULT: ERROR: conversion to one_or_more.one_or_more(string): expected non-empty array
+RESULT: ERROR: at root: conversion to one_or_more.one_or_more(string) failed: expected non-empty array
 
 JSON: ["a"]
 TYPE: one_or_more.one_or_more(string)

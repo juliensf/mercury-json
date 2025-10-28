@@ -245,6 +245,13 @@
     %
 :- func pointer_to_string(pointer) = string.
 
+    % describe_pointer(Pointer) = String:
+    %
+    % If Pointer is non-empty, then return its string representation.
+    % If Pointer is empty, then return the string "root".
+    %
+:- func describe_pointer(pointer) = string.
+
     % resolve(Pointer, Value, Result):
     %
     % Result is the value in Value that is pointed to by Pointer.
@@ -1124,6 +1131,8 @@
     ;       non_finite_number
     ;       other(string).
 
+:- func from_json_error_to_string(from_json_error) = string.
+
 :- instance from_json(bag(T)) <= from_json(T).
 :- instance from_json(int).
 :- instance from_json(int8).
@@ -1754,6 +1763,51 @@ from_type(T) = to_json(T).
 :- instance to_json(json.pointer) where [
     func(to_json/1) is json.marshal.json_pointer_to_json
 ].
+
+%-----------------------------------------------------------------------------%
+
+from_json_error_to_string(Error) = String :-
+    Error = from_json_error(Pointer, TypeDesc, ErrorDesc),
+    PointerDesc = describe_pointer(Pointer),
+    TypeName = type_name(TypeDesc),
+    (
+        ErrorDesc = value_type_mismatch(Expected, Have),
+        string.format(
+            "at %s: conversion to %s failed: expected %s, have %s",
+            [s(PointerDesc), s(TypeName), s(Expected), s(Have)], String)
+    ;
+        ErrorDesc = from_string_failed(FailString),
+        string.format(
+            "at %s: conversion from string to %s failed: have \"%s\"",
+            [s(PointerDesc), s(TypeName), s(FailString)], String)
+    ;
+        ErrorDesc = missing_member(MissingMemberName),
+        string.format(
+            "at %s: conversion to %s failed: object has no member named \"%s\"",
+            [s(PointerDesc), s(TypeName), s(MissingMemberName)], String)
+    ;
+        ErrorDesc = out_of_bounds_number,
+        string.format(
+            "at %s: conversion to %s failed: number is out-of-bounds for type",
+            [s(PointerDesc), s(TypeName)], String)
+    ;
+        ErrorDesc = non_finite_number,
+        string.format(
+            "at %s: conversion to %s failed: non-finite number",
+            [s(PointerDesc), s(TypeName)], String)
+    ;
+        ErrorDesc = other(ErrorMsg),
+        string.format(
+            "at %s: conversion to %s failed: %s",
+            [s(PointerDesc), s(TypeName), s(ErrorMsg)], String)
+    ).
+
+describe_pointer(Pointer) =
+    ( if is_empty_pointer(Pointer) then
+        "root"
+    else
+        pointer_to_string(Pointer)
+    ).
 
 %-----------------------------------------------------------------------------%
 

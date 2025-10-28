@@ -460,8 +460,9 @@ test(File, Term, !IO) :-
             io.print_line(File, TermPrime, !IO)
         ;
             MaybeTermPrime = error(Error),
+            ErrorMsg = from_json_error_to_string(Error),
             io.write_string(File, "error: ", !IO),
-            io.print_line(File, Error, !IO)
+            io.print_line(File, ErrorMsg, !IO)
         )
     catch NonFiniteNumberError ->
         NonFiniteNumberError = non_finite_number_error(_),

@@ -226,10 +226,10 @@ int64_from_json(Pointer, JValue) = Result :-
             )
         else
             Result = make_other_error(Pointer,
-                "cannot convert number to integer")
+                "cannot convert string to integer")
         )
     else
-        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
+        Result = make_value_type_mismatch_error(Pointer, "string", JValue)
     ).
 
 uint8_from_json(Pointer, JValue) = Result :-
@@ -269,7 +269,7 @@ uint64_from_json(Pointer, JValue) = Result :-
                 "cannot convert string to integer")
         )
     else
-        Result = make_value_type_mismatch_error(Pointer, "number", JValue)
+        Result = make_value_type_mismatch_error(Pointer, "string", JValue)
     ).
 
 float_from_json(Pointer, JValue) = Result :-

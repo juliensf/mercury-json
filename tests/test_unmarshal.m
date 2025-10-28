@@ -500,8 +500,9 @@ do_unmarshal_test(File, Value, Type, !IO) :-
         io.print_line(File, Term, !IO)
     ;
         Result = error(Error),
+        ErrorMsg = from_json_error_to_string(Error),
         io.write_string(File, "RESULT: ERROR: ", !IO),
-        io.print_line(File, Error, !IO)
+        io.print_line(File, ErrorMsg, !IO)
     ),
     io.nl(File, !IO).
 
