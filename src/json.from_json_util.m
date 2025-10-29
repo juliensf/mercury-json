@@ -16,6 +16,26 @@
 
 %----------------------------------------------------------------------------%
 
+    % map_value_to_type(Pointer, Value, ToType) = Result:
+    %
+    % Unmarshal Value to a term of type V and then apply the function
+    % ToType to that to yield a term of type T.
+    %
+:- func map_value_to_type(json.pointer, json.value,
+    func(V) = T) = from_json_result(T) <= from_json(V).
+
+%----------------------------------------------------------------------------%
+
+:- func int_value_to_type(json.pointer::in, json.value::in,
+    pred(int, T)::in(pred(in, out) is semidet))
+    = (from_json_result(T)::out) is det.
+
+:- func int_to_type(json.pointer::in, int::in,
+    pred(int, T)::in(pred(in, out) is semidet))
+    = (from_json_result(T)::out) is det.
+
+%----------------------------------------------------------------------------%
+
 :- func string_value_to_type(json.pointer::in, json.value::in,
     pred(string, T)::in(pred(in, out) is semidet))
     = (from_json_result(T)::out) is det.
@@ -109,6 +129,39 @@
 :- import_module pair.
 :- import_module string.
 :- import_module type_desc.
+
+%----------------------------------------------------------------------------%
+
+map_value_to_type(Pointer, JValue, ToType) = Result :-
+    ValueResult = from_json(Pointer, JValue),
+    (
+        ValueResult = ok(Value),
+        Type = ToType(Value),
+        Result = ok(Type)
+    ;
+        ValueResult = error(Error),
+        Result = error(Error)
+    ).
+
+%----------------------------------------------------------------------------%
+
+int_value_to_type(Pointer, JValue, ConvPred) = Result :-
+    IntResult = from_json(Pointer, JValue),
+    (
+        IntResult = ok(Int),
+        Result = int_to_type(Pointer, Int, ConvPred)
+    ;
+        IntResult = error(Error),
+        Result = error(Error)
+    ).
+
+int_to_type(Pointer, Int, ConvPred) = Result :-
+    ( if ConvPred(Int, Type) then
+        Result = ok(Type)
+    else
+        string.format("invalid int: %d", [i(Int)], Msg),
+        Result = make_other_error(Pointer, Msg)
+    ).
 
 %----------------------------------------------------------------------------%
 
