@@ -430,3 +430,43 @@ JSON: ["a","b","c"]
 TYPE: one_or_more.one_or_more(string)
 RESULT: OK: one_or_more("a", ["b", "c"])
 
+JSON: []
+TYPE: set_ordlist.set_ordlist(string)
+RESULT: OK: sol([])
+
+JSON: ["a"]
+TYPE: set_ordlist.set_ordlist(string)
+RESULT: OK: sol(["a"])
+
+JSON: ["a","b","a"]
+TYPE: set_ordlist.set_ordlist(string)
+RESULT: OK: sol(["a", "b"])
+
+JSON: 561
+TYPE: set_ordlist.set_ordlist(string)
+RESULT: ERROR: at root: conversion to set_ordlist.set_ordlist(string) failed: expected array, have number
+
+JSON: ["a",720]
+TYPE: set_ordlist.set_ordlist(string)
+RESULT: ERROR: at /1: conversion to string failed: expected string, have number
+
+JSON: []
+TYPE: set_tree234.set_tree234(string)
+RESULT: OK: empty
+
+JSON: ["a"]
+TYPE: set_tree234.set_tree234(string)
+RESULT: OK: two("a", empty, empty)
+
+JSON: ["a","b","a"]
+TYPE: set_tree234.set_tree234(string)
+RESULT: OK: three("a", "b", empty, empty, empty)
+
+JSON: 561
+TYPE: set_tree234.set_tree234(string)
+RESULT: ERROR: at root: conversion to set_tree234.set_tree234(string) failed: expected array, have number
+
+JSON: ["a",720]
+TYPE: set_tree234.set_tree234(string)
+RESULT: ERROR: at /1: conversion to string failed: expected string, have number
+

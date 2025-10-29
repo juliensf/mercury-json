@@ -195,7 +195,7 @@ Result Term: sul([1, 2, 3, 4])
 
  Orig. Term: two(3, three(1, 2, empty, empty, empty), two(4, empty, empty))
        JSON: [1,2,3,4]
-Result Term: two(3, three(1, 2, empty, empty, empty), two(4, empty, empty))
+Result Term: two(2, two(1, empty, empty), three(3, 4, empty, empty, empty))
 
  Orig. Term: ct(4, two(2, two(1, empty, empty), three(3, 4, empty, empty, empty)))
        JSON: [1,2,3,4]

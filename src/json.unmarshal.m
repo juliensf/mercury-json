@@ -781,24 +781,32 @@ rational_from_json(Pointer, JValue) = Result :-
 % JSON -> set types.
 %
 
-% XXX we should build the sets directly, without building the intermediate
-% cord.
-
 set_ordlist_from_json(Pointer, Value) = Result :-
     ( if Value = array(Values) then
-        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
-        (
-            ElemsResult = ok(ElemsCord),
-            ElemsList = cord.to_list(ElemsCord),
-            set_ordlist.list_to_set(ElemsList, Set),
-            Result = ok(Set)
-        ;
-            ElemsResult = error(Error),
-            Result = error(Error)
-        )
+        Result = unmarshal_set_ordlist_elems(Pointer, Values, 0,
+            set_ordlist.init)
     else
         Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
+
+:- func unmarshal_set_ordlist_elems(json.pointer, list(json.value), int,
+    set_ordlist(T)) = from_json_result(set_ordlist(T)) is det <= from_json(T).
+
+unmarshal_set_ordlist_elems(_, [], _, Set) = ok(Set).
+unmarshal_set_ordlist_elems(Pointer, [JValue | JValues], Index, !.Set)
+        = Result :-
+    MaybeElem = from_json(append_int_token(Pointer, Index), JValue),
+    (
+        MaybeElem = ok(Elem),
+        set_ordlist.insert(Elem, !Set),
+        Result = unmarshal_set_ordlist_elems(Pointer, JValues, Index + 1,
+            !.Set)
+    ;
+        MaybeElem = error(Error),
+        Result = error(Error)
+    ).
+
+%---------------------%
 
 set_unordlist_from_json(Pointer, Value) = Result :-
     ( if Value = array(Values) then
@@ -816,21 +824,34 @@ set_unordlist_from_json(Pointer, Value) = Result :-
         Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
+%---------------------%
+
 set_tree234_from_json(Pointer, Value) = Result :-
     ( if Value = array(Values) then
-        unmarshal_list_elems(Pointer, Values, 0, cord.empty, ElemsResult),
-        (
-            ElemsResult = ok(ElemsCord),
-            ElemsList = cord.to_list(ElemsCord),
-            set_tree234.list_to_set(ElemsList, Set),
-            Result = ok(Set)
-        ;
-            ElemsResult = error(Error),
-            Result = error(Error)
-        )
+        Result = unmarshal_set_tree234_elems(Pointer, Values, 0,
+            set_tree234.init)
     else
         Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
+
+:- func unmarshal_set_tree234_elems(json.pointer, list(json.value), int,
+    set_tree234(T)) = from_json_result(set_tree234(T)) is det <= from_json(T).
+
+unmarshal_set_tree234_elems(_, [], _, Set) = ok(Set).
+unmarshal_set_tree234_elems(Pointer, [JValue | JValues], Index, !.Set)
+        = Result :-
+    MaybeElem = from_json(append_int_token(Pointer, Index), JValue),
+    (
+        MaybeElem = ok(Elem),
+        set_tree234.insert(Elem, !Set),
+        Result = unmarshal_set_tree234_elems(Pointer, JValues, Index + 1,
+            !.Set)
+    ;
+        MaybeElem = error(Error),
+        Result = error(Error)
+    ).
+
+%---------------------%
 
 set_ctree234_from_json(Pointer, Value) = Result :-
     ( if Value = array(Values) then
@@ -847,6 +868,8 @@ set_ctree234_from_json(Pointer, Value) = Result :-
     else
         Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
+
+%---------------------%
 
 set_bbbtree_from_json(Pointer, Value) = Result :-
     ( if Value = array(Values) then
