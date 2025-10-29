@@ -120,11 +120,6 @@
 
 :- implementation.
 
-:- import_module list.
-:- import_module map.
-:- import_module pair.
-:- import_module type_desc.
-
 %----------------------------------------------------------------------------%
 
 map_value_to_type(Pointer, JValue, ToType) = Result :-
