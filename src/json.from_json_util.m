@@ -24,18 +24,14 @@
 :- func map_value_to_type(json.pointer, json.value,
     func(V) = T) = from_json_result(T) <= from_json(V).
 
-%----------------------------------------------------------------------------%
-
-:- func int_value_to_type(json.pointer::in, json.value::in,
-    pred(int, T)::in(pred(in, out) is semidet))
-    = (from_json_result(T)::out) is det.
-
-:- func int_to_type(json.pointer::in, int::in,
-    pred(int, T)::in(pred(in, out) is semidet))
-    = (from_json_result(T)::out) is det.
+:- func maybe_map_value_to_type(json.pointer::in, json.value::in,
+    pred(V, T)::in(pred(in, out) is semidet))
+    = (from_json_result(T)::out) is det <= from_json(V).
 
 %----------------------------------------------------------------------------%
 
+    % Like maybe_map_value_type, but can produce more precise errors.
+    %
 :- func string_value_to_type(json.pointer::in, json.value::in,
     pred(string, T)::in(pred(in, out) is semidet))
     = (from_json_result(T)::out) is det.
@@ -127,7 +123,6 @@
 :- import_module list.
 :- import_module map.
 :- import_module pair.
-:- import_module string.
 :- import_module type_desc.
 
 %----------------------------------------------------------------------------%
@@ -145,37 +140,27 @@ map_value_to_type(Pointer, JValue, ToType) = Result :-
 
 %----------------------------------------------------------------------------%
 
-int_value_to_type(Pointer, JValue, ConvPred) = Result :-
-    IntResult = from_json(Pointer, JValue),
+maybe_map_value_to_type(Pointer, JValue, ConvPred) = Result :-
+    ValueResult = from_json(Pointer, JValue),
     (
-        IntResult = ok(Int),
-        Result = int_to_type(Pointer, Int, ConvPred)
+        ValueResult = ok(Value),
+        ( if ConvPred(Value, Type) then
+            Result = ok(Type)
+        else
+            Result = make_other_error(Pointer,
+                "conversion to type failed")
+        )
     ;
-        IntResult = error(Error),
+        ValueResult = error(Error),
         Result = error(Error)
-    ).
-
-int_to_type(Pointer, Int, ConvPred) = Result :-
-    ( if ConvPred(Int, Type) then
-        Result = ok(Type)
-    else
-        string.format("invalid int: %d", [i(Int)], Msg),
-        Result = make_other_error(Pointer, Msg)
     ).
 
 %----------------------------------------------------------------------------%
 
 string_value_to_type(Pointer, JValue, ConvPred) = Result :-
-    (
-        JValue = string(String),
+    ( if JValue = string(String) then
         Result = string_to_type(Pointer, String, ConvPred)
-    ;
-        ( JValue = null
-        ; JValue = bool(_)
-        ; JValue = number(_)
-        ; JValue = array(_)
-        ; JValue = object(_)
-        ),
+    else
         Result = make_value_type_mismatch_error(Pointer, "string", JValue)
     ).
 
