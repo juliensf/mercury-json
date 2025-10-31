@@ -1127,6 +1127,7 @@
     ;       missing_member(
                 missing_member :: string
             )
+    ;       conflicting_members(string, string)
     ;       out_of_bounds_number
     ;       non_finite_number
     ;       other(string).
@@ -1798,6 +1799,11 @@ from_json_error_to_string(Error) = String :-
         string.format(
             "at %s: conversion to %s failed: object has no member named \"%s\"",
             [s(PointerDesc), s(TypeName), s(MissingMemberName)], String)
+    ;
+        ErrorDesc = conflicting_members(Member1, Member2),
+        string.format(
+"at %s: conversion to %s failed: object cannot have both \"%s\" and  \"%s\" members",
+            [s(PointerDesc), s(TypeName), s(Member1), s(Member2)], String)
     ;
         ErrorDesc = out_of_bounds_number,
         string.format(

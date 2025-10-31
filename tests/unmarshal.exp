@@ -336,7 +336,7 @@ RESULT: ERROR: at root: conversion to maybe.maybe_error(string, string) failed: 
 
 JSON: {"error":"BAR","ok":"FOO"}
 TYPE: maybe.maybe_error(string, string)
-RESULT: ERROR: at root: conversion to maybe.maybe_error(string, string) failed: object has both "ok" and "error" members
+RESULT: ERROR: at root: conversion to maybe.maybe_error(string, string) failed: object cannot have both "ok" and  "error" members
 
 JSON: null
 TYPE: list.list(int)

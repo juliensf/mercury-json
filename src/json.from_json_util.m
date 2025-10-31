@@ -112,6 +112,9 @@
 
 :- func make_missing_member_error(pointer, string) = from_json_result(T).
 
+:- func make_conflicting_members_error(pointer, string, string)
+    = from_json_result(T).
+
 :- func make_out_of_bounds_number_error(pointer) = from_json_result(T).
 
 :- func make_non_finite_number_error(pointer) = from_json_result(T).
@@ -690,6 +693,12 @@ make_from_string_failed_error(Pointer, String) = Result :-
 make_missing_member_error(Pointer, MemberName) = Result :-
     TypeDesc = type_desc_from_result(Result),
     ErrorDesc = missing_member(MemberName),
+    Error = from_json_error(Pointer, TypeDesc, ErrorDesc),
+    Result = error(Error).
+
+make_conflicting_members_error(Pointer, Member1, Member2) = Result :-
+    TypeDesc = type_desc_from_result(Result),
+    ErrorDesc = conflicting_members(Member1, Member2),
     Error = from_json_error(Pointer, TypeDesc, ErrorDesc),
     Result = error(Error).
 

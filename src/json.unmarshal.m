@@ -943,9 +943,7 @@ maybe_error_from_json(Pointer, Value) = Result :-
         (
             MaybeOkValue = yes(_),
             MaybeErrorValue = yes(_),
-            % XXX ERROR
-            Result = make_other_error(Pointer,
-                "object has both \"ok\" and \"error\" members")
+            Result = make_conflicting_members_error(Pointer, "ok", "error")
         ;
             MaybeOkValue = yes(JOkValue),
             MaybeErrorValue = no,
