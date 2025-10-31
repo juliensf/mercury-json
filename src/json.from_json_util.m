@@ -102,8 +102,11 @@
 
 %----------------------------------------------------------------------------%
 
-:- func make_value_type_mismatch_error(pointer, string, json.value) =
-    from_json_result(T).
+:- func make_value_type_mismatch_error(pointer, string, json.value)
+    = from_json_result(T).
+
+:- func make_value_types_mismatch_error(pointer, one_or_more(string),
+    json.value) = from_json_result(T).
 
 :- func make_from_string_failed_error(pointer, string) = from_json_result(T).
 
@@ -666,7 +669,15 @@ members_to_type6(Pointer,
 make_value_type_mismatch_error(Pointer, ExpectedDesc, Value) = Result :-
     TypeDesc = type_desc_from_result(Result),
     HaveDesc = to_value_desc(Value),
-    ErrorDesc = value_type_mismatch(ExpectedDesc, HaveDesc),
+    ErrorDesc = value_type_mismatch(one_or_more(ExpectedDesc, []),
+        HaveDesc),
+    Error = from_json_error(Pointer, TypeDesc, ErrorDesc),
+    Result = error(Error).
+
+make_value_types_mismatch_error(Pointer, ExpectedDescs, Value) = Result :-
+    TypeDesc = type_desc_from_result(Result),
+    HaveDesc = to_value_desc(Value),
+    ErrorDesc = value_type_mismatch(ExpectedDescs, HaveDesc),
     Error = from_json_error(Pointer, TypeDesc, ErrorDesc),
     Result = error(Error).
 

@@ -61,6 +61,7 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_bools(File, !IO),
     test_unmarshal_integers(File, !IO),
     test_unmarshal_bitmaps(File, !IO),
+    test_unmarshal_maybe(File, !IO),
     test_unmarshal_maybe_error(File, !IO),
     test_unmarshal_lists(File, !IO),
     test_unmarshal_arrays(File, !IO),
@@ -236,6 +237,22 @@ test_unmarshal_bitmaps(File, !IO) :-
     do_unmarshal_test(File, string(""), _ : bitmap, !IO),
     do_unmarshal_test(File, string("---"), _ : bitmap, !IO),
     do_unmarshal_test(File, string("<24:10AFBD>"), _ : bitmap, !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_maybe(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_maybe(File, !IO) :-
+    do_unmarshal_test(File, null, _ : maybe(string), !IO),
+
+    ValidYes = json.det_make_object([
+        "yes" - string("FOO")
+    ]),
+    do_unmarshal_test(File, ValidYes, _ : maybe(string), !IO),
+
+    do_unmarshal_test(File, string("BAR"), _ : maybe(string), !IO),
+    do_unmarshal_test(File, int(561), _ : maybe(string), !IO).
 
 %-----------------------------------------------------------------------------%
 

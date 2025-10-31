@@ -1119,8 +1119,8 @@
 
 :- type from_json_error_desc
     --->    value_type_mismatch(
-                expected_value_type :: string,
-                have_value_type     :: string
+                expected_value_types :: one_or_more(string),
+                have_value_type      :: string
             )
     ;       from_string_failed(string)
 
@@ -1771,10 +1771,23 @@ from_json_error_to_string(Error) = String :-
     PointerDesc = describe_pointer(Pointer),
     TypeName = type_name(TypeDesc),
     (
-        ErrorDesc = value_type_mismatch(Expected, Have),
-        string.format(
-            "at %s: conversion to %s failed: expected %s, have %s",
-            [s(PointerDesc), s(TypeName), s(Expected), s(Have)], String)
+        ErrorDesc = value_type_mismatch(ExpectedDescs, Have),
+        ExpectedDescs = one_or_more(FirstExpected, OtherExpected),
+        (
+            OtherExpected = [],
+            string.format(
+                "at %s: conversion to %s failed: expected %s, have %s",
+                [s(PointerDesc), s(TypeName), s(FirstExpected), s(Have)],
+                String)
+        ;
+            OtherExpected = [_ | _],
+            list.det_split_last(OtherExpected, RestExpected, LastExpected),
+            ExpectedStart = string.join_list(", ", [FirstExpected | RestExpected]),
+            string.format(
+                "at %s: conversion to %s failed: expected %s or %s, have %s",
+                [s(PointerDesc), s(TypeName), s(ExpectedStart),
+                 s(LastExpected), s(Have)], String)
+        )
     ;
         ErrorDesc = from_string_failed(FailString),
         string.format(

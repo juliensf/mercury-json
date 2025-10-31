@@ -303,6 +303,22 @@ TYPE: bitmap.bitmap
 RESULT: OK: "<24:10AFBD>"
 
 JSON: null
+TYPE: maybe.maybe(string)
+RESULT: OK: no
+
+JSON: {"yes":"FOO"}
+TYPE: maybe.maybe(string)
+RESULT: OK: yes("FOO")
+
+JSON: "BAR"
+TYPE: maybe.maybe(string)
+RESULT: ERROR: at root: conversion to maybe.maybe(string) failed: expected object or null, have string
+
+JSON: 561
+TYPE: maybe.maybe(string)
+RESULT: ERROR: at root: conversion to maybe.maybe(string) failed: expected object or null, have number
+
+JSON: null
 TYPE: maybe.maybe_error(string, string)
 RESULT: ERROR: at root: conversion to maybe.maybe_error(string, string) failed: expected object, have null
 

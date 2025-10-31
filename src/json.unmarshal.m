@@ -642,7 +642,8 @@ array2d_unmarshal_rows(Pointer, R, NumRows, NumCols, RowValues, !Array2d,
                 ; RowValue = object(_)
                 ),
                 TypeDesc = type_of(!.Array2d),
-                ErrorDesc = value_type_mismatch("array", to_value_desc(RowValue)),
+                ErrorDesc = value_type_mismatch(one_or_more("array", []),
+                    to_value_desc(RowValue)),
                 Error = from_json_error(Pointer, TypeDesc, ErrorDesc),
                 Result = error(Error)
             )
@@ -918,8 +919,8 @@ maybe_from_json(Pointer, Value) = Result :-
         ; Value = number(_)
         ; Value = array(_)
         ),
-        % XXX ERROR it could be null.
-        Result = make_value_type_mismatch_error(Pointer, "object", Value)
+        Result = make_value_types_mismatch_error(Pointer,
+            one_or_more("object", ["null"]), Value)
     ).
 
 %-----------------------------------------------------------------------------%
