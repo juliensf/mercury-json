@@ -37,7 +37,10 @@
 :- import_module one_or_more.
 :- import_module pair.
 :- import_module rbtree.
+:- import_module set_bbbtree.
 :- import_module set_ordlist.
+:- import_module set_unordlist.
+:- import_module set_ctree234.
 :- import_module set_tree234.
 :- import_module type_desc.
 
@@ -67,7 +70,10 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_bimaps(File, !IO),
     test_unmarshal_rbtrees(File, !IO),
     test_unmarshal_one_or_mores(File, !IO),
+    test_unmarshal_set_bbbtree(File, !IO),
     test_unmarshal_set_ordlist(File, !IO),
+    test_unmarshal_set_unordlist(File, !IO),
+    test_unmarshal_set_ctree234(File, !IO),
     test_unmarshal_set_tree234(File, !IO).
 
 %-----------------------------------------------------------------------------%
@@ -511,6 +517,33 @@ test_unmarshal_one_or_mores(File, !IO) :-
 
 %-----------------------------------------------------------------------------%
 
+:- pred test_unmarshal_set_bbbtree(io.text_output_stream::in,
+    io::di, io::uo) is det.
+
+test_unmarshal_set_bbbtree(File, !IO) :-
+
+    % Test empty set.
+    %
+    do_unmarshal_test(File, array([]), _ : set_bbbtree(string), !IO),
+
+    % Test singleton set.
+    %
+    do_unmarshal_test(File, array([string("a")]), _ : set_bbbtree(string),
+        !IO),
+
+    % Test JSON repesentations of set with duplicate elements.
+    %
+    do_unmarshal_test(File, array([string("a"), string("b"), string("a")]),
+        _ : set_bbbtree(string), !IO),
+
+    % Test errors.
+    %
+    do_unmarshal_test(File, number(561.0), _ : set_bbbtree(string), !IO),
+    do_unmarshal_test(File, array([string("a"), number(720.0)]),
+       _ : set_bbbtree(string), !IO).
+
+%-----------------------------------------------------------------------------%
+
 :- pred test_unmarshal_set_ordlist(io.text_output_stream::in,
     io::di, io::uo) is det.
 
@@ -535,6 +568,60 @@ test_unmarshal_set_ordlist(File, !IO) :-
     do_unmarshal_test(File, number(561.0), _ : set_ordlist(string), !IO),
     do_unmarshal_test(File, array([string("a"), number(720.0)]),
        _ : set_ordlist(string), !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_set_unordlist(io.text_output_stream::in,
+    io::di, io::uo) is det.
+
+test_unmarshal_set_unordlist(File, !IO) :-
+
+    % Test empty set.
+    %
+    do_unmarshal_test(File, array([]), _ : set_unordlist(string), !IO),
+
+    % Test singleton set.
+    %
+    do_unmarshal_test(File, array([string("a")]), _ : set_unordlist(string),
+        !IO),
+
+    % Test JSON repesentations of set with duplicate elements.
+    %
+    do_unmarshal_test(File, array([string("a"), string("b"), string("a")]),
+        _ : set_unordlist(string), !IO),
+
+    % Test errors.
+    %
+    do_unmarshal_test(File, number(561.0), _ : set_unordlist(string), !IO),
+    do_unmarshal_test(File, array([string("a"), number(720.0)]),
+       _ : set_unordlist(string), !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_set_ctree234(io.text_output_stream::in,
+    io::di, io::uo) is det.
+
+test_unmarshal_set_ctree234(File, !IO) :-
+
+    % Test empty set.
+    %
+    do_unmarshal_test(File, array([]), _ : set_ctree234(string), !IO),
+
+    % Test singleton set.
+    %
+    do_unmarshal_test(File, array([string("a")]), _ : set_ctree234(string),
+        !IO),
+
+    % Test JSON repesentations of set with duplicate elements.
+    %
+    do_unmarshal_test(File, array([string("a"), string("b"), string("a")]),
+        _ : set_ctree234(string), !IO),
+
+    % Test errors.
+    %
+    do_unmarshal_test(File, number(561.0), _ : set_ctree234(string), !IO),
+    do_unmarshal_test(File, array([string("a"), number(720.0)]),
+       _ : set_ctree234(string), !IO).
 
 %-----------------------------------------------------------------------------%
 

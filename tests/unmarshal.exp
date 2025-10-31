@@ -451,6 +451,26 @@ TYPE: one_or_more.one_or_more(string)
 RESULT: OK: one_or_more("a", ["b", "c"])
 
 JSON: []
+TYPE: set_bbbtree.set_bbbtree(string)
+RESULT: OK: empty
+
+JSON: ["a"]
+TYPE: set_bbbtree.set_bbbtree(string)
+RESULT: OK: tree("a", 1, empty, empty)
+
+JSON: ["a","b","a"]
+TYPE: set_bbbtree.set_bbbtree(string)
+RESULT: OK: tree("a", 2, empty, tree("b", 1, empty, empty))
+
+JSON: 561
+TYPE: set_bbbtree.set_bbbtree(string)
+RESULT: ERROR: at root: conversion to set_bbbtree.set_bbbtree(string) failed: expected array, have number
+
+JSON: ["a",720]
+TYPE: set_bbbtree.set_bbbtree(string)
+RESULT: ERROR: at /1: conversion to string failed: expected string, have number
+
+JSON: []
 TYPE: set_ordlist.set_ordlist(string)
 RESULT: OK: sol([])
 
@@ -468,6 +488,46 @@ RESULT: ERROR: at root: conversion to set_ordlist.set_ordlist(string) failed: ex
 
 JSON: ["a",720]
 TYPE: set_ordlist.set_ordlist(string)
+RESULT: ERROR: at /1: conversion to string failed: expected string, have number
+
+JSON: []
+TYPE: set_unordlist.set_unordlist(string)
+RESULT: OK: sul([])
+
+JSON: ["a"]
+TYPE: set_unordlist.set_unordlist(string)
+RESULT: OK: sul(["a"])
+
+JSON: ["a","b","a"]
+TYPE: set_unordlist.set_unordlist(string)
+RESULT: OK: sul(["a", "b", "a"])
+
+JSON: 561
+TYPE: set_unordlist.set_unordlist(string)
+RESULT: ERROR: at root: conversion to set_unordlist.set_unordlist(string) failed: expected array, have number
+
+JSON: ["a",720]
+TYPE: set_unordlist.set_unordlist(string)
+RESULT: ERROR: at /1: conversion to string failed: expected string, have number
+
+JSON: []
+TYPE: set_ctree234.set_ctree234(string)
+RESULT: OK: ct(0, empty)
+
+JSON: ["a"]
+TYPE: set_ctree234.set_ctree234(string)
+RESULT: OK: ct(1, two("a", empty, empty))
+
+JSON: ["a","b","a"]
+TYPE: set_ctree234.set_ctree234(string)
+RESULT: OK: ct(2, three("a", "b", empty, empty, empty))
+
+JSON: 561
+TYPE: set_ctree234.set_ctree234(string)
+RESULT: ERROR: at root: conversion to set_ctree234.set_ctree234(string) failed: expected array, have number
+
+JSON: ["a",720]
+TYPE: set_ctree234.set_ctree234(string)
 RESULT: ERROR: at /1: conversion to string failed: expected string, have number
 
 JSON: []
