@@ -303,6 +303,26 @@ TYPE: bitmap.bitmap
 RESULT: OK: "<24:10AFBD>"
 
 JSON: null
+TYPE: maybe.maybe_error(string, string)
+RESULT: ERROR: at root: conversion to maybe.maybe_error(string, string) failed: expected object, have null
+
+JSON: {"ok":"FOO"}
+TYPE: maybe.maybe_error(string, string)
+RESULT: OK: ok("FOO")
+
+JSON: {"error":"BAR"}
+TYPE: maybe.maybe_error(string, string)
+RESULT: OK: error("BAR")
+
+JSON: {"field1":"A","field2":"B"}
+TYPE: maybe.maybe_error(string, string)
+RESULT: ERROR: at root: conversion to maybe.maybe_error(string, string) failed: object is not a maybe_error/2 value
+
+JSON: {"error":"BAR","ok":"FOO"}
+TYPE: maybe.maybe_error(string, string)
+RESULT: ERROR: at root: conversion to maybe.maybe_error(string, string) failed: object has both "ok" and "error" members
+
+JSON: null
 TYPE: list.list(int)
 RESULT: ERROR: at root: conversion to list.list(int) failed: expected array, have null
 

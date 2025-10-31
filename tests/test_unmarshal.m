@@ -58,6 +58,7 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_bools(File, !IO),
     test_unmarshal_integers(File, !IO),
     test_unmarshal_bitmaps(File, !IO),
+    test_unmarshal_maybe_error(File, !IO),
     test_unmarshal_lists(File, !IO),
     test_unmarshal_arrays(File, !IO),
     test_unmarshal_array2ds(File, !IO),
@@ -229,6 +230,36 @@ test_unmarshal_bitmaps(File, !IO) :-
     do_unmarshal_test(File, string(""), _ : bitmap, !IO),
     do_unmarshal_test(File, string("---"), _ : bitmap, !IO),
     do_unmarshal_test(File, string("<24:10AFBD>"), _ : bitmap, !IO).
+
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_maybe_error(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_maybe_error(File, !IO) :-
+    do_unmarshal_test(File, null, _ : maybe_error(string), !IO),
+
+    ValidOk = json.det_make_object([
+        "ok" - string("FOO")
+    ]),
+    do_unmarshal_test(File, ValidOk, _ : maybe_error(string), !IO),
+
+    ValidError = json.det_make_object([
+        "error" - string("BAR")
+    ]),
+    do_unmarshal_test(File, ValidError, _ : maybe_error(string), !IO),
+
+    MissingBothMembers = json.det_make_object([
+        "field1" - string("A"),
+        "field2" - string("B")
+    ]),
+    do_unmarshal_test(File, MissingBothMembers, _ : maybe_error(string), !IO),
+
+    BothMembersPresent = json.det_make_object([
+        "ok" - string("FOO"),
+        "error" - string("BAR")
+    ]),
+    do_unmarshal_test(File, BothMembersPresent, _ : maybe_error(string), !IO).
 
 %-----------------------------------------------------------------------------%
 

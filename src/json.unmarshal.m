@@ -131,7 +131,6 @@
 :- import_module int8.
 :- import_module int16.
 :- import_module int32.
-:- import_module type_desc.
 :- import_module uint8.
 :- import_module uint16.
 
@@ -930,40 +929,50 @@ maybe_from_json(Pointer, Value) = Result :-
 
 maybe_error_from_json(Pointer, Value) = Result :-
     ( if Value = object(Object) then
-        ( if
-            % XXX don't require this.
-            map.count(Object) = 1
-        then
-            % XXX check that we do not have both "ok" and "error" members.
-            ( if
-                map.search(Object, "ok", OkValue)
-            then
-                OkPointer = append_token(Pointer, "ok"),
-                MaybeOk = from_json(OkPointer, OkValue),
-                (
-                    MaybeOk = ok(Ok),
-                    Result = ok(ok(Ok))
-                ;
-                    MaybeOk = error(Error),
-                    Result = error(Error)
-                )
-            else if
-                map.search(Object, "error", JErrorValue)
-            then
-                ErrorPointer = append_token(Pointer, "error"),
-                MaybeErrorValue = from_json(ErrorPointer, JErrorValue),
-                (
-                    MaybeErrorValue = ok(ErrorValue),
-                    Result = ok(error(ErrorValue))
-                ;
-                    MaybeErrorValue = error(Error),
-                    Result = error(Error)
-                )
-            else
-                Result = make_other_error(Pointer,
-                    "object is not a maybe_error/2 value")
-            )
+        ( if map.search(Object, "ok", OkValue) then
+            MaybeOkValue = yes(OkValue)
         else
+            MaybeOkValue = no
+        ),
+        ( if map.search(Object, "error", ErrorValue) then
+            MaybeErrorValue = yes(ErrorValue)
+        else
+            MaybeErrorValue = no
+        ),
+        (
+            MaybeOkValue = yes(_),
+            MaybeErrorValue = yes(_),
+            % XXX ERROR
+            Result = make_other_error(Pointer,
+                "object has both \"ok\" and \"error\" members")
+        ;
+            MaybeOkValue = yes(JOkValue),
+            MaybeErrorValue = no,
+            OkPointer = append_token(Pointer, "ok"),
+            MaybeOkType = from_json(OkPointer, JOkValue),
+            (
+                MaybeOkType = ok(OkType),
+                Result = ok(ok(OkType))
+            ;
+                MaybeOkType = error(Error),
+                Result = error(Error)
+            )
+        ;
+            MaybeOkValue = no,
+            MaybeErrorValue = yes(JErrorValue),
+            ErrorPointer = append_token(Pointer, "error"),
+            MaybeErrorType = from_json(ErrorPointer, JErrorValue),
+            (
+                MaybeErrorType = ok(ErrorType),
+                Result = ok(error(ErrorType))
+            ;
+                MaybeErrorType  = error(Error),
+                Result = error(Error)
+            )
+        ;
+            MaybeOkValue = no,
+            MaybeErrorValue = no,
+            % XXX ERROR
             Result = make_other_error(Pointer,
                 "object is not a maybe_error/2 value")
         )
