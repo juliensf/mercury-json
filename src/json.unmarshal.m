@@ -170,22 +170,27 @@ add_values_and_counts(Pointer, [VC | VCs], Index, !.Bag, Result) :-
 
 int_from_json(Pointer, JValue) = Result :-
     ( if JValue = number(Number) then
-        % XXX check that Number does not have a fractional part.
-        Result = ok(round_to_int(Number))
+        ( if float.is_finite(Number) then
+            % XXX check that Number does not have a fractional part.
+            Result = ok(round_to_int(Number))
+        else
+            Result = make_non_finite_number_error(Pointer)
+        )
     else
         Result = make_value_type_mismatch_error(Pointer, "number", JValue)
     ).
 
-% XXX the following should all check for non-finite numbers *before*
-% attempting the conversion.
-
 int8_from_json(Pointer, JValue) = Result :-
     ( if JValue = number(Number) then
-        Int = truncate_to_int(Number),
-        ( if int8.from_int(Int, Int8) then
-            Result = ok(Int8)
+        ( if float.is_finite(Number) then
+            Int = truncate_to_int(Number),
+            ( if int8.from_int(Int, Int8) then
+                Result = ok(Int8)
+            else
+                Result = make_out_of_bounds_number_error(Pointer)
+            )
         else
-            Result = make_out_of_bounds_number_error(Pointer)
+            Result = make_non_finite_number_error(Pointer)
         )
     else
         Result = make_value_type_mismatch_error(Pointer, "number", JValue)
@@ -193,11 +198,15 @@ int8_from_json(Pointer, JValue) = Result :-
 
 int16_from_json(Pointer, JValue) = Result :-
     ( if JValue = number(Number) then
-        Int = truncate_to_int(Number),
-        ( if int16.from_int(Int, Int16) then
-            Result = ok(Int16)
+        ( if float.is_finite(Number) then
+            Int = truncate_to_int(Number),
+            ( if int16.from_int(Int, Int16) then
+                Result = ok(Int16)
+            else
+                Result = make_out_of_bounds_number_error(Pointer)
+            )
         else
-            Result = make_out_of_bounds_number_error(Pointer)
+            Result = make_non_finite_number_error(Pointer)
         )
     else
         Result = make_value_type_mismatch_error(Pointer, "number", JValue)
@@ -205,11 +214,15 @@ int16_from_json(Pointer, JValue) = Result :-
 
 int32_from_json(Pointer, JValue) = Result :-
     ( if JValue = number(Number) then
-        Int = truncate_to_int(Number),
-        ( if int32.from_int(Int, Int32) then
-            Result = ok(Int32)
+        ( if float.is_finite(Number) then
+            Int = truncate_to_int(Number),
+            ( if int32.from_int(Int, Int32) then
+                Result = ok(Int32)
+            else
+                Result = make_out_of_bounds_number_error(Pointer)
+            )
         else
-            Result = make_out_of_bounds_number_error(Pointer)
+            Result = make_non_finite_number_error(Pointer)
         )
     else
         Result = make_value_type_mismatch_error(Pointer, "number", JValue)
@@ -233,11 +246,15 @@ int64_from_json(Pointer, JValue) = Result :-
 
 uint8_from_json(Pointer, JValue) = Result :-
     ( if JValue = number(Number) then
-        Int = truncate_to_int(Number),
-        ( if uint8.from_int(Int, UInt8) then
-            Result = ok(UInt8)
+        ( if float.is_finite(Number) then
+            Int = truncate_to_int(Number),
+            ( if uint8.from_int(Int, UInt8) then
+                Result = ok(UInt8)
+            else
+                Result = make_out_of_bounds_number_error(Pointer)
+            )
         else
-            Result = make_out_of_bounds_number_error(Pointer)
+            Result = make_non_finite_number_error(Pointer)
         )
     else
         Result = make_value_type_mismatch_error(Pointer, "number", JValue)
@@ -245,11 +262,15 @@ uint8_from_json(Pointer, JValue) = Result :-
 
 uint16_from_json(Pointer, JValue) = Result :-
     ( if JValue = number(Number) then
-        Int = truncate_to_int(Number),
-        ( if uint16.from_int(Int, UInt16) then
-            Result = ok(UInt16)
+        ( if float.is_finite(Number) then
+            Int = truncate_to_int(Number),
+            ( if uint16.from_int(Int, UInt16) then
+                Result = ok(UInt16)
+            else
+                Result = make_out_of_bounds_number_error(Pointer)
+            )
         else
-            Result = make_out_of_bounds_number_error(Pointer)
+            Result = make_non_finite_number_error(Pointer)
         )
     else
         Result = make_value_type_mismatch_error(Pointer, "number", JValue)
@@ -273,7 +294,7 @@ uint64_from_json(Pointer, JValue) = Result :-
 
 float_from_json(Pointer, JValue) = Result :-
     ( if JValue = number(Number) then
-        ( if is_finite(Number) then
+        ( if float.is_finite(Number) then
             Result = ok(Number)
         else
             Result = make_non_finite_number_error(Pointer)

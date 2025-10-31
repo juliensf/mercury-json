@@ -84,7 +84,8 @@ test_unmarshaling(File, !IO) :-
 
 test_unmarshal_ints(File, !IO) :-
     do_unmarshal_test(File, null, _ : int, !IO),
-    do_unmarshal_test(File, string("Hello"), _ : int, !IO).
+    do_unmarshal_test(File, string("Hello"), _ : int, !IO),
+    do_unmarshal_test(File, number(float.infinity), _ : int, !IO).
 
 :- pred test_unmarshal_int8s(io.text_output_stream::in, io::di, io::uo)
     is det.
@@ -92,6 +93,7 @@ test_unmarshal_ints(File, !IO) :-
 test_unmarshal_int8s(File, !IO) :-
     do_unmarshal_test(File, null, _ : int8, !IO),
     do_unmarshal_test(File, string("Hello"), _ : int8, !IO),
+    do_unmarshal_test(File, number(float.infinity), _ : int8, !IO),
     do_unmarshal_test(File, number(-129.0), _ : int8, !IO),
     do_unmarshal_test(File, number(-128.0), _ : int8, !IO),
     do_unmarshal_test(File, number(0.0), _ : int8, !IO),
@@ -106,6 +108,7 @@ test_unmarshal_int8s(File, !IO) :-
 test_unmarshal_int16s(File, !IO) :-
     do_unmarshal_test(File, null, _ : int16, !IO),
     do_unmarshal_test(File, string("Hello"), _ : int16, !IO),
+    do_unmarshal_test(File, number(float.infinity), _ : int16, !IO),
     do_unmarshal_test(File, number(-32769.0), _ : int16, !IO),
     do_unmarshal_test(File, number(-32768.0), _ : int16, !IO),
     do_unmarshal_test(File, number(32767.0), _ : int16, !IO),
@@ -119,6 +122,7 @@ test_unmarshal_int16s(File, !IO) :-
 test_unmarshal_int32s(File, !IO) :-
     do_unmarshal_test(File, null, _ : int32, !IO),
     do_unmarshal_test(File, string("Hello"), _ : int32, !IO),
+    do_unmarshal_test(File, number(float.infinity), _ : int32, !IO),
     do_unmarshal_test(File, number(-2_147_483_649.0), _ : int32, !IO),
     do_unmarshal_test(File, number(-2_147_483_648.0), _ : int32, !IO),
     do_unmarshal_test(File, number(2_147_483_647.0), _ : int32, !IO),
@@ -146,6 +150,7 @@ test_unmarshal_int64s(File, !IO) :-
 test_unmarshal_uint8s(File, !IO) :-
     do_unmarshal_test(File, null, _ : uint8, !IO),
     do_unmarshal_test(File, string("Hello"), _ : uint8, !IO),
+    do_unmarshal_test(File, number(float.infinity), _ : uint8, !IO),
     do_unmarshal_test(File, number(-1.0), _ : uint8, !IO),
     do_unmarshal_test(File, number(0.0), _ : uint8, !IO),
     do_unmarshal_test(File, number(255.0), _ : uint8, !IO),
@@ -159,6 +164,7 @@ test_unmarshal_uint8s(File, !IO) :-
 test_unmarshal_uint16s(File, !IO) :-
     do_unmarshal_test(File, null, _ : uint16, !IO),
     do_unmarshal_test(File, string("Hello"), _ : uint16, !IO),
+    do_unmarshal_test(File, number(float.infinity), _ : uint16, !IO),
     do_unmarshal_test(File, number(-1.0), _ : uint16, !IO),
     do_unmarshal_test(File, number(0.0), _ : uint16, !IO),
     do_unmarshal_test(File, number(32767.0), _ : uint16, !IO),

@@ -6,6 +6,10 @@ JSON: "Hello"
 TYPE: int
 RESULT: ERROR: at root: conversion to int failed: expected number, have string
 
+JSON: infinity
+TYPE: int
+RESULT: ERROR: at root: conversion to int failed: non-finite number
+
 JSON: null
 TYPE: int8
 RESULT: ERROR: at root: conversion to int8 failed: expected number, have null
@@ -13,6 +17,10 @@ RESULT: ERROR: at root: conversion to int8 failed: expected number, have null
 JSON: "Hello"
 TYPE: int8
 RESULT: ERROR: at root: conversion to int8 failed: expected number, have string
+
+JSON: infinity
+TYPE: int8
+RESULT: ERROR: at root: conversion to int8 failed: non-finite number
 
 JSON: -129
 TYPE: int8
@@ -46,6 +54,10 @@ JSON: "Hello"
 TYPE: int16
 RESULT: ERROR: at root: conversion to int16 failed: expected number, have string
 
+JSON: infinity
+TYPE: int16
+RESULT: ERROR: at root: conversion to int16 failed: non-finite number
+
 JSON: -32769
 TYPE: int16
 RESULT: ERROR: at root: conversion to int16 failed: number is out-of-bounds for type
@@ -73,6 +85,10 @@ RESULT: ERROR: at root: conversion to int32 failed: expected number, have null
 JSON: "Hello"
 TYPE: int32
 RESULT: ERROR: at root: conversion to int32 failed: expected number, have string
+
+JSON: infinity
+TYPE: int32
+RESULT: ERROR: at root: conversion to int32 failed: non-finite number
 
 JSON: -2147483649
 TYPE: int32
@@ -134,6 +150,10 @@ JSON: "Hello"
 TYPE: uint8
 RESULT: ERROR: at root: conversion to uint8 failed: expected number, have string
 
+JSON: infinity
+TYPE: uint8
+RESULT: ERROR: at root: conversion to uint8 failed: non-finite number
+
 JSON: -1
 TYPE: uint8
 RESULT: ERROR: at root: conversion to uint8 failed: number is out-of-bounds for type
@@ -161,6 +181,10 @@ RESULT: ERROR: at root: conversion to uint16 failed: expected number, have null
 JSON: "Hello"
 TYPE: uint16
 RESULT: ERROR: at root: conversion to uint16 failed: expected number, have string
+
+JSON: infinity
+TYPE: uint16
+RESULT: ERROR: at root: conversion to uint16 failed: non-finite number
 
 JSON: -1
 TYPE: uint16
