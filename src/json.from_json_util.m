@@ -21,21 +21,63 @@
     % Unmarshal Value to a term of type V and then apply the function
     % ToType to that to yield a term of type T.
     %
+    % This is useful for writing from_json/1 instances for notag wrappers
+    % around primitive types. For example, the from_json/2 method for
+    % the following type:
+    %
+    %    :- type foo ---> foo(int)
+    %
+    % can be implemented as:
+    %
+    %    from_json(Pointer, Value) =
+    %      map_value_to_type(Pointer, Value, func(I) = foo(I)).
+    %
 :- func map_value_to_type(json.pointer, json.value,
     func(V) = T) = from_json_result(T) <= from_json(V).
 
+    % maybe_map_value_to_type(Pointer, Value, ToType) = Result:
+    %
+    % Unmarshal Value to a term of type V and the apply the predicate ToType to
+    % it which yields a term of type T if it succeeds and an error if it fails.
+    %
 :- func maybe_map_value_to_type(json.pointer::in, json.value::in,
     pred(V, T)::in(pred(in, out) is semidet))
     = (from_json_result(T)::out) is det <= from_json(V).
 
 %----------------------------------------------------------------------------%
 
-    % Like maybe_map_value_type, but can produce more precise errors.
+    % string_value_to_type(Pointer, Value, ToType) = Result:
+    %
+    % Unarmshal Value to a string and then apply the predicate ToType to it
+    % which yields a term of type T if it succeeds and an error if it fails.
+    %
+    % This is useful for writing from_json/1 instance for enumerations.
+    % For example, the from_json/2 method for the following type:
+    %
+    %    :- type fruit ---> apple ; orange ; lemon.
+    %
+    % can be implemented as:
+    %
+    %    from_json(Pointer, Value) =
+    %       string_value_to_type(Pointer, Value, string_to_fruit).
+    %
+    %    :- pred string_to_fruit(string::in, fruit::out is semidet.
+    %
+    %   string_to_fruit("apple",  apple).
+    %   string_to_fruit("orange", orange).
+    %   string_to_fruit("lemon",  lemon).
+    %
+    % (Note that maybe_map_value_to_type/3 could also be used to do this, but
+    % when the JSON values are strings, string_to_value_type will produce more
+    % precise error messages.)
     %
 :- func string_value_to_type(json.pointer::in, json.value::in,
     pred(string, T)::in(pred(in, out) is semidet))
     = (from_json_result(T)::out) is det.
 
+    % Similar to the above, but for the case where a JSON string value has
+    % already been unwrapped.
+    %
 :- func string_to_type(json.pointer::in, string::in,
     pred(string, T)::in(pred(in, out) is semidet))
     = (from_json_result(T)::out) is det.
