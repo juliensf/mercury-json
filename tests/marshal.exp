@@ -227,7 +227,7 @@ Result Term: bimap(four(apple, "Apple", orange, "Orange", lemon, "Lemon", empty,
 
  Orig. Term: nonempty_cord(branch_node(list_node(1, [2, 3]), list_node(5, [6, 7])))
        JSON: [1,2,3,5,6,7]
-Result Term: nonempty_cord(branch_node(branch_node(branch_node(branch_node(branch_node(unit_node(1), unit_node(2)), unit_node(3)), unit_node(5)), unit_node(6)), unit_node(7)))
+Result Term: nonempty_cord(branch_node(branch_node(branch_node(branch_node(branch_node(list_node(1, []), list_node(2, [])), list_node(3, [])), list_node(5, [])), list_node(6, [])), list_node(7, [])))
 
  Orig. Term: array([])
        JSON: []
