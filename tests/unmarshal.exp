@@ -464,11 +464,11 @@ RESULT: OK: digraph(0u, bimap(empty, empty), empty, empty)
 
 JSON: {"edges":[{"dest":"A","source":"C"}],"vertices":["A","B"]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: at /edges/0/source: conversion to digraph.digraph(string) failed: '"C"' is not in vertex set
+RESULT: ERROR: at /edges/0/source: conversion to digraph.digraph(string) failed: not in vertex set
 
 JSON: {"edges":[{"dest":"C","source":"A"}],"vertices":["A","B"]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: at /edges/0/dest: conversion to digraph.digraph(string) failed: '"C"' is not in vertex set
+RESULT: ERROR: at /edges/0/dest: conversion to digraph.digraph(string) failed: not in vertex set
 
 JSON: {"vertices":["A","B"]}
 TYPE: digraph.digraph(string)

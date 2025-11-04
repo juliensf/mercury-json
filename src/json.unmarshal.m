@@ -1303,16 +1303,14 @@ add_edges(Pointer, Index, [Edge | Edges], !.Digraph, Result) :-
             digraph.add_edge(SrcKey, DstKey, !Digraph),
             add_edges(Pointer, Index - 1, Edges, !.Digraph, Result)
         else
-            Msg = string.format("'%s' is not in vertex set", [s(string(Dst))]),
-            DstPointer =
-                append_token(append_int_token(Pointer, Index), "dest"),
-            Result = make_other_error(DstPointer, Msg)
+            DstPointer = append_token(
+                append_int_token(Pointer, Index), "dest"),
+            Result = make_other_error(DstPointer, "not in vertex set")
         )
     else
-        SrcPointer =
-            append_token(append_int_token(Pointer, Index), "source"),
-        Msg = string.format("'%s' is not in vertex set", [s(string(Src))]),
-        Result = make_other_error(SrcPointer, Msg)
+        SrcPointer = append_token(
+            append_int_token(Pointer, Index), "source"),
+        Result = make_other_error(SrcPointer, "not in vertex set")
     ).
 
 %-----------------------------------------------------------------------------%
