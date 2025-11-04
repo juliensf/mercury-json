@@ -264,7 +264,19 @@ test_unmarshal_rationals(File, !IO) :-
         "numer" - string("2"),
         "denom" - string("0")
     ]),
-    do_unmarshal_test(File, ZeroDenom, _ : rational, !IO).
+    do_unmarshal_test(File, ZeroDenom, _ : rational, !IO),
+
+    BadDenomType = json.det_make_object([
+        "numer" - string("2"),
+        "denom" - null
+    ]),
+    do_unmarshal_test(File, BadDenomType, _ : rational, !IO),
+
+    ValidRational = json.det_make_object([
+        "numer" - string("1"),
+        "denom" - string("2")
+    ]),
+    do_unmarshal_test(File, ValidRational, _ : rational, !IO).
 
 %-----------------------------------------------------------------------------%
 

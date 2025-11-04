@@ -334,6 +334,14 @@ JSON: {"denom":"0","numer":"2"}
 TYPE: rational.rational
 RESULT: ERROR: at /denom: conversion to rational.rational failed: zero denominator
 
+JSON: {"denom":null,"numer":"2"}
+TYPE: rational.rational
+RESULT: ERROR: at /denom: conversion to integer.integer failed: expected string, have null
+
+JSON: {"denom":"2","numer":"1"}
+TYPE: rational.rational
+RESULT: OK: r(i(1, [1]), i(1, [2]))
+
 JSON: null
 TYPE: bitmap.bitmap
 RESULT: ERROR: at root: conversion to bitmap.bitmap failed: expected string, have null
