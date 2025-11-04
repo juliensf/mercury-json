@@ -3,10 +3,10 @@
 %-----------------------------------------------------------------------------%
 % Copyright (C) 2013-2020, 2025 Julien Fischer.
 % See the file COPYING for license details.
+%-----------------------------------------------------------------------------%
 %
-% Author: Julien Fischer <juliens@gmail.com>
-%
-% This module implements unmarshaling of Mercury values from JSON.
+% This submodule implements unmarshaling of Mercury primitive and library types
+% from JSON.
 %
 %-----------------------------------------------------------------------------%
 

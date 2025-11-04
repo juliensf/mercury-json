@@ -5,8 +5,8 @@
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 %
-% This module provides string reader streams, which allow Mercury strings to be
-% used as a source of characters for character reader streams.
+% This submodule provides string reader streams. These allow Mercury strings to
+% be used as a source of characters for character reader streams.
 %
 %-----------------------------------------------------------------------------%
 

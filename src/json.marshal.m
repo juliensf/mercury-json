@@ -1,12 +1,12 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016, 2018, 2020 Julien Fischer.
+% Copyright (C) 2013-2016, 2018, 2020, 2025 Julien Fischer.
 % See the file COPYING for license details.
+%-----------------------------------------------------------------------------%
 %
-% Author: Julien Fischer <juliensf@gmail.com>
-%
-% This module implements marshaling of Mercury values to JSON.
+% This submodule implements the marshaling of Mercury primitive and library
+% types to JSON.
 %
 %-----------------------------------------------------------------------------%
 

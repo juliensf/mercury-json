@@ -3,8 +3,9 @@
 %-----------------------------------------------------------------------------%
 % Copyright (C) 2015-2019, 2025 Julien Fischer.
 % See the file COPYING for license details.
+%-----------------------------------------------------------------------------%
 %
-% This sub-module implements JSON pointer operations.
+% This submodule implements JSON pointer operations.
 %
 %-----------------------------------------------------------------------------%
 

@@ -3,8 +3,7 @@
 %-----------------------------------------------------------------------------%
 % Copyright (C) 2013-2016, 2018-2019, 2025 Julien Fischer.
 % See the file COPYING for license details.
-%
-% Author: Julien Fischer <juliensf@gmail.com>
+%-----------------------------------------------------------------------------%
 %
 % This module implements writing json.value/0 values to string and character
 % output streams.
