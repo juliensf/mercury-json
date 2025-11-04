@@ -36,12 +36,13 @@
 :- import_module maybe.
 :- import_module one_or_more.
 :- import_module pair.
+:- import_module rational.
 :- import_module rbtree.
 :- import_module set_bbbtree.
-:- import_module set_ordlist.
-:- import_module set_unordlist.
 :- import_module set_ctree234.
+:- import_module set_ordlist.
 :- import_module set_tree234.
+:- import_module set_unordlist.
 :- import_module type_desc.
 
 %-----------------------------------------------------------------------------%
@@ -60,6 +61,7 @@ test_unmarshaling(File, !IO) :-
     test_unmarshal_strings(File, !IO),
     test_unmarshal_bools(File, !IO),
     test_unmarshal_integers(File, !IO),
+    test_unmarshal_rationals(File, !IO),
     test_unmarshal_bitmaps(File, !IO),
     test_unmarshal_maybe(File, !IO),
     test_unmarshal_maybe_error(File, !IO),
@@ -232,6 +234,37 @@ test_unmarshal_integers(File, !IO) :-
         !IO),
     do_unmarshal_test(File, string("-123456789123456789123456"), _ : integer,
         !IO).
+%-----------------------------------------------------------------------------%
+
+:- pred test_unmarshal_rationals(io.text_output_stream::in, io::di, io::uo)
+    is det.
+
+test_unmarshal_rationals(File, !IO) :-
+    do_unmarshal_test(File, null, _ : rational, !IO),
+    do_unmarshal_test(File, string("Hello"), _ : rational, !IO),
+
+    MissingNumerField = json.det_make_object([
+        "foo" - int(1),
+        "denom" - string("123")
+    ]),
+    do_unmarshal_test(File, MissingNumerField, _ : rational, !IO),
+
+    MissingDenomField = json.det_make_object([
+        "numer" - string("123")
+    ]),
+    do_unmarshal_test(File, MissingDenomField, _ : rational, !IO),
+
+    MissingBothFields = json.det_make_object([
+        "foo" - int(1),
+        "bar" - int(2)
+    ]),
+    do_unmarshal_test(File, MissingBothFields, _ : rational, !IO),
+
+    ZeroDenom = json.det_make_object([
+        "numer" - string("2"),
+        "denom" - string("0")
+    ]),
+    do_unmarshal_test(File, ZeroDenom, _ : rational, !IO).
 
 %-----------------------------------------------------------------------------%
 

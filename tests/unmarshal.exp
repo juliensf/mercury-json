@@ -311,6 +311,30 @@ TYPE: integer.integer
 RESULT: OK: -123456789123456789123456
 
 JSON: null
+TYPE: rational.rational
+RESULT: ERROR: at root: conversion to rational.rational failed: expected object, have null
+
+JSON: "Hello"
+TYPE: rational.rational
+RESULT: ERROR: at root: conversion to rational.rational failed: expected object, have string
+
+JSON: {"denom":"123","foo":1}
+TYPE: rational.rational
+RESULT: ERROR: at root: conversion to rational.rational failed: object has no member named "numer"
+
+JSON: {"numer":"123"}
+TYPE: rational.rational
+RESULT: ERROR: at root: conversion to rational.rational failed: object has no member named "denom"
+
+JSON: {"bar":2,"foo":1}
+TYPE: rational.rational
+RESULT: ERROR: at root: conversion to rational.rational failed: object has no members named "numer" and "denom"
+
+JSON: {"denom":"0","numer":"2"}
+TYPE: rational.rational
+RESULT: ERROR: at /denom: conversion to rational.rational failed: zero denominator
+
+JSON: null
 TYPE: bitmap.bitmap
 RESULT: ERROR: at root: conversion to bitmap.bitmap failed: expected string, have null
 

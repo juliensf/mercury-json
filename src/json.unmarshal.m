@@ -755,46 +755,76 @@ version_array_from_json(Pointer, Value) = Result :-
 
 rational_from_json(Pointer, JValue) = Result :-
     ( if JValue = object(Object) then
-        ( if
-            map.search(Object, "numer", NumeratorValue)
-        then
-            ( if
-                map.search(Object, "denom", DenominatorValue)
-            then
-                NumeratorPointer = append_token(Pointer, "numer"),
-                MaybeNumerator = integer_from_json(NumeratorPointer,
-                    NumeratorValue),
-                (
-                    MaybeNumerator = ok(Numerator),
-                    DenominatorPointer = append_token(Pointer, "denom"),
-                    MaybeDenominator = integer_from_json(DenominatorPointer,
-                        DenominatorValue),
-                    (
-                        MaybeDenominator = ok(Denominator),
-                        ( if integer.is_zero(Denominator) then
-                            Result = make_other_error(Pointer,
-                                "zero denominator")
-                        else
-                            Rational = rational.from_integers(Numerator,
-                                Denominator),
-                            Result = ok(Rational)
-                        )
-                    ;
-                        MaybeDenominator = error(Error),
-                        Result = error(Error)
-                    )
-                ;
-                    MaybeNumerator = error(Error),
-                    Result = error(Error)
-                )
-            else
-                Result = make_missing_member_error(Pointer, "denom")
-            )
-        else
-            Result = make_missing_member_error(Pointer, "numer")
-        )
+        Result = rational_from_object(Pointer, Object)
     else
         Result = make_value_type_mismatch_error(Pointer, "object", JValue)
+    ).
+
+:- func rational_from_object(pointer, object) = from_json_result(rational).
+
+rational_from_object(Pointer, Object) = Result :-
+    ( if
+        map.search(Object, "numer", JNumeratorValue)
+    then
+        MaybeNumerator = yes(JNumeratorValue)
+    else
+        MaybeNumerator = no
+    ),
+    ( if
+        map.search(Object, "denom", JDenominatorValue)
+    then
+        MaybeDenominator = yes(JDenominatorValue)
+    else
+        MaybeDenominator = no
+    ),
+    (
+        MaybeNumerator = no,
+        MaybeDenominator = no,
+        Result = make_missing_members_error(Pointer,
+            one_or_more("numer", ["denom"]))
+    ;
+        MaybeNumerator = yes(_),
+        MaybeDenominator = no,
+        Result = make_missing_member_error(Pointer, "denom")
+    ;
+        MaybeNumerator = no,
+        MaybeDenominator = yes(_),
+        Result = make_missing_member_error(Pointer, "numer")
+    ;
+        MaybeNumerator = yes(NumeratorValue),
+        MaybeDenominator = yes(DenominatorValue),
+        Result = rational_from_numer_and_denom(Pointer, NumeratorValue,
+            DenominatorValue)
+    ).
+
+:- func rational_from_numer_and_denom(pointer, value, value) =
+    from_json_result(rational).
+
+rational_from_numer_and_denom(Pointer, NumeratorValue, DenominatorValue)
+        = Result :-
+    NumeratorPointer = append_token(Pointer, "numer"),
+    MaybeNumerator = integer_from_json(NumeratorPointer, NumeratorValue),
+    (
+        MaybeNumerator = ok(Numerator),
+        DenominatorPointer = append_token(Pointer, "denom"),
+        MaybeDenominator = integer_from_json(DenominatorPointer,
+            DenominatorValue),
+        (
+            MaybeDenominator = ok(Denominator),
+            ( if integer.is_zero(Denominator) then
+                Result = make_other_error(DenominatorPointer,
+                    "zero denominator")
+            else
+                Rational = rational.from_integers(Numerator, Denominator),
+                Result = ok(Rational)
+            )
+        ;
+            MaybeDenominator = error(Error),
+            Result = error(Error)
+        )
+    ;
+        MaybeNumerator = error(Error),
+        Result = error(Error)
     ).
 
 %-----------------------------------------------------------------------------%
