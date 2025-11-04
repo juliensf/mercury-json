@@ -432,19 +432,19 @@ RESULT: OK: digraph(0u, bimap(empty, empty), empty, empty)
 
 JSON: {"edges":[{"dest":"A","source":"C"}],"vertices":["A","B"]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: '"C"' is not in vertex set
+RESULT: ERROR: at /edges/0/source: conversion to digraph.digraph(string) failed: '"C"' is not in vertex set
 
 JSON: {"edges":[{"dest":"C","source":"A"}],"vertices":["A","B"]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: '"C"' is not in vertex set
+RESULT: ERROR: at /edges/0/dest: conversion to digraph.digraph(string) failed: '"C"' is not in vertex set
 
 JSON: {"vertices":["A","B"]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: object is not a digraph/1
+RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: object has no member named "edges"
 
 JSON: {"edges":[{"dest":"C","source":"A"}]}
 TYPE: digraph.digraph(string)
-RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: object is not a digraph/1
+RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: object has no member named "vertices"
 
 JSON: null
 TYPE: digraph.digraph(string)

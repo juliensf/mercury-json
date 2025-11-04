@@ -1159,41 +1159,65 @@ pqueue_from_json(Pointer, Value) = Result :-
 
 digraph_from_json(Pointer, Value) = Result :-
     ( if Value = object(Object) then
-        ( if
-            map.search(Object, "vertices", VerticesValue),
-            map.search(Object, "edges", EdgesValue)
-        then
-            VerticesPointer = append_token(Pointer, "vertices"),
-            MaybeVertices = vertex_list_from_json(VerticesPointer,
-                VerticesValue),
-            (
-                MaybeVertices = ok(Vertices),
-                EdgesPointer = append_token(Pointer, "edges"),
-                MaybeEdges = edge_list_from_json(EdgesPointer, EdgesValue),
-                (
-                    MaybeEdges = ok(Edges),
-                    some [!Digraph] (
-                        digraph.init(!:Digraph),
-                        AddVertex = (pred(V::in, !.DG::in, !:DG::out) is det :-
-                            digraph.add_vertex(V, _, !DG)
-                        ),
-                        list.foldl(AddVertex, Vertices, !Digraph),
-                        add_edges(Pointer, Edges, !.Digraph, Result)
-                    )
-                ;
-                    MaybeEdges = error(Msg),
-                    Result = error(Msg)
-                )
-            ;
-                MaybeVertices = error(Msg),
-                Result = error(Msg)
-            )
-        else
-            % XXX handle members separately.
-            Result = make_other_error(Pointer, "object is not a digraph/1")
-        )
+        Result = digraph_from_object(Pointer, Object)
     else
         Result = make_value_type_mismatch_error(Pointer, "object", Value)
+    ).
+
+:- func digraph_from_object(pointer, object) = from_json_result(digraph(T))
+    <= from_json(T).
+
+digraph_from_object(Pointer, Object) = Result :-
+    ( if map.search(Object, "vertices", JVertices) then
+        MaybeVertices = yes(JVertices)
+    else
+        MaybeVertices = no
+    ),
+    ( if map.search(Object, "edges", JEdges) then
+        MaybeEdges = yes(JEdges)
+    else
+        MaybeEdges = no
+    ),
+    (
+        MaybeVertices = no,
+        MaybeEdges = no,
+        % XXX ERROR
+        Result = make_other_error(Pointer,
+            "missing members 'vertices' and 'edges'")
+    ;
+        MaybeVertices = no,
+        MaybeEdges = yes(_),
+        Result = make_missing_member_error(Pointer, "vertices")
+    ;
+        MaybeVertices = yes(_),
+        MaybeEdges = no,
+        Result = make_missing_member_error(Pointer, "edges")
+    ;
+        MaybeVertices = yes(Vertices),
+        MaybeEdges = yes(Edges),
+        Result = digraph_from_vertices_and_edges(Pointer, Vertices, Edges)
+    ).
+
+:- func digraph_from_vertices_and_edges(pointer, value, value) =
+    from_json_result(digraph(T)) <= from_json(T).
+
+digraph_from_vertices_and_edges(Pointer, JVertices, JEdges) = Result :-
+    VerticesPointer = append_token(Pointer, "vertices"),
+    MaybeVertexList = vertex_list_from_json(VerticesPointer, JVertices),
+    (
+        MaybeVertexList = ok(VertexList),
+        EdgesPointer = append_token(Pointer, "edges"),
+        MaybeEdgeList = edge_list_from_json(EdgesPointer, JEdges),
+        (
+            MaybeEdgeList = ok(EdgeList),
+            Result = build_digraph(Pointer, VertexList, EdgeList)
+        ;
+            MaybeEdgeList = error(Error),
+            Result = error(Error)
+        )
+    ;
+        MaybeVertexList = error(Error),
+        Result = error(Error)
     ).
 
 :- func vertex_list_from_json(pointer, value) = from_json_result(list(T))
@@ -1224,24 +1248,42 @@ edge_list_from_json(Pointer, Value) = Result :-
         Result = make_value_type_mismatch_error(Pointer, "array", Value)
     ).
 
-    % XXX ERROR
-:- pred add_edges(pointer::in, list(pair(T))::in, digraph(T)::in,
+:- func build_digraph(pointer, list(T), list(pair(T)))
+    = from_json_result(digraph(T)).
+
+build_digraph(Pointer, Vertices, Edges) = Result :-
+    some [!Digraph] (
+        digraph.init(!:Digraph),
+        AddVertex = (pred(V::in, !.DG::in, !:DG::out) is det :-
+            digraph.add_vertex(V, _, !DG)
+        ),
+        list.foldl(AddVertex, Vertices, !Digraph),
+        EdgesPointer = append_token(Pointer, "edges"),
+        list.length(Edges, NumEdges),
+        add_edges(EdgesPointer, NumEdges - 1, Edges, !.Digraph, Result)
+    ).
+
+:- pred add_edges(pointer::in, int::in, list(pair(T))::in, digraph(T)::in,
     from_json_result(digraph(T))::out) is det.
 
-add_edges(_, [], Digraph, ok(Digraph)).
-add_edges(Pointer, [Edge | Edges], !.Digraph, Result) :-
+add_edges(_, _, [], Digraph, ok(Digraph)).
+add_edges(Pointer, Index, [Edge | Edges], !.Digraph, Result) :-
     Edge = Src - Dst,
     ( if digraph.search_key(!.Digraph, Src, SrcKey) then
         ( if digraph.search_key(!.Digraph, Dst, DstKey) then
             digraph.add_edge(SrcKey, DstKey, !Digraph),
-            add_edges(Pointer, Edges, !.Digraph, Result)
+            add_edges(Pointer, Index - 1, Edges, !.Digraph, Result)
         else
             Msg = string.format("'%s' is not in vertex set", [s(string(Dst))]),
-            Result = make_other_error(Pointer, Msg)
+            DstPointer =
+                append_token(append_int_token(Pointer, Index), "dest"),
+            Result = make_other_error(DstPointer, Msg)
         )
     else
+        SrcPointer =
+            append_token(append_int_token(Pointer, Index), "source"),
         Msg = string.format("'%s' is not in vertex set", [s(string(Src))]),
-        Result = make_other_error(Pointer, Msg)
+        Result = make_other_error(SrcPointer, Msg)
     ).
 
 %-----------------------------------------------------------------------------%
