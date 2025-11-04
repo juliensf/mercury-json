@@ -3,6 +3,7 @@
 %-----------------------------------------------------------------------------%
 % Copyright (C) 2014-2016, 2020, 2025 Julien Fischer.
 % See the file COPYING for license details.
+%-----------------------------------------------------------------------------%
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
