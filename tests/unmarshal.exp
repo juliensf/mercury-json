@@ -446,6 +446,10 @@ JSON: {"edges":[{"dest":"C","source":"A"}]}
 TYPE: digraph.digraph(string)
 RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: object has no member named "vertices"
 
+JSON: {"bar":[],"foo":[]}
+TYPE: digraph.digraph(string)
+RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: object has no members named "vertices" and "edges"
+
 JSON: null
 TYPE: digraph.digraph(string)
 RESULT: ERROR: at root: conversion to digraph.digraph(string) failed: expected object, have null

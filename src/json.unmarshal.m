@@ -1181,9 +1181,8 @@ digraph_from_object(Pointer, Object) = Result :-
     (
         MaybeVertices = no,
         MaybeEdges = no,
-        % XXX ERROR
-        Result = make_other_error(Pointer,
-            "missing members 'vertices' and 'edges'")
+        Result = make_missing_members_error(Pointer,
+            one_or_more("vertices", ["edges"]))
     ;
         MaybeVertices = no,
         MaybeEdges = yes(_),

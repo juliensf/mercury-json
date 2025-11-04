@@ -445,6 +445,14 @@ test_unmarshal_digraphs(File, !IO) :-
                         ])
             ]), _ : digraph(string), !IO),
 
+    % Missing both 'vertices' and 'edges' members.
+    %
+    do_unmarshal_test(File,
+        json.det_make_object([
+            "foo" - array([]),
+            "bar" - array([])
+            ]), _ : digraph(string), !IO),
+
     % Value is not an object.
     %
     do_unmarshal_test(File,

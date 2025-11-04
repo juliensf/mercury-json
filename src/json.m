@@ -1124,8 +1124,8 @@
             )
     ;       from_string_failed(string)
 
-    ;       missing_member(
-                missing_member :: string
+    ;       missing_members(
+                missing_members :: one_or_more(string)
             )
     ;       conflicting_members(string, string)
     ;       out_of_bounds_number
@@ -1795,10 +1795,25 @@ from_json_error_to_string(Error) = String :-
             "at %s: conversion from string to %s failed: have \"%s\"",
             [s(PointerDesc), s(TypeName), s(FailString)], String)
     ;
-        ErrorDesc = missing_member(MissingMemberName),
-        string.format(
-            "at %s: conversion to %s failed: object has no member named \"%s\"",
-            [s(PointerDesc), s(TypeName), s(MissingMemberName)], String)
+        ErrorDesc = missing_members(MissingMemberNames),
+        MissingMemberNames = one_or_more(FirstMissing, RestMissing),
+        (
+            RestMissing = [],
+            string.format(
+                "at %s: conversion to %s failed: object has no member named \"%s\"",
+                [s(PointerDesc), s(TypeName), s(FirstMissing)], String)
+        ;
+            RestMissing = [_ | _],
+            QuotedRestMissing = list.map(add_quotes, RestMissing),
+            list.det_split_last(QuotedRestMissing, InitialRestMissing,
+                LastMissing),
+            MissingStart = string.join_list(", ",
+                [add_quotes(FirstMissing) | InitialRestMissing]),
+            string.format(
+"at %s: conversion to %s failed: object has no members named %s and %s",
+                [s(PointerDesc), s(TypeName), s(MissingStart), s(LastMissing)],
+                String)
+        )
     ;
         ErrorDesc = conflicting_members(Member1, Member2),
         string.format(
@@ -1827,6 +1842,10 @@ describe_pointer(Pointer) =
     else
         pointer_to_string(Pointer)
     ).
+
+:- func add_quotes(string) = string.
+
+add_quotes(S) = string.format("\"%s\"", [s(S)]).
 
 %-----------------------------------------------------------------------------%
 
