@@ -48,8 +48,9 @@
 
     % string_value_to_type(Pointer, Value, ToType) = Result:
     %
-    % Unarmshal Value to a string and then apply the predicate ToType to it
-    % which yields a term of type T if it succeeds and an error if it fails.
+    % Unarmshal Value to a string and then apply the predicate ToType to that
+    % to yield a term of type T if ToType succeeds and an error if ToType
+    % fails.
     %
     % This is useful for writing from_json/1 instance for enumerations.
     % For example, the from_json/2 method for the following type:
@@ -68,8 +69,8 @@
     %   string_to_fruit("lemon",  lemon).
     %
     % (Note that maybe_map_value_to_type/3 could also be used to do this, but
-    % when the JSON values are strings, string_to_value_type will produce more
-    % precise error messages.)
+    % when the JSON values are strings, string_to_value_type/3 will produce
+    % more precise error messages.)
     %
 :- func string_value_to_type(json.pointer::in, json.value::in,
     pred(string, T)::in(pred(in, out) is semidet))
@@ -83,6 +84,27 @@
     = (from_json_result(T)::out) is det.
 
 %----------------------------------------------------------------------------%
+
+% The functions in this section lookup members in a JSON object and then use a
+% supplied function to combine the unmarshaled values of those members into a
+% Mercury term. This is useful for writing from_json/1 instances for
+% record-like types. For example, the from_json/2 method for the following
+% type:
+%
+%   :- type book
+%       --->    book(
+%                   title     :: string,
+%                   author    :: string,
+%                   publisher :: string,
+%               ).
+%
+% can be implemented as follows:
+%
+%   from_json(Pointer, Value) =
+%       object_value_to_type3(Pointer, Value, "title", "author", "publisher",
+%           func(T, A, P) = book(T, A, P)).
+%
+% This module provide functions for handling object with one to six members.
 
 :- func object_value_to_type(json.pointer, json.value, string, func(M) = T)
     = from_json_result(T) <= from_json(M).
@@ -114,6 +136,12 @@
 
 %----------------------------------------------------------------------------%
 
+% The functions in this section are similar to those in the previous section,
+% except that the JSON object has already been unwrapped. These functions are
+% useful when umarshaling values of discriminated union types with more than on
+% alternative. For such, types you usually need to check the value of
+% discriminator member in the JSON, to determine which members to examine.
+
 :- func object_to_type(json.pointer, json.object, string,
     func(M1) = T) = from_json_result(T) <= from_json(M1).
 
@@ -143,6 +171,9 @@
         from_json(M5), from_json(M6)).
 
 %----------------------------------------------------------------------------%
+%
+% Functions to construct erroneous from_json results.
+%
 
 :- func make_value_type_mismatch_error(pointer, string, json.value)
     = from_json_result(T).
