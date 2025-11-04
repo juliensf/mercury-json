@@ -31,6 +31,7 @@
 :- implementation.
 
 :- import_module json.
+:- import_module json.from_json_util.
 
 :- import_module list.
 :- import_module map.
@@ -50,13 +51,14 @@ main(!IO) :-
         MaybeJMessage = json.maybe_from_string(Response),
         (
             MaybeJMessage = ok(JMessage),
-            MaybeMessage = json.from_json(JMessage),
+            MaybeMessage = json.to_type(JMessage),
             (
                 MaybeMessage = ok(Message),
                 print_message(Message, !IO)
             ;
                 MaybeMessage = error(ConvError),
-                report_error(ConvError ++ "\n", !IO)
+                ConvErrorMsg = from_json_error_to_string(ConvError),
+                report_error(ConvErrorMsg ++ "\n", !IO)
             )
         ;
             MaybeJMessage = error(Context, ErrorDesc),
@@ -72,7 +74,7 @@ main(!IO) :-
 
 :- type message
     --->    message(
-                page :: page,
+                page   :: page,
                 status :: status
             ).
 
@@ -92,74 +94,50 @@ main(!IO) :-
             ).
 
 :- instance from_json(message) where [
-    func(from_json/1) is message_from_json
+    func(from_json/2) is message_from_json
 ].
 
 :- instance from_json(page) where [
-    func(from_json/1) is page_from_json
+    func(from_json/2) is page_from_json
 ].
 
 :- instance from_json(status) where [
-    func(from_json/1) is status_from_json
+    func(from_json/2) is status_from_json
 ].
 
-:- func message_from_json(json.value) = maybe_error(message).
+:- func message_from_json(json.pointer, json.value)
+    = from_json_result(message).
 
-message_from_json(Value) = MaybeMessage :-
-    ( if
-        json.get_object(Value, Object),
-        map.search(Object, "page", PageValue),
-        map.search(Object, "status", StatusValue)
-    then
-        MaybePage = from_json(PageValue),
-        MaybeStatus = from_json(StatusValue),
-        (
-            MaybePage = ok(Page),
-            MaybeStatus = ok(Status),
-            Message = message(Page, Status),
-            MaybeMessage = ok(Message)
-        ;
-            MaybePage = ok(_),
-            MaybeStatus = error(StatusError),
-            MaybeMessage = error(StatusError)
-        ;
-            MaybePage = error(PageError),
-            MaybeStatus = ok(_),
-            MaybeMessage = error(PageError)
-        ;
-            MaybePage = error(PageError),
-            MaybeStatus = error(_StatusError),
-            MaybeMessage = error(PageError)
-        )
-    else
-        MaybeMessage = error("message is not a JSON object")
-    ).
+message_from_json(Pointer, Value) =
+    object_value_to_type2(Pointer, Value, "page", "status",
+        func(P, S) = message(P, S)).
 
-:- func page_from_json(json.value) = maybe_error(page).
+:- func page_from_json(json.pointer, json.value) = from_json_result(page).
 
-page_from_json(Value) = MaybePage :-
-    ( if json.get_object(Value, Object) then
+page_from_json(Pointer, Value) = Result :-
+    ( if Value = object(Object) then
         Id = json.search_string(Object, "id", ""),
         Name = json.search_string(Object, "name", ""),
         URL = json.search_string(Object, "url", ""),
         TimeZone = json.search_string(Object, "time_zone", ""),
         UpdatedAt = json.search_string(Object, "updated_at", ""),
         Page = page(Id, Name, URL, TimeZone, UpdatedAt),
-        MaybePage = ok(Page)
+        Result = ok(Page)
     else
-        MaybePage = error("page is not a JSON object")
+        Result = make_value_type_mismatch_error(Pointer, "object",
+            Value)
     ).
 
-:- func status_from_json(json.value) = maybe_error(status).
+:- func status_from_json(json.pointer, json.value) = from_json_result(status).
 
-status_from_json(Value) = MaybeStatus :-
-    ( if json.get_object(Value, Object) then
+status_from_json(Pointer, Value) = Result :-
+    ( if Value = object(Object) then
         Indicator = json.search_string(Object, "indicator", ""),
         Description = json.search_string(Object, "description", ""),
         Status = status(Indicator, Description),
-        MaybeStatus = ok(Status)
+        Result = ok(Status)
     else
-        MaybeStatus = error("status is not a JSON object")
+        Result = make_value_type_mismatch_error(Pointer, "object", Value)
     ).
 
 %---------------------------------------------------------------------------%
