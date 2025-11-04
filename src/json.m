@@ -1118,21 +1118,46 @@
                 % A description of the error.
             ).
 
+    % Values of this type describe why converting a JSON value into a
+    % Mercury term of the required type has failed.
+    %
 :- type from_json_error_desc
     --->    value_type_mismatch(
-                expected_value_types :: one_or_more(string),
-                have_value_type      :: string
+                expected_types :: one_or_more(string),
+                have_type      :: string
             )
+            % The JSON value was expected to be one of the types listed in the
+            % first agument, but instead is the type given by the second
+            % argument.
+
     ;       from_string_failed(string)
+            % Conversion from a string failed because that string was not
+            % a valid representation of a value of the Mercury type.
 
     ;       missing_members(
                 missing_members :: one_or_more(string)
             )
-    ;       conflicting_members(string, string)
-    ;       out_of_bounds_number
-    ;       non_finite_number
-    ;       other(string).
+            % Conversion failed because the JSON value is an object that does
+            % not contain the members named by the argument.
 
+    ;       conflicting_members(string, string)
+            % Conversion failed because the JSON value is an object that is
+            % required to contain only one, but not both, of the members
+            % named by the arguments.
+
+    ;       out_of_bounds_number
+            % Conversion failed because a JSON number exceeds the bounds of
+            % a Mercury numeric type.
+
+    ;       non_finite_number
+            % Conversion failed because a JSON number is infinity or
+            % not-a-number value.
+
+    ;       other(string).
+            % Conversion failed the reason given by the argument.
+
+    % Convert a from_json_error into an error message.
+    %
 :- func from_json_error_to_string(from_json_error) = string.
 
 :- instance from_json(bag(T)) <= from_json(T).
