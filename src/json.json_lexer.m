@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2018, 2020, 2022-2025 Julien Fischer.
+% Copyright (C) 2013-2018, 2020, 2022-2026 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -797,7 +797,7 @@ get_frac(Reader, Where, Buffer, Result, !State) :-
             ( Char = 'e'
             ; Char = 'E'
             ),
-            % There must be a least on digit before the exponent
+            % There must be a least one digit before the exponent
             % indicator. We cannot have literals of the form "10.e30".
             Where = frac_digit
         then

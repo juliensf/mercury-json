@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %----------------------------------------------------------------------------%
-% Copyright (C) 2025 Julien Fischer.
+% Copyright (C) 2025-2026 Julien Fischer.
 % See the file COPYING for license details.
 %----------------------------------------------------------------------------%
 %
@@ -48,7 +48,7 @@
 
     % string_value_to_type(Pointer, Value, ToType) = Result:
     %
-    % Unarmshal Value to a string and then apply the predicate ToType to that
+    % Unmarshal Value to a string and then apply the predicate ToType to that
     % to yield a term of type T if ToType succeeds and an error if ToType
     % fails.
     %
@@ -104,7 +104,7 @@
 %       object_value_to_type3(Pointer, Value, "title", "author", "publisher",
 %           func(T, A, P) = book(T, A, P)).
 %
-% This module provide functions for handling object with one to six members.
+% This module provides functions for handling object with one to six members.
 
 :- func object_value_to_type(json.pointer, json.value, string, func(M) = T)
     = from_json_result(T) <= from_json(M).
@@ -138,8 +138,8 @@
 
 % The functions in this section are similar to those in the previous section,
 % except that the JSON object has already been unwrapped. These functions are
-% useful when umarshaling values of discriminated union types with more than on
-% alternative. For such, types you usually need to check the value of
+% useful when unmarshaling values of discriminated union types with more than
+% one alternative. For such types, you usually need to check the value of
 % discriminator member in the JSON, to determine which members to examine.
 
 :- func object_to_type(json.pointer, json.object, string,

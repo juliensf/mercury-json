@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2014, 2018, 2020, 2023, 2025 Julien Fischer.
+% Copyright (C) 2013-2014, 2018, 2020, 2023, 2025-2026 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 %
@@ -35,7 +35,7 @@
 
     % An error type for string reader streams.
     % String readers cannot ever return errors, but instances of the stream
-    % type classes need to provide one.
+    % type classes need to provide an error type.
     %
 :- type string_reader_error
      --->   string_reader_error.
@@ -221,7 +221,7 @@ where [
                 CodePoint),
             store.set_mutvar(MutableInfoVar, MutableInfo, !State)
         else
-            unexpected($file, $pred, "multiple level of putback")
+            unexpected($file, $pred, "multiple levels of putback")
         )
     )
 ].

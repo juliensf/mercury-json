@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2025 Julien Fischer.
+% Copyright (C) 2013-2026 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 %
@@ -172,7 +172,7 @@
     %
     % Lookup MemberName in Object and return the underlying value if it is a
     % JSON value of the type specified by the predicate name.
-    % If MemberName is not a member of Object, or if it's value is null, then
+    % If MemberName is not a member of Object, or if its value is null, then
     % return DefaultValue.
     % Calls error/1 if the member value is not a JSON value of the type
     % specified by the predicate name or null.
@@ -1127,7 +1127,7 @@
                 have_type      :: string
             )
             % The JSON value was expected to be one of the types listed in the
-            % first agument, but instead is the type given by the second
+            % first argument, but instead is the type given by the second
             % argument.
 
     ;       from_string_failed(string)
@@ -1217,7 +1217,7 @@
     % Return a string describing JSON value given by the argument.
     %
     % The string returned will be one of: "null", "Boolean", "number",
-    % "string, "array" or "object.
+    % "string", "array" or "object.
     %
 :- func to_value_desc(json.value) = string.
 
