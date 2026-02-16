@@ -104,7 +104,7 @@
 %       object_value_to_type3(Pointer, Value, "title", "author", "publisher",
 %           func(T, A, P) = book(T, A, P)).
 %
-% This module provides functions for handling object with one to six members.
+% This module provides functions for handling objects with one to six members.
 
 :- func object_value_to_type(json.pointer, json.value, string, func(M) = T)
     = from_json_result(T) <= from_json(M).
