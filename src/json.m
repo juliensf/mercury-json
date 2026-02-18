@@ -142,7 +142,7 @@
     % Lookup MemberName in Object and return the underlying value if it is a
     % JSON value of the type specified by the predicate name.
     % Calls error/1 if MemberName is not a member of Object or if the member
-    % value is not a JSON value of the type specified by the predicate name.
+    % value is not a JSON value of the type specified by the function name.
     %
 :- func lookup_bool(object, string) = bool.
 :- func lookup_string(object, string) = string.
@@ -723,9 +723,10 @@
 :- mode array_fold(in, in(pred(in, in, out) is cc_multi),
     in, out, di, uo) is cc_multi.
 
-    % array_fold(Reader, Pred, InitialAcc, Result, !State):
+    % array_fold_state(Reader, Pred, InitialAcc, Result, !State):
     %
-    % Similar to array_fold/6, except that !State is also passed to Pred.
+    % Similar to array_fold/6, except that the stream state !State is also
+    % passed to Pred.
     %
 :- pred array_fold_state(json.reader(Stream),
     pred(json.value, A, A, State, State),
@@ -1154,7 +1155,7 @@
             % not-a-number value.
 
     ;       other(string).
-            % Conversion failed the reason given by the argument.
+            % Conversion failed for the reason given by the argument.
 
     % Convert a from_json_error into an error message.
     %
@@ -1217,7 +1218,7 @@
     % Return a string describing JSON value given by the argument.
     %
     % The string returned will be one of: "null", "Boolean", "number",
-    % "string", "array" or "object.
+    % "string", "array" or "object".
     %
 :- func to_value_desc(json.value) = string.
 
@@ -2199,14 +2200,14 @@ search_int(Object, Member, Default) = Int :-
 
 %-----------------------------------------------------------------------------%
 
-search_bool_or_null(Object, Member, Default) = String :-
+search_bool_or_null(Object, Member, Default) = Bool :-
     ( if
         map.search(Object, Member, Value),
         Value \= null
     then
-        String = det_get_bool(Value)
+        Bool = det_get_bool(Value)
     else
-        String = Default
+        Bool = Default
     ).
 
 search_string_or_null(Object, Member, Default) = String :-
@@ -2219,14 +2220,14 @@ search_string_or_null(Object, Member, Default) = String :-
         String = Default
     ).
 
-search_number_or_null(Object, Member, Default) = String :-
+search_number_or_null(Object, Member, Default) = Number :-
     ( if
         map.search(Object, Member, Value),
         Value \= null
     then
-        String = det_get_number(Value)
+        Number = det_get_number(Value)
     else
-        String = Default
+        Number = Default
     ).
 
 search_object_or_null(Object, Member, Default) = ObjectPrime :-
@@ -2249,14 +2250,14 @@ search_array_or_null(Object, Member, Default) = Array :-
         Array = Default
     ).
 
-search_int_or_null(Object, Member, Default) = String :-
+search_int_or_null(Object, Member, Default) = Int :-
     ( if
         map.search(Object, Member, Value),
         Value \= null
     then
-        String = det_get_int(Value)
+        Int = det_get_int(Value)
     else
-        String = Default
+        Int = Default
     ).
 
 %-----------------------------------------------------------------------------%
