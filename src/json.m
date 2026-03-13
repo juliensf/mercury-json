@@ -2110,14 +2110,14 @@ det_get_array(Value) =
     ( if get_array(Value, Array) then
         Array
     else
-        unexpected_type_error("json.get_array", "array", Value)
+        unexpected_type_error("json.det_get_array", "array", Value)
     ).
 
 det_get_int(Value) =
     ( if get_int(Value, Int) then
         Int
     else
-        unexpected_type_error("json.get_int", "number", Value)
+        unexpected_type_error("json.det_get_int", "number", Value)
     ).
 
 :- func unexpected_type_error(string, string, json.value) = _ is erroneous.
