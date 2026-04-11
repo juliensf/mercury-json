@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016, 2018, 2020, 2025 Julien Fischer.
+% Copyright (C) 2013-2016, 2018, 2020, 2025-2026 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 %
@@ -31,7 +31,7 @@
 :- func integer_to_json(integer) = json.value.
 :- func kv_list_to_json(kv_list(K, V)) = json.value
     <= (to_json(K), to_json(V)).
-:- func date_time_to_json(date) = json.value.
+:- func date_time_to_json(date_time) = json.value.
 :- func duration_to_json(duration) = json.value.
 :- func pair_to_json(pair(A, B)) = json.value <= (to_json(A), to_json(B)).
 :- func list_to_json(list(T)) = json.value <= to_json(T).
@@ -127,7 +127,7 @@ kv_elem_to_json(K, V, !Values) :-
     ]),
     !:Values = [Value | !.Values].
 
-date_time_to_json(DateTime) = string(date_to_string(DateTime)).
+date_time_to_json(DateTime) = string(date_time_to_string(DateTime)).
 
 duration_to_json(Duration) = string(duration_to_string(Duration)).
 

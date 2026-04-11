@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016, 2018, 2022-2025 Julien Fischer.
+% Copyright (C) 2013-2016, 2018, 2022-2026 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -36,6 +36,7 @@
 :- import_module dir.
 :- import_module int.
 :- import_module getopt.
+:- import_module io.call_system.
 :- import_module io.file.
 :- import_module list.
 :- import_module require.
@@ -439,7 +440,7 @@ check_result(OptionTable, BaseFileName, !NumFailures, !IO) :-
     string.format("diff %s %s %s > %s",
         [s(DiffFlags), s(ExpFileName), s(OutputFileName), s(ResFileName)],
         DiffCmd),
-    io.call_system(DiffCmd, DiffCmdRes, !IO),
+    io.call_system.call_system(DiffCmd, DiffCmdRes, !IO),
     (
         DiffCmdRes = ok(DiffExitStatus),
         ( if DiffExitStatus = 0 then

@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2014-2016, 2018, 2020, 2025 Julien Fischer.
+% Copyright (C) 2014-2016, 2018, 2020, 2025-2026 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -141,11 +141,11 @@ test_marshaling(File, !IO) :-
     Rational = rational.from_integers(Numerator, Denominator),
     test(File, Rational, !IO),
 
-    % Test dates.
+    % Test date_times.
     %
-    DateA = det_init_date(2000, february, 18, 19, 30, 0, 0),
+    DateA = det_init_date_time(2000, february, 18, 19, 30, 0, 0),
     test(File, DateA, !IO),
-    DateB = det_init_date(2013, march, 2, 20, 30, 11, 123),
+    DateB = det_init_date_time(2013, march, 2, 20, 30, 11, 123),
     test(File, DateB, !IO),
 
     % Test durations.

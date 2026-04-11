@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2020, 2025 Julien Fischer.
+% Copyright (C) 2013-2020, 2025-2026 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 %
@@ -47,7 +47,7 @@
 :- func kv_list_from_json(pointer, value) = from_json_result(kv_list(K, V))
     <= (from_json(K), from_json(V)).
 
-:- func date_time_from_json(pointer, value) = from_json_result(date).
+:- func date_time_from_json(pointer, value) = from_json_result(date_time).
 
 :- func duration_from_json(pointer, value) = from_json_result(duration).
 
@@ -380,11 +380,11 @@ kv_list_from_json(Pointer, Value) = Result :-
 
 %-----------------------------------------------------------------------------%
 %
-% JSON -> date/0 type.
+% JSON -> date_time/0 type.
 %
 
 date_time_from_json(Pointer, JValue) =
-    string_value_to_type(Pointer, JValue, calendar.date_from_string).
+    string_value_to_type(Pointer, JValue, calendar.date_time_from_string).
 
 %-----------------------------------------------------------------------------%
 %
