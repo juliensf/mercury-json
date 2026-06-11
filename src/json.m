@@ -80,7 +80,7 @@
     % make_object(Members, Value):
     % Value is the JSON object constructed from the name - value pairs in
     % the association list Members.
-    % False if a name occurs multiple times in Members.
+    % Fails if a name occurs multiple times in Members.
     %
 :- pred make_object(assoc_list(string, json.value)::in, json.value::out)
     is semidet.
@@ -107,8 +107,7 @@
 
     % The following are true if and only if the given value is a JSON value of
     % the type specified by the predicate name. They return the underlying
-    % value. They are false if the given value is not a JSON value of the type
-    % specified by the predicate name.
+    % value.
     %
 :- pred get_bool(value::in, bool::out) is semidet.
 :- pred get_string(value::in, string::out) is semidet.
@@ -116,13 +115,19 @@
 :- pred get_object(value::in, object::out) is semidet.
 :- pred get_array(value::in, array::out) is semidet.
 
-    % Return the value of a JSON number as an integer.
-    % The fractional part is truncated.
+    % get_int(Value, Int):
+    %
+    % If Value is a JSON number, then Int is the value of that number
+    % converted to an integer, with any fractional part truncated
+    % (i.e. rounded towards zero).
+    % Fails if Value is not a JSON number.
+    % The behaviour is undefined if the number lies outside the range of values
+    % representable by the int type.
     %
 :- pred get_int(value::in, int::out) is semidet.
 
     % As above, but calls error/1 if the given value is not a JSON value of the
-    % type specified by the predicate name.
+    % type specified by the function name.
     %
 :- func det_get_bool(value) = bool.
 :- func det_get_string(value) = string.
@@ -157,7 +162,7 @@
     % Lookup MemberName in Object and return the underlying value if it is a
     % JSON value of the type specified by the predicate name. Calls error/1 if
     % the member value is not a JSON value of the type specified by the
-    % predicate name. If MemberName is not a member of Object, then return
+    % function name. If MemberName is not a member of Object, then return
     % DefaultValue.
     %
 :- func search_bool(object, string, bool) = bool.
@@ -175,7 +180,7 @@
     % If MemberName is not a member of Object, or if its value is null, then
     % return DefaultValue.
     % Calls error/1 if the member value is not a JSON value of the type
-    % specified by the predicate name or null.
+    % specified by the function name or null.
     %
 :- func search_bool_or_null(object, string, bool) = bool.
 :- func search_string_or_null(object, string, string) = string.
@@ -192,7 +197,7 @@
 
 :- type json.pointer.
 
-    % Returns the empty pointer, which is pointer to an entire JSON document.
+    % Returns the empty pointer, which is a pointer to an entire JSON document.
     %
 :- func empty_pointer = pointer.
 
@@ -203,7 +208,7 @@
     % append_token(Pointer0, Token) = Pointer:
     %
     % Return the JSON pointer that results from appending Token to Pointer0.
-    % Token is unescaped JSON pointer token.
+    % Token is an unescaped JSON pointer token.
     % Note that while Token will usually be a member name, it can also be the
     % string representation of an array index.
     %
@@ -524,7 +529,7 @@
     ;       maximum_nesting_depth_reached.
             % The maximum nesting depth limit has been reached.
 
-    % Deprecated name for reader_error_desc/1.
+    % Deprecated name for reader_error_desc/0.
     % This will eventually be deleted.
     %
 :- type json.error_desc == json.reader_error_desc.
@@ -547,7 +552,8 @@
 
 :- type json.reader_res(Error) == stream.res(json.reader_error(Error)).
 
-:- type json.reader_result(T, Error) == stream.result(T, json.reader_error(Error)).
+:- type json.reader_result(T, Error) ==
+    stream.result(T, json.reader_error(Error)).
 
 :- type json.maybe_partial_reader_res(T, Error) ==
     stream.maybe_partial_res(T, json.reader_error(Error)).
@@ -893,7 +899,7 @@
 
 %-----------------------------------------------------------------------------%
 %
-% Writing JSON to file streams.
+% Writing JSON to text output streams.
 %
 
 % The following convenience predicates can be used to write JSON values to text
@@ -999,12 +1005,13 @@
 %     ------------      ----
 %     array/1           array
 %     array2d/1         array of arrays (rectangular)
+%     bag/1             array of objects with two members: "value" and "count"
 %     bool/0            Boolean
 %     bimap/2           array of objects with two members: "key" and "value"
 %     bitmap/0          string (as per bitmap.to_string/1)
 %     cord/1            array
 %     date/0            string (as per calendar.date_to_string/1)
-%     digraph           object with two members: "vertices" and "edges"
+%     digraph/1         object with two members: "vertices" and "edges"
 %                       - the value of "vertices" is an array
 %                       - the value of "edges" is an array of objects, where
 %                         each object has two members: "source" and "dest"
@@ -1109,7 +1116,7 @@
 :- type from_json_error
     --->    from_json_error(
                 error_path  :: pointer,
-                % A JSON pointer describing where in the JSON document, the
+                % A JSON pointer describing where in the JSON document the
                 % conversion error occurred.
 
                 target_type :: type_desc,
@@ -1151,7 +1158,7 @@
             % a Mercury numeric type.
 
     ;       non_finite_number
-            % Conversion failed because a JSON number is infinity or
+            % Conversion failed because a JSON number is an infinity or
             % not-a-number value.
 
     ;       other(string).
@@ -1205,7 +1212,7 @@
 :- instance from_json(json.pointer).
 
     % to_type(Value) = MaybeType:
-    % MaybeType is 'ok(Type)' if Value is a JSON object corresponding
+    % MaybeType is 'ok(Type)' if Value is a JSON value corresponding
     % to the Mercury value Type and 'error(...)' otherwise.
     %
 :- func to_type(json.value) = from_json_result(T) <= from_json(T).
@@ -1215,7 +1222,7 @@
 % Utility methods for error reporting.
 %
 
-    % Return a string describing JSON value given by the argument.
+    % Return a string describing the JSON value given by the argument.
     %
     % The string returned will be one of: "null", "Boolean", "number",
     % "string", "array" or "object".
