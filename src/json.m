@@ -145,7 +145,7 @@
     % lookup_<type>(Object, MemberName) = Value:
     %
     % Lookup MemberName in Object and return the underlying value if it is a
-    % JSON value of the type specified by the predicate name.
+    % JSON value of the type specified by the function name.
     % Calls error/1 if MemberName is not a member of Object or if the member
     % value is not a JSON value of the type specified by the function name.
     %
@@ -160,7 +160,7 @@
     % search_<type>(Object, MemberName, DefaultValue) = Value:
     %
     % Lookup MemberName in Object and return the underlying value if it is a
-    % JSON value of the type specified by the predicate name. Calls error/1 if
+    % JSON value of the type specified by the function name. Calls error/1 if
     % the member value is not a JSON value of the type specified by the
     % function name. If MemberName is not a member of Object, then return
     % DefaultValue.
@@ -176,7 +176,7 @@
     % search_<type>_or_null(Object, MemberName, DefaultValue) = Value:
     %
     % Lookup MemberName in Object and return the underlying value if it is a
-    % JSON value of the type specified by the predicate name.
+    % JSON value of the type specified by the function name.
     % If MemberName is not a member of Object, or if its value is null, then
     % return DefaultValue.
     % Calls error/1 if the member value is not a JSON value of the type

@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2025 Julien Fischer.
+% Copyright (C) 2025-2026 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 %
@@ -249,7 +249,7 @@ do_from_json_error_to_string(Error) = String :-
     ;
         ErrorDesc = conflicting_members(Member1, Member2),
         string.format(
-"at %s: conversion to %s failed: object cannot have both \"%s\" and  \"%s\" members",
+"at %s: conversion to %s failed: object cannot have both \"%s\" and \"%s\" members",
             [s(PointerDesc), s(TypeName), s(Member1), s(Member2)], String)
     ;
         ErrorDesc = out_of_bounds_number,
