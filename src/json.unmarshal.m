@@ -523,7 +523,7 @@ array2d_from_json(Pointer, Value) = Result :-
                     (
                         RowsAreEmptyResult = crr_all_empty,
                         % NOTE: the bounds of array2d.from_lists([]) differ
-                        % from those of array2d.from_lists([[],[])) etc. I'm
+                        % from those of array2d.from_lists([[],[]])) etc. I'm
                         % not sure if this behaviour was intentional, but until
                         % it is clarified we reproduce it here as well, hence
                         % the following.
@@ -541,7 +541,7 @@ array2d_from_json(Pointer, Value) = Result :-
                     ;
                         RowsAreEmptyResult = crr_bad_type(RowNo, RowValue),
                         string.format(
-                            " row %d is %s, expected array",
+                            "row %d is %s, expected array",
                             [i(RowNo), s(to_value_desc(RowValue))], Msg),
                         Result = make_other_error(Pointer, Msg)
                     )
@@ -630,7 +630,7 @@ check_array2d_rows_are_empty(RowNo, [Value | Values], Result) :-
     ).
 
 :- pred array2d_unmarshal_rows(pointer::in, int::in, int::in, int::in,
-    list(value)::in, array2d(T)::array_di, array2d(T)::array_uo,
+    list(value)::in, array2d(T)::array2d_di, array2d(T)::array2d_uo,
     from_json_res::out) is det <= from_json(T).
 
 array2d_unmarshal_rows(Pointer, R, NumRows, NumCols, RowValues, !Array2d,
