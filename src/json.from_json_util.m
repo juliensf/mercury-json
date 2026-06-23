@@ -37,8 +37,9 @@
 
     % maybe_map_value_to_type(Pointer, Value, ToType) = Result:
     %
-    % Unmarshal Value to a term of type V and the apply the predicate ToType to
-    % it which yields a term of type T if it succeeds and an error if it fails.
+    % Unmarshal Value to a term of type V and then apply the predicate ToType
+    % to it which yields a term of type T if it succeeds and an error if it
+    % fails.
     %
 :- func maybe_map_value_to_type(json.pointer::in, json.value::in,
     pred(V, T)::in(pred(in, out) is semidet))
@@ -62,14 +63,14 @@
     %    from_json(Pointer, Value) =
     %       string_value_to_type(Pointer, Value, string_to_fruit).
     %
-    %    :- pred string_to_fruit(string::in, fruit::out is semidet.
+    %    :- pred string_to_fruit(string::in, fruit::out) is semidet.
     %
     %   string_to_fruit("apple",  apple).
     %   string_to_fruit("orange", orange).
     %   string_to_fruit("lemon",  lemon).
     %
     % (Note that maybe_map_value_to_type/3 could also be used to do this, but
-    % when the JSON values are strings, string_to_value_type/3 will produce
+    % when the JSON values are strings, string_value_to_type/3 will produce
     % more precise error messages.)
     %
 :- func string_value_to_type(json.pointer::in, json.value::in,
@@ -95,7 +96,7 @@
 %       --->    book(
 %                   title     :: string,
 %                   author    :: string,
-%                   publisher :: string,
+%                   publisher :: string
 %               ).
 %
 % can be implemented as follows:
