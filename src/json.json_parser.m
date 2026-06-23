@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2013-2016, 2018, 2020, 2022, 2025 Julien Fischer.
+% Copyright (C) 2013-2016, 2018, 2020, 2022, 2025-2026 Julien Fischer.
 % See the file COPYING for license details.
 %-----------------------------------------------------------------------------%
 
@@ -704,7 +704,7 @@ do_object_fold_members(Reader, NestingDepth, Where, Pred, !.Acc, Result,
             ; ColonToken = token_null
             ),
             Msg = "expected ':'",
-            TokenDesc = token_to_string(Token),
+            TokenDesc = token_to_string(ColonToken),
             make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         ;
@@ -869,7 +869,7 @@ do_object_fold_state_members(Reader, NestingDepth, Where, Pred, !.Acc,
             ; ColonToken = token_null
             ),
             Msg = "expected ':'",
-            TokenDesc = token_to_string(Token),
+            TokenDesc = token_to_string(ColonToken),
             make_syntax_error(Reader, TokenDesc, yes(Msg), Error, !State),
             Result = error(!.Acc, Error)
         ;
