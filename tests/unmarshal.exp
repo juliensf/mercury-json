@@ -262,6 +262,14 @@ JSON: ""
 TYPE: character
 RESULT: ERROR: at root: conversion to character failed: has length 0, expected length 1
 
+JSON: "\u00E9"
+TYPE: character
+RESULT: OK: é
+
+JSON: "\uD83D\uDF10"
+TYPE: character
+RESULT: OK: 🜐
+
 JSON: null
 TYPE: string
 RESULT: ERROR: at root: conversion to string failed: expected string, have null

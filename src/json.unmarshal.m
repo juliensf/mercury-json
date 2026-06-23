@@ -305,7 +305,7 @@ float_from_json(Pointer, JValue) = Result :-
 
 char_from_json(Pointer, JValue) = Result :-
     ( if JValue = string(String) then
-        string.length(String, Length),
+        string.count_code_points(String, Length),
         ( if
             Length = 1,
             Char = String ^ elem(0)

@@ -1,7 +1,7 @@
 %-----------------------------------------------------------------------------%
 % vim: ft=mercury ts=4 sw=4 et
 %-----------------------------------------------------------------------------%
-% Copyright (C) 2016, 2018-2020, 2025 Julien Fischer.
+% Copyright (C) 2016, 2018-2020, 2025-2026 Julien Fischer.
 %
 % Author: Julien Fischer <juliensf@gmail.com>
 %
@@ -202,7 +202,13 @@ test_unmarshal_floats(File, !IO) :-
 test_unmarshal_chars(File, !IO) :-
     do_unmarshal_test(File, null, _ : character, !IO),
     do_unmarshal_test(File, string("AA"), _ : character, !IO),
-    do_unmarshal_test(File, string(""), _ : character, !IO).
+    do_unmarshal_test(File, string(""), _ : character, !IO),
+
+    % Two code units in UTF-8.
+    do_unmarshal_test(File, string("\u00e9"), _ : character, !IO),
+
+    % Two code units in UTF-16 (four in UTF-8).
+    do_unmarshal_test(File, string("\U0001F710"), _ : character, !IO).
 
 :- pred test_unmarshal_strings(io.text_output_stream::in, io::di, io::uo)
     is det.
