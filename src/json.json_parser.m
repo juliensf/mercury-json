@@ -8,6 +8,8 @@
 :- module json.json_parser.
 :- interface.
 
+:- import_module json.json_lexer.
+
 %-----------------------------------------------------------------------------%
 
 :- type nesting_depth == int.
