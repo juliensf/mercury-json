@@ -624,7 +624,7 @@
 %
 
 % The 'get' operations here read a value from the underlying stream using the
-% reader. In contrast to the 'read' operations above they do not examine the
+% reader. In contrast to the 'read' operations above, they do not examine the
 % underlying character stream any further once a value has been read. The
 % 'get' operations can be used read a stream of JSON values.
 
@@ -773,10 +773,10 @@
 % Reading and getting JSON values from text files.
 %
 
-% The following convenience predicates can be used to read and get JSON values
-% from text files. Files being read from with these predicates must be UTF-8
-% encoded. If the UTF-8 byte order mark (BOM) is present at the beginning of
-% a file, then it will be ignored.
+% The following predicates read and get JSON values from text files.
+% Files read using these predicates must be UTF-8 encoded.
+% If the UTF-8 byte order mark (BOM) is present at the beginning of a file,
+% then it will be ignored.
 
     % read_value_from_named_file(FileName, Result, !IO):
     %
